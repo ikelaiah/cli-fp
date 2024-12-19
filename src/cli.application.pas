@@ -31,6 +31,7 @@ type
     procedure ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
     function GetCommands: TCommandList;
     procedure ShowBriefHelp;
+    function GetValidParameterFlags: TStringList;
   public
     constructor Create(const AName, AVersion: string);
     destructor Destroy; override;
@@ -282,29 +283,70 @@ begin
       Exit(FCommands[i]);
 end;
 
+function TCLIApplication.GetValidParameterFlags: TStringList;
+var
+  Param: ICommandParameter;
+begin
+  Result := TStringList.Create;
+  Result.CaseSensitive := True;
+  
+  // Add all valid parameter flags for the current command
+  for Param in FCurrentCommand.Parameters do
+  begin
+    Result.Add(Param.LongFlag);
+    Result.Add(Param.ShortFlag);
+  end;
+  
+  // Add global flags
+  Result.Add('--help');
+  Result.Add('-h');
+  Result.Add('--version');
+  Result.Add('-v');
+end;
+
 function TCLIApplication.ValidateCommand: Boolean;
 var
   Param: ICommandParameter;
   Value: string;
   HasValue: Boolean;
+  ValidFlags: TStringList;
+  i: Integer;
+  Flag: string;
 begin
   Result := True;
-  
-  for Param in FCurrentCommand.Parameters do
-  begin
-    if Param.Required then
+  ValidFlags := GetValidParameterFlags;
+  try
+    // Check for unknown parameters
+    for i := 0 to FParsedParams.Count - 1 do
     begin
-      // Check both long and short flags
-      HasValue := (FParsedParams.Values[Param.LongFlag] <> '') or
-                 (FParsedParams.Values[Param.ShortFlag] <> '');
-                 
-      if not HasValue and (Param.DefaultValue = '') then
+      Flag := FParsedParams.Names[i];
+      if (Flag <> '') and (ValidFlags.IndexOf(Flag) = -1) then
       begin
-        TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
+        TConsole.WriteLn('Error: Unknown parameter "' + Flag + '"', ccRed);
         ShowCommandHelp(FCurrentCommand);
         Exit(False);
       end;
     end;
+
+    // Check required parameters
+    for Param in FCurrentCommand.Parameters do
+    begin
+      if Param.Required then
+      begin
+        // Check both long and short flags
+        HasValue := (FParsedParams.Values[Param.LongFlag] <> '') or
+                   (FParsedParams.Values[Param.ShortFlag] <> '');
+                   
+        if not HasValue and (Param.DefaultValue = '') then
+        begin
+          TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
+          ShowCommandHelp(FCurrentCommand);
+          Exit(False);
+        end;
+      end;
+    end;
+  finally
+    ValidFlags.Free;
   end;
 end;
 

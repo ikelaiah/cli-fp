@@ -16,6 +16,26 @@ A modern, feature-rich framework for building command-line applications in Free 
 - 📚 **Comprehensive Help System**: Auto-generated help with examples
 - 🛡️ **Type-Safe**: Interface-based design with strong typing
 - 🔌 **Extensible**: Easy to extend with custom commands and parameters
+- **Modern Command-Line Interface**
+  - Subcommand support (e.g., `app repo init`, `app repo clone`)
+  - Short and long flags (`-h`, `--help`)
+  - Automatic help generation
+  - Colored output support
+- **Robust Error Handling**
+  - Clear error messages for unknown commands and subcommands
+  - Validation of command-line flags and parameters
+  - Helpful suggestions when errors occur
+  - Context-aware help display
+- **Developer-Friendly**
+  - Interface-based design
+  - Easy command registration
+  - Extensible parameter system
+  - Built-in progress indicators
+- **User-Friendly**
+  - Consistent help formatting
+  - Command suggestions
+  - Default values support
+  - Required parameter validation
 
 ## 🚀 Quick Start
 
