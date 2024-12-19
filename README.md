@@ -41,16 +41,31 @@ A modern, feature-rich framework for building command-line applications in Free 
 
 1. **Installation**
 
+No complex build system needed! Just:
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/cli-fp.git
 
-# Add to your project's uses clause
-uses
-  CLI.Interfaces, CLI.Application, CLI.Command, CLI.Parameter;
+# Copy the source files to your project
+# OR add the source directory to your project's search path
 ```
 
-2. **Create Your First CLI App**
+2. **Use in Your Project**
+
+Simply add the units to your uses clause:
+
+```pascal
+uses
+  CLI.Interfaces,    // Core interfaces
+  CLI.Application,   // Main application framework
+  CLI.Command,       // Base command implementation
+  CLI.Parameter,     // Parameter handling
+  CLI.Progress,      // Optional: Progress indicators
+  CLI.Console;       // Optional: Colored console output
+```
+
+3. **Create Your First CLI App**
 
 ```pascal
 program MyApp;
@@ -58,7 +73,7 @@ program MyApp;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, CLI.Interfaces, CLI.Application, CLI.Command, CLI.Parameter;
+  SysUtils, CLI.Interfaces, CLI.Application, CLI.Command;
 
 type
   TGreetCommand = class(TBaseCommand)
@@ -82,6 +97,38 @@ begin
   ExitCode := App.Execute;
 end.
 ```
+
+That's it! No makefiles, no complex configuration, no external dependencies. 
+
+Just pure Object Pascal code.
+
+## 📖 System Requirements
+
+### Tested Environments
+- **Operating System**: Windows 11
+- **Compiler**: Free Pascal (FPC) 3.2.2
+- **IDE**: Lazarus 3.6
+
+### Theoretical Compatibility
+- **Operating Systems**:
+  - Windows (7, 8, 10, 11)
+  - Linux (Any distribution with FPC support)
+  - macOS (with FPC support)
+  - FreeBSD
+- **Compiler**: Free Pascal 3.2.0 or higher
+- **IDE**: Any IDE that supports Free Pascal
+  - Lazarus 2.2.0 or higher
+  - VS Code with OmniPascal
+  - Other text editors
+
+### Dependencies
+- No external dependencies required
+- Uses only standard Free Pascal RTL units
+
+### Build Requirements
+- Free Pascal Compiler (FPC) 3.2.0+
+- At least 50MB disk space
+- Basic development tools (git, text editor)
 
 ## 📖 Documentation
 
@@ -121,6 +168,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-Your Name - [@yourusername](https://twitter.com/yourusername)
+Your Name - [ikelaiah](https://github.com/ikelaiah)
 
-Project Link: [https://github.com/yourusername/cli-fp](https://github.com/yourusername/cli-fp) 
+Project Link: [https://github.com/ikelaiah/cli-fp](https://github.com/ikelaiah/cli-fp) 
