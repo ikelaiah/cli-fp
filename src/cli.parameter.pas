@@ -8,36 +8,40 @@ uses
   Classes, SysUtils, CLI.Interfaces;
 
 type
+  { Parameter class }
   TCommandParameter = class(TInterfacedObject, ICommandParameter)
   private
     FShortFlag: string;
     FLongFlag: string;
     FDescription: string;
     FRequired: Boolean;
-    FParamType: TParamType;
+    FParamType: TParameterType;
     FDefaultValue: string;
-    
     function GetShortFlag: string;
     function GetLongFlag: string;
     function GetDescription: string;
     function GetRequired: Boolean;
-    function GetParamType: TParamType;
+    function GetParamType: TParameterType;
     function GetDefaultValue: string;
   public
     constructor Create(const AShortFlag, ALongFlag, ADescription: string;
-      const ARequired: Boolean; const AParamType: TParamType;
-      const ADefaultValue: string = '');
+      ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '');
+    property ShortFlag: string read GetShortFlag;
+    property LongFlag: string read GetLongFlag;
+    property Description: string read GetDescription;
+    property Required: Boolean read GetRequired;
+    property ParamType: TParameterType read GetParamType;
+    property DefaultValue: string read GetDefaultValue;
   end;
 
-  { Helper function to create parameters easily }
-  function CreateParameter(const AShortFlag, ALongFlag, ADescription: string;
-    const ARequired: Boolean; const AParamType: TParamType;
-    const ADefaultValue: string = ''): ICommandParameter;
+{ Helper function to create parameters }
+function CreateParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = ''): ICommandParameter;
 
 implementation
 
 constructor TCommandParameter.Create(const AShortFlag, ALongFlag, ADescription: string;
-  const ARequired: Boolean; const AParamType: TParamType; const ADefaultValue: string);
+  ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string);
 begin
   inherited Create;
   FShortFlag := AShortFlag;
@@ -68,7 +72,7 @@ begin
   Result := FRequired;
 end;
 
-function TCommandParameter.GetParamType: TParamType;
+function TCommandParameter.GetParamType: TParameterType;
 begin
   Result := FParamType;
 end;
@@ -78,12 +82,11 @@ begin
   Result := FDefaultValue;
 end;
 
-function CreateParameter(const AShortFlag, ALongFlag, ADescription: string;
-  const ARequired: Boolean; const AParamType: TParamType;
-  const ADefaultValue: string): ICommandParameter;
+function CreateParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string): ICommandParameter;
 begin
-  Result := TCommandParameter.Create(AShortFlag, ALongFlag, ADescription,
-    ARequired, AParamType, ADefaultValue);
+  Result := TCommandParameter.Create(ShortFlag, LongFlag, Description,
+    Required, ParamType, DefaultValue);
 end;
 
 end. 

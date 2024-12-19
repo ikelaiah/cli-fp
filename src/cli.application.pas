@@ -16,6 +16,7 @@ type
     FCommands: array of ICommand;
     FCurrentCommand: ICommand;
     FParsedParams: TStringList;
+    FParamStartIndex: Integer;
     
     procedure ParseCommandLine;
     procedure ShowHelp;
@@ -48,6 +49,7 @@ begin
   SetLength(FCommands, 0);
   FParsedParams := TStringList.Create;
   FParsedParams.CaseSensitive := True;
+  FParamStartIndex := 2; // Skip program name and command name
 end;
 
 destructor TCLIApplication.Destroy;
@@ -66,29 +68,44 @@ function TCLIApplication.Execute: Integer;
 var
   CmdName: string;
   Command: TBaseCommand;
+  SubCmd: ICommand;
+  SubCmdName: string;
+  i: Integer;
+  CurrentCmd: ICommand;
+  Cmd: ICommand;
 begin
   Result := 0;
-  
-  // Check for help and version flags before parsing command line
-  if (ParamCount > 0) and 
-     ((ParamStr(1) = '-h') or (ParamStr(1) = '--help')) then
-  begin
-    ShowHelp;
-    Exit;
-  end;
-  
-  if (ParamCount > 0) and
-     ((ParamStr(1) = '-v') or (ParamStr(1) = '--version')) then
-  begin
-    ShowVersion;
-    Exit;
-  end;
   
   // Get command name (first argument)
   if ParamCount = 0 then
   begin
     ShowHelp;
     Exit;
+  end;
+  
+  // Check for global help and version flags
+  for i := 1 to ParamCount do
+  begin
+    if (ParamStr(i) = '-h') or (ParamStr(i) = '--help') then
+    begin
+      if i = 1 then
+      begin
+        ShowHelp;
+        Exit;
+      end;
+      // Help flag will be handled later for commands
+      Break;
+    end;
+    if (ParamStr(i) = '-v') or (ParamStr(i) = '--version') then
+    begin
+      if i = 1 then
+      begin
+        ShowVersion;
+        Exit;
+      end;
+      // Version flag after command is ignored
+      Break;
+    end;
   end;
   
   CmdName := ParamStr(1);
@@ -99,25 +116,57 @@ begin
     Exit(1);
   end;
   
-  // Parse command line arguments
-  ParseCommandLine;
+  // Find main command
+  CurrentCmd := FindCommand(CmdName);
   
-  FCurrentCommand := FindCommand(CmdName);
-  
-  if not Assigned(FCurrentCommand) then
+  if not Assigned(CurrentCmd) then
   begin
     TConsole.WriteLn('Error: Unknown command "' + CmdName + '"', ccRed);
     ShowHelp;
     Exit(1);
   end;
   
-  // Show command help if requested
-  if (FParsedParams.IndexOf('-h') >= 0) or 
-     (FParsedParams.IndexOf('--help') >= 0) then
+  FCurrentCommand := CurrentCmd;
+  
+  // Check for subcommand
+  i := 2;
+  while (i <= ParamCount) and not StartsStr('-', ParamStr(i)) do
   begin
-    ShowCommandHelp(FCurrentCommand);
-    Exit;
+    SubCmdName := ParamStr(i);
+    SubCmd := nil;
+    
+    for Cmd in CurrentCmd.SubCommands do
+    begin
+      if SameText(Cmd.Name, SubCmdName) then
+      begin
+        SubCmd := Cmd;
+        Break;
+      end;
+    end;
+    
+    if Assigned(SubCmd) then
+    begin
+      CurrentCmd := SubCmd;
+      FCurrentCommand := SubCmd;
+      Inc(FParamStartIndex);
+      Inc(i);
+    end
+    else
+      Break;
   end;
+
+  // Check for help flag before parsing other parameters
+  for i := FParamStartIndex to ParamCount do
+  begin
+    if (ParamStr(i) = '-h') or (ParamStr(i) = '--help') then
+    begin
+      ShowCommandHelp(FCurrentCommand);
+      Exit;
+    end;
+  end;
+  
+  // Parse command line arguments
+  ParseCommandLine;
   
   // Pass parsed parameters to the command
   Command := FCurrentCommand as TBaseCommand;
@@ -145,7 +194,7 @@ var
   Param, Value: string;
 begin
   FParsedParams.Clear;
-  i := 2; // Skip program name and command name
+  i := FParamStartIndex; // Start after program name and command name(s)
   
   TConsole.WriteLn('Parsing command line...', ccCyan);
   while i <= ParamCount do
@@ -208,6 +257,7 @@ function TCLIApplication.ValidateCommand: Boolean;
 var
   Param: ICommandParameter;
   Value: string;
+  HasValue: Boolean;
 begin
   Result := True;
   
@@ -215,9 +265,13 @@ begin
   begin
     if Param.Required then
     begin
-      if not GetParameterValue(Param, Value) then
+      // Check both long and short flags
+      HasValue := (FParsedParams.Values[Param.LongFlag] <> '') or
+                 (FParsedParams.Values[Param.ShortFlag] <> '');
+                 
+      if not HasValue and (Param.DefaultValue = '') then
       begin
-        WriteLn('Error: Required parameter "', Param.LongFlag, '" not provided');
+        TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
         ShowCommandHelp(FCurrentCommand);
         Exit(False);
       end;
@@ -267,25 +321,52 @@ procedure TCLIApplication.ShowCommandHelp(const Command: ICommand);
 var
   Param: ICommandParameter;
   RequiredText: string;
+  CommandPath: string;
+  i: Integer;
+  SubCmd: ICommand;
 begin
-  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + Command.Name + ' [options]');
+  // Build command path from parameters
+  CommandPath := '';
+  for i := 1 to ParamCount do
+  begin
+    if StartsStr('-', ParamStr(i)) then
+      Break;
+    if CommandPath <> '' then
+      CommandPath := CommandPath + ' ';
+    CommandPath := CommandPath + ParamStr(i);
+  end;
+  if CommandPath = '' then
+    CommandPath := Command.Name;
+
+  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
   TConsole.WriteLn('');
   TConsole.WriteLn(Command.Description);
-  TConsole.WriteLn('');
-  TConsole.WriteLn('Options:', ccCyan);
   
-  for Param in Command.Parameters do
+  if Length(Command.SubCommands) > 0 then
   begin
-    if Param.Required then
-      RequiredText := ' (required)'
-    else
-      RequiredText := '';
+    TConsole.WriteLn('');
+    TConsole.WriteLn('Commands:', ccCyan);
+    for SubCmd in Command.SubCommands do
+      TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
+  end;
+  
+  if Length(Command.Parameters) > 0 then
+  begin
+    TConsole.WriteLn('');
+    TConsole.WriteLn('Options:', ccCyan);
+    for Param in Command.Parameters do
+    begin
+      if Param.Required then
+        RequiredText := ' (required)'
+      else
+        RequiredText := '';
+        
+      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
+        Param.Description + RequiredText);
       
-    TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
-      Param.Description + RequiredText);
-    
-    if Param.DefaultValue <> '' then
-      TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+      if Param.DefaultValue <> '' then
+        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+    end;
   end;
 end;
 

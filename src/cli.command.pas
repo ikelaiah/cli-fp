@@ -5,7 +5,7 @@ unit CLI.Command;
 interface
 
 uses
-  Classes, SysUtils, CLI.Interfaces;
+  Classes, SysUtils, StrUtils, CLI.Interfaces, CLI.Parameter, CLI.Console;
 
 type
   { Base command class }
@@ -13,28 +13,30 @@ type
   private
     FName: string;
     FDescription: string;
-    FParameters: TCommandParameterArray;
+    FParameters: array of ICommandParameter;
+    FSubCommands: array of ICommand;
     FParsedParams: TStringList;
+  protected
     function GetName: string;
     function GetDescription: string;
-    function GetParameters: TCommandParameterArray;
-  protected
-    function ValidateParameters: Boolean; virtual;
+    function GetParameters: specialize TArray<ICommandParameter>;
+    function GetSubCommands: specialize TArray<ICommand>;
     function GetParameterValue(const Flag: string; out Value: string): Boolean;
+    procedure ShowHelp;
   public
     constructor Create(const AName, ADescription: string);
     destructor Destroy; override;
-    function AddParameter(const Parameter: ICommandParameter): TBaseCommand;
-    function Execute: Integer; virtual; abstract;
+    
+    procedure AddParameter(const Parameter: ICommandParameter);
+    procedure AddSubCommand(const Command: ICommand);
     procedure SetParsedParams(const Params: TStringList);
+    function Execute: Integer; virtual; abstract;
     
     property Name: string read GetName;
     property Description: string read GetDescription;
-    property Parameters: TCommandParameterArray read GetParameters;
+    property Parameters: specialize TArray<ICommandParameter> read GetParameters;
+    property SubCommands: specialize TArray<ICommand> read GetSubCommands;
   end;
-
-{ Helper function to create commands }
-function CreateCommand(const Name, Description: string): TBaseCommand;
 
 implementation
 
@@ -44,13 +46,15 @@ begin
   FName := AName;
   FDescription := ADescription;
   SetLength(FParameters, 0);
-  FParsedParams := TStringList.Create;
-  FParsedParams.CaseSensitive := True;
+  SetLength(FSubCommands, 0);
+  FParsedParams := nil;
 end;
 
 destructor TBaseCommand.Destroy;
 begin
-  FParsedParams.Free;
+  SetLength(FParameters, 0);
+  SetLength(FSubCommands, 0);
+  // Don't free FParsedParams as it's owned by the application
   inherited;
 end;
 
@@ -64,75 +68,129 @@ begin
   Result := FDescription;
 end;
 
-function TBaseCommand.GetParameters: TCommandParameterArray;
+function TBaseCommand.GetParameters: specialize TArray<ICommandParameter>;
 begin
   Result := FParameters;
 end;
 
-function TBaseCommand.AddParameter(const Parameter: ICommandParameter): TBaseCommand;
+function TBaseCommand.GetSubCommands: specialize TArray<ICommand>;
+begin
+  Result := FSubCommands;
+end;
+
+procedure TBaseCommand.AddParameter(const Parameter: ICommandParameter);
 begin
   SetLength(FParameters, Length(FParameters) + 1);
   FParameters[High(FParameters)] := Parameter;
-  Result := Self;
 end;
 
-function TBaseCommand.ValidateParameters: Boolean;
-var
-  Param: ICommandParameter;
-  Value: string;
+procedure TBaseCommand.AddSubCommand(const Command: ICommand);
 begin
-  Result := True;
-  for Param in FParameters do
-  begin
-    if Param.Required then
-    begin
-      if not GetParameterValue(Param.LongFlag, Value) and
-         not GetParameterValue(Param.ShortFlag, Value) then
-      begin
-        Result := False;
-        Break;
-      end;
-    end;
-  end;
+  SetLength(FSubCommands, Length(FSubCommands) + 1);
+  FSubCommands[High(FSubCommands)] := Command;
+end;
+
+procedure TBaseCommand.SetParsedParams(const Params: TStringList);
+begin
+  FParsedParams := Params;
 end;
 
 function TBaseCommand.GetParameterValue(const Flag: string; out Value: string): Boolean;
 var
   Param: ICommandParameter;
 begin
-  // First try to get the value from parsed parameters
+  Result := False;
+  if not Assigned(FParsedParams) then
+    Exit;
+
+  // First try to get the value directly from parsed parameters
   Value := FParsedParams.Values[Flag];
-  Result := Value <> '';
-  
-  // If not found, look for the parameter and use its default value
-  if not Result then
+  if Value <> '' then
+    Exit(True);
+    
+  // If not found, try to find the parameter and check both its flags
+  for Param in FParameters do
   begin
-    for Param in FParameters do
+    if (Param.LongFlag = Flag) or (Param.ShortFlag = Flag) then
     begin
-      if (Param.LongFlag = Flag) or (Param.ShortFlag = Flag) then
+      // Check both long and short flags in parsed parameters
+      Value := FParsedParams.Values[Param.LongFlag];
+      if Value = '' then
+        Value := FParsedParams.Values[Param.ShortFlag];
+        
+      if Value <> '' then
+        Exit(True)
+      else if Param.DefaultValue <> '' then
       begin
         Value := Param.DefaultValue;
-        Result := Value <> '';
-        Break;
+        Exit(True);
       end;
+      Break;
     end;
   end;
 end;
 
-procedure TBaseCommand.SetParsedParams(const Params: TStringList);
+procedure TBaseCommand.ShowHelp;
 var
+  Param: ICommandParameter;
+  SubCmd: ICommand;
+  RequiredText: string;
+  ExeName: string;
+  CommandPath: string;
   i: Integer;
 begin
-  FParsedParams.Clear;
-  for i := 0 to Params.Count - 1 do
+  ExeName := ExtractFileName(ParamStr(0));
+  
+  // Build command path from parameters
+  CommandPath := '';
+  for i := 1 to ParamCount do
   begin
-    FParsedParams.Add(Params[i]);
+    if StartsStr('-', ParamStr(i)) then
+      Break;
+    if CommandPath <> '' then
+      CommandPath := CommandPath + ' ';
+    CommandPath := CommandPath + ParamStr(i);
   end;
-end;
-
-function CreateCommand(const Name, Description: string): TBaseCommand;
-begin
-  Result := TBaseCommand.Create(Name, Description);
+  if CommandPath = '' then
+    CommandPath := Name;
+  
+  TConsole.WriteLn('Usage: ' + ExeName + ' ' + CommandPath + ' [options]');
+  TConsole.WriteLn('');
+  TConsole.WriteLn(Description);
+  
+  if Length(SubCommands) > 0 then
+  begin
+    TConsole.WriteLn('');
+    TConsole.WriteLn('Commands:', ccCyan);
+    for SubCmd in SubCommands do
+      TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
+      
+    TConsole.WriteLn('');
+    TConsole.WriteLn('Examples:', ccCyan);
+    TConsole.WriteLn('  ' + ExeName + ' ' + CommandPath + ' <command> --help');
+    TConsole.WriteLn('    Show help for a specific command');
+    for SubCmd in SubCommands do
+      TConsole.WriteLn('  ' + ExeName + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
+  end;
+  
+  if Length(Parameters) > 0 then
+  begin
+    TConsole.WriteLn('');
+    TConsole.WriteLn('Options:', ccCyan);
+    for Param in Parameters do
+    begin
+      if Param.Required then
+        RequiredText := ' (required)'
+      else
+        RequiredText := '';
+        
+      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
+        Param.Description + RequiredText);
+      
+      if Param.DefaultValue <> '' then
+        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+    end;
+  end;
 end;
 
 end.
