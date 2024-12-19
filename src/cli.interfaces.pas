@@ -21,6 +21,7 @@ type
   ICommand = interface;
   ICommandParameter = interface;
   ICLIApplication = interface;
+  IProgressIndicator = interface;
 
   { Command interface }
   ICommand = interface
@@ -51,6 +52,14 @@ type
     property Required: Boolean read GetRequired;
     property ParamType: TParameterType read GetParamType;
     property DefaultValue: string read GetDefaultValue;
+  end;
+
+  { Progress indicator interface }
+  IProgressIndicator = interface
+    ['{C3D4E5F6-A7B8-49C0-D1E2-F3A4B5C6D7E8}']
+    procedure Start;
+    procedure Stop;
+    procedure Update(const Progress: Integer); // 0-100 for percentage
   end;
 
   { CLI application interface }
