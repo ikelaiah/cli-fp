@@ -98,6 +98,36 @@ begin
 end.
 ```
 
+**Output:**
+
+```
+$ ./MyApp.exe
+MyApp version 1.0.0
+
+Usage:
+  MyApp.exe <command> [options]
+
+Commands:
+  greet          Say hello
+
+Global Options:
+  -h, --help           Show this help message
+  --help-complete      Show complete reference for all commands
+  -v, --version        Show version information
+
+Examples:
+  Get help for commands:
+    MyApp.exe <command> --help
+
+  Available command help:
+    MyApp.exe greet --help
+```
+
+```
+$ ./MyApp.exe greet
+Hello, CLI World!
+``` 
+
 That's it! No makefiles, no complex configuration, no external dependencies. 
 
 Just pure Object Pascal code.

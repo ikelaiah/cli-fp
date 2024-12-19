@@ -1,6 +1,6 @@
 unit CLI.Errors;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 
 

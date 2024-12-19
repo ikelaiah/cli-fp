@@ -1,6 +1,6 @@
 program TestRunner;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 uses
   Classes, consoletestrunner, TestCase;
