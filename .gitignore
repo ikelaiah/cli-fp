@@ -10,7 +10,7 @@
 link.res
 *.dbg
 *.tds
-
+*.lps.bak
 # Binaries
 *.exe
 *.dll
@@ -46,3 +46,8 @@ heaptrc.log
 # OS specific
 .DS_Store
 Thumbs.db 
+examples/SimpleDemo/SimpleDemo.dbg
+examples/SimpleDemo/SimpleDemo.exe
+examples/SimpleDemo/lib/x86_64-win64/cli.application.o
+examples/SimpleDemo/lib/x86_64-win64/cli.application.ppu
+examples/SimpleDemo/lib/x86_64-win64/SimpleDemo.o
