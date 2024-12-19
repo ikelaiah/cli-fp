@@ -1,0 +1,100 @@
+unit CLI.Command;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, CLI.Interfaces;
+
+type
+  { Base command class }
+  TBaseCommand = class(TInterfacedObject, ICommand)
+  private
+    FName: string;
+    FDescription: string;
+    FParameters: specialize TArray<ICommandParameter>;
+    function GetName: string;
+    function GetDescription: string;
+    function GetParameters: specialize TArray<ICommandParameter>;
+  protected
+    function ValidateParameters: Boolean; virtual;
+    function GetParameterValue(const Flag: string; out Value: string): Boolean;
+  public
+    constructor Create(const AName, ADescription: string);
+    function AddParameter(const Parameter: ICommandParameter): ICommand;
+    function Execute: Integer; virtual; abstract;
+    
+    property Name: string read GetName;
+    property Description: string read GetDescription;
+    property Parameters: specialize TArray<ICommandParameter> read GetParameters;
+  end;
+
+{ Helper function to create commands }
+function CreateCommand(const Name, Description: string): ICommand;
+
+implementation
+
+uses
+  StrUtils;
+
+constructor TBaseCommand.Create(const AName, ADescription: string);
+begin
+  inherited Create;
+  FName := AName;
+  FDescription := ADescription;
+  SetLength(FParameters, 0);
+end;
+
+function TBaseCommand.GetName: string;
+begin
+  Result := FName;
+end;
+
+function TBaseCommand.GetDescription: string;
+begin
+  Result := FDescription;
+end;
+
+function TBaseCommand.GetParameters: TArray<ICommandParameter>;
+begin
+  Result := FParameters;
+end;
+
+function TBaseCommand.AddParameter(const Parameter: ICommandParameter): ICommand;
+begin
+  SetLength(FParameters, Length(FParameters) + 1);
+  FParameters[High(FParameters)] := Parameter;
+  Result := Self;
+end;
+
+function TBaseCommand.ValidateParameters: Boolean;
+var
+  Param: ICommandParameter;
+begin
+  Result := True;
+  for Param in FParameters do
+  begin
+    if Param.Required then
+    begin
+      // Check if required parameter is provided
+      // Implementation will be added in CLI.Application
+      // when we have access to command line parameters
+    end;
+  end;
+end;
+
+function TBaseCommand.GetParameterValue(const Flag: string; out Value: string): Boolean;
+begin
+  // Implementation will be added in CLI.Application
+  // when we have access to command line parameters
+  Result := False;
+  Value := '';
+end;
+
+function CreateCommand(const Name, Description: string): ICommand;
+begin
+  Result := TBaseCommand.Create(Name, Description);
+end;
+
+end.
