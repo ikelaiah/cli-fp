@@ -77,6 +77,7 @@ end;
 procedure TCLIFrameworkTests.TearDown;
 begin
   FApp := nil;
+  inherited;
 end;
 
 // 1.x - Application Tests
@@ -100,20 +101,27 @@ end;
 
 procedure TCLIFrameworkTests.Test_1_3_RegisterCommand;
 var
-  Cmd: TTestCommand;
+  Cmd: ICommand;
 begin
   Cmd := TTestCommand.Create('test', 'Test command');
-  FApp.RegisterCommand(Cmd);
-  AssertTrue('Command should be registered', Length((FApp as TCLIApplication).Commands) > 0);
+  try
+    FApp.RegisterCommand(Cmd);
+    AssertTrue('Command should be registered', (FApp as TCLIApplication).Commands.Count > 0);
+  finally
+    Cmd := nil;
+  end;
 end;
 
 procedure TCLIFrameworkTests.Test_1_4_DuplicateCommand;
 var
-  Cmd1, Cmd2: TTestCommand;
+  Cmd1, Cmd2: ICommand;
 begin
   Cmd1 := TTestCommand.Create('test', 'Test command 1');
   Cmd2 := TTestCommand.Create('test', 'Test command 2');
+  
   FApp.RegisterCommand(Cmd1);
+  Cmd1 := nil;
+  
   try
     FApp.RegisterCommand(Cmd2);
     Fail('Should not allow duplicate command names');
@@ -150,7 +158,7 @@ var
 begin
   Cmd := TTestCommand.Create('test', 'Test command');
   try
-    Cmd.AddParameter(CreateParameter('-t', '--test', 'Test parameter', False));
+    Cmd.AddParameter(CreateParameter('-t', '--test', 'Test parameter', False, ptString, ''));
     AssertEquals('Should have one parameter', 1, Length(Cmd.Parameters));
   finally
     Cmd.Free;
@@ -206,7 +214,7 @@ procedure TCLIFrameworkTests.Test_3_1_CreateParameter;
 var
   Param: ICommandParameter;
 begin
-  Param := CreateParameter('-t', '--test', 'Test parameter', False);
+  Param := CreateParameter('-t', '--test', 'Test parameter', False, ptString, '');
   AssertEquals('Short flag should match', '-t', Param.ShortFlag);
   AssertEquals('Long flag should match', '--test', Param.LongFlag);
 end;
@@ -215,7 +223,7 @@ procedure TCLIFrameworkTests.Test_3_2_RequiredParameter;
 var
   Param: ICommandParameter;
 begin
-  Param := CreateParameter('-r', '--required', 'Required parameter', True);
+  Param := CreateParameter('-r', '--required', 'Required parameter', True, ptString, '');
   AssertTrue('Parameter should be required', Param.Required);
 end;
 
@@ -232,7 +240,7 @@ var
   Param: ICommandParameter;
 begin
   Param := CreateParameter('-i', '--integer', 'Integer parameter', False, ptInteger, '42');
-  AssertEquals('Parameter type should be integer', ptInteger, Param.ParamType);
+  AssertEquals('Parameter type should be integer', Ord(ptInteger), Ord(Param.ParamType));
 end;
 
 procedure TCLIFrameworkTests.Test_3_5_ParameterValidation;
@@ -242,7 +250,7 @@ var
 begin
   Cmd := TTestCommand.Create('test', 'Test command');
   try
-    Param := CreateParameter('-r', '--required', 'Required parameter', True);
+    Param := CreateParameter('-r', '--required', 'Required parameter', True, ptString, '');
     Cmd.AddParameter(Param);
     AssertTrue('Command should have required parameter', Cmd.Parameters[0].Required);
   finally

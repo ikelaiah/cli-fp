@@ -5,15 +5,17 @@ unit CLI.Application;
 interface
 
 uses
-  Classes, SysUtils, CLI.Interfaces;
+  Classes, SysUtils, Generics.Collections, Generics.Defaults, CLI.Interfaces;
 
 type
+  TCommandList = specialize TList<ICommand>;
+
   { Main CLI application class }
   TCLIApplication = class(TInterfacedObject, ICLIApplication)
   private
     FName: string;
     FVersion: string;
-    FCommands: array of ICommand;
+    FCommands: TCommandList;
     FCurrentCommand: ICommand;
     FParsedParams: TStringList;
     FParamStartIndex: Integer;
@@ -27,6 +29,7 @@ type
     function ValidateCommand: Boolean;
     function GetParameterValue(const Param: ICommandParameter; out Value: string): Boolean;
     procedure ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
+    function GetCommands: TCommandList;
   public
     constructor Create(const AName, AVersion: string);
     destructor Destroy; override;
@@ -34,6 +37,8 @@ type
     procedure RegisterCommand(const Command: ICommand);
     function Execute: Integer;
     property DebugMode: Boolean read FDebugMode write FDebugMode;
+    property Version: string read FVersion;
+    property Commands: TCommandList read GetCommands;
   end;
 
 { Helper function to create CLI application }
@@ -49,7 +54,7 @@ begin
   inherited Create;
   FName := AName;
   FVersion := AVersion;
-  SetLength(FCommands, 0);
+  FCommands := TCommandList.Create;
   FParsedParams := TStringList.Create;
   FParsedParams.CaseSensitive := True;
   FParamStartIndex := 2; // Skip program name and command name
@@ -58,14 +63,22 @@ end;
 
 destructor TCLIApplication.Destroy;
 begin
+  FCurrentCommand := nil;
+  FCommands.Free;
   FParsedParams.Free;
   inherited;
 end;
 
 procedure TCLIApplication.RegisterCommand(const Command: ICommand);
+var
+  i: Integer;
 begin
-  SetLength(FCommands, Length(FCommands) + 1);
-  FCommands[High(FCommands)] := Command;
+  // Check for duplicate command names
+  for i := 0 to FCommands.Count - 1 do
+    if SameText(FCommands[i].Name, Command.Name) then
+      raise Exception.CreateFmt('Command "%s" is already registered', [Command.Name]);
+
+  FCommands.Add(Command);
 end;
 
 function TCLIApplication.Execute: Integer;
@@ -270,12 +283,12 @@ end;
 
 function TCLIApplication.FindCommand(const Name: string): ICommand;
 var
-  Cmd: ICommand;
+  i: Integer;
 begin
   Result := nil;
-  for Cmd in FCommands do
-    if SameText(Cmd.Name, Name) then
-      Exit(Cmd);
+  for i := 0 to FCommands.Count - 1 do
+    if SameText(FCommands[i].Name, Name) then
+      Exit(FCommands[i]);
 end;
 
 function TCLIApplication.ValidateCommand: Boolean;
@@ -440,7 +453,7 @@ var
   Cmd: ICommand;
   Param: ICommandParameter;
   RequiredText: string;
-  CmdList: array of ICommand;
+  i: Integer;
 begin
   if Command = nil then
   begin
@@ -456,7 +469,14 @@ begin
     TConsole.WriteLn('  -v, --version        Show version information');
     TConsole.WriteLn('');
     TConsole.WriteLn('COMMANDS', ccCyan);
-    CmdList := FCommands;
+    
+    // Show all commands
+    for i := 0 to FCommands.Count - 1 do
+    begin
+      if i > 0 then
+        TConsole.WriteLn('');
+      ShowCompleteHelp(Indent + '  ', FCommands[i]);
+    end;
   end
   else
   begin
@@ -486,19 +506,12 @@ begin
     begin
       TConsole.WriteLn('');
       TConsole.WriteLn(Indent + 'SUBCOMMANDS:', ccCyan);
+      for Cmd in Command.SubCommands do
+        ShowCompleteHelp(Indent + '  ', Cmd);
     end;
-    CmdList := Command.SubCommands;
-  end;
-
-  // Recursively show subcommands
-  for Cmd in CmdList do
-  begin
-    if Command = nil then
-      TConsole.WriteLn('');
-    ShowCompleteHelp(Indent + '  ', Cmd);
   end;
   
-  if (Command = nil) and (Length(FCommands) > 0) then
+  if (Command = nil) and (FCommands.Count > 0) then
   begin
     TConsole.WriteLn('');
     TConsole.WriteLn('For more details on a specific command, use:');
@@ -509,6 +522,12 @@ end;
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
 begin
   Result := TCLIApplication.Create(Name, Version);
+end;
+
+function TCLIApplication.GetCommands: TCommandList;
+begin
+  // Return the actual commands list instead of creating a copy
+  Result := FCommands;
 end;
 
 end.
