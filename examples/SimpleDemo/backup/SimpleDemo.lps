@@ -25,9 +25,10 @@
       <Unit>
         <Filename Value="..\..\src\cli.application.pas"/>
         <UnitName Value="CLI.Application"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <TopLine Value="110"/>
-        <CursorPos X="10" Y="113"/>
+        <CursorPos X="38" Y="117"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit>
@@ -60,7 +61,6 @@
       <Unit>
         <Filename Value="..\..\src\cli.command.pas"/>
         <UnitName Value="CLI.Command"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="21"/>
         <CursorPos X="5" Y="30"/>

@@ -8,8 +8,9 @@
       <Unit>
         <Filename Value="SimpleDemo.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="14"/>
-        <CursorPos X="3" Y="23"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="24"/>
+        <CursorPos X="41" Y="37"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -25,10 +26,8 @@
       <Unit>
         <Filename Value="..\..\src\cli.application.pas"/>
         <UnitName Value="CLI.Application"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="110"/>
-        <CursorPos X="38" Y="117"/>
+        <CursorPos X="38" Y="118"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit>

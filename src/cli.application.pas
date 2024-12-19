@@ -69,19 +69,16 @@ var
 begin
   Result := 0;
   
-  // Parse command line arguments
-  ParseCommandLine;
-  
-  // Check for help and version flags
-  if (FParsedParams.IndexOf('-h') >= 0) or 
-     (FParsedParams.IndexOf('--help') >= 0) then
+  // Check for help and version flags before parsing command line
+  if (ParamCount > 0) and 
+     ((ParamStr(1) = '-h') or (ParamStr(1) = '--help')) then
   begin
     ShowHelp;
     Exit;
   end;
   
-  if (FParsedParams.IndexOf('-v') >= 0) or 
-     (FParsedParams.IndexOf('--version') >= 0) then
+  if (ParamCount > 0) and
+     ((ParamStr(1) = '-v') or (ParamStr(1) = '--version')) then
   begin
     ShowVersion;
     Exit;
@@ -90,12 +87,21 @@ begin
   // Get command name (first argument)
   if ParamCount = 0 then
   begin
+    ShowHelp;
+    Exit;
+  end;
+  
+  CmdName := ParamStr(1);
+  if StartsStr('-', CmdName) then
+  begin
     TConsole.WriteLn('Error: No command specified', ccRed);
     ShowHelp;
     Exit(1);
   end;
   
-  CmdName := ParamStr(1);
+  // Parse command line arguments
+  ParseCommandLine;
+  
   FCurrentCommand := FindCommand(CmdName);
   
   if not Assigned(FCurrentCommand) then
