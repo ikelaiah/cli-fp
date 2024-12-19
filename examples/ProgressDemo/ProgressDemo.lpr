@@ -37,12 +37,12 @@ begin
 
   // First phase: Show spinner while "preparing"
   TConsole.WriteLn('Preparing to process files...', ccCyan);
-  Spinner := CreateSpinner(ssLine);
+  Spinner := CreateSpinner(ssDots);
   Spinner.Start;
   
   try
     // Simulate some preparation work
-    for i := 1 to 3 do
+    for i := 1 to Count do
     begin
       Spinner.Update(0);
       Sleep(500);
@@ -60,14 +60,14 @@ begin
     // Simulate processing files
     for i := 1 to Count do
     begin
-      // Update progress bar
+      // Update progress bar with current progress
       ProgressBar.Update(i);
       
       // Simulate work
-      Sleep(1000);
+      Sleep(500);
       
       // Show what we're doing
-      TConsole.WriteLn(Format('Processed file %d of %d', [i, Count]), ccWhite);
+      TConsole.WriteLn(Format(' Processed file %d of %d', [i, Count]), ccWhite);
     end;
   finally
     ProgressBar.Stop;

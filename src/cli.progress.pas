@@ -5,187 +5,154 @@ unit CLI.Progress;
 interface
 
 uses
-  Classes, SysUtils, CLI.Interfaces, DateUtils;
+  Classes, SysUtils, CLI.Interfaces, CLI.Console;
 
 type
-  { Base class for progress indicators }
-  TBaseProgressIndicator = class(TInterfacedObject, IProgressIndicator)
-  private
-    FActive: Boolean;
-    FLastUpdate: TDateTime;
-    procedure ClearLine;
+  { Spinner styles }
+  TSpinnerStyle = (
+    ssDots,    // ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+    ssLine,    // -\|/
+    ssCircle   // ◐◓◑◒
+  );
+
+  { Base progress indicator class }
+  TProgressIndicator = class(TInterfacedObject, IProgressIndicator)
   protected
-    procedure WriteToConsole(const Text: string); virtual;
+    FActive: Boolean;
+    procedure ClearLine; virtual;
   public
     procedure Start; virtual;
     procedure Stop; virtual;
     procedure Update(const Progress: Integer); virtual; abstract;
   end;
 
-  { Spinning widget styles }
-  TSpinnerStyle = (ssLine, ssDot);
-
-  { Spinning widget implementation }
-  TSpinningIndicator = class(TBaseProgressIndicator)
+  { Spinner progress indicator }
+  TSpinner = class(TProgressIndicator)
   private
-    FCurrentIndex: Integer;
     FStyle: TSpinnerStyle;
-    FLineChars: array[0..3] of Char;
-    FDotChars: array[0..3] of Char;
-    function GetCurrentChar: Char;
+    FFrame: Integer;
+    FFrames: array of string;
   public
     constructor Create(const AStyle: TSpinnerStyle);
     procedure Update(const Progress: Integer); override;
   end;
 
-  { Progress bar implementation }
-  TProgressBar = class(TBaseProgressIndicator)
+  { Progress bar indicator }
+  TProgressBar = class(TProgressIndicator)
   private
+    FTotal: Integer;
     FWidth: Integer;
-    FLastPercentage: Integer;
+    FLastProgress: Integer;
   public
-    constructor Create(const AWidth: Integer = 50);
+    constructor Create(const ATotal: Integer; const AWidth: Integer = 10);
     procedure Update(const Progress: Integer); override;
   end;
 
 { Helper functions to create progress indicators }
 function CreateSpinner(const Style: TSpinnerStyle = ssLine): IProgressIndicator;
-function CreateProgressBar(const Width: Integer = 50): IProgressIndicator;
+function CreateProgressBar(const Total: Integer; const Width: Integer = 10): IProgressIndicator;
 
 implementation
 
-uses
-{$IFDEF WINDOWS}
-  Windows;
-{$ELSE}
-  BaseUnix, termio;
-{$ENDIF}
-
-{ TBaseProgressIndicator }
-
-procedure TBaseProgressIndicator.ClearLine;
+{ TProgressIndicator }
+procedure TProgressIndicator.ClearLine;
+var
+  i:Integer;
 begin
-  Write(#13);  // Carriage return
-  Write('                                                  ');  // Clear line
-  Write(#13);  // Return to start
+  Write(#13);
+  for i := 1 to 80 do
+    Write(' ');
+  Write(#13);
 end;
 
-procedure TBaseProgressIndicator.WriteToConsole(const Text: string);
-begin
-  ClearLine;
-  Write(Text);
-end;
-
-procedure TBaseProgressIndicator.Start;
+procedure TProgressIndicator.Start;
 begin
   FActive := True;
-  FLastUpdate := Now;
 end;
 
-procedure TBaseProgressIndicator.Stop;
+procedure TProgressIndicator.Stop;
 begin
-  if FActive then
-  begin
-    ClearLine;
-    FActive := False;
-  end;
+  FActive := False;
+  WriteLn;
 end;
 
-{ TSpinningIndicator }
-
-constructor TSpinningIndicator.Create(const AStyle: TSpinnerStyle);
+{ TSpinner }
+constructor TSpinner.Create(const AStyle: TSpinnerStyle);
 begin
   inherited Create;
   FStyle := AStyle;
-  FCurrentIndex := 0;
+  FFrame := 0;
   
-  // Initialize spinner characters
-  FLineChars[0] := '-';
-  FLineChars[1] := '\';
-  FLineChars[2] := '|';
-  FLineChars[3] := '/';
-  
-  FDotChars[0] := '.';
-  FDotChars[1] := 'o';
-  FDotChars[2] := 'O';
-  FDotChars[3] := 'o';
-end;
-
-function TSpinningIndicator.GetCurrentChar: Char;
-begin
   case FStyle of
-    ssLine: Result := FLineChars[FCurrentIndex];
-    ssDot: Result := FDotChars[FCurrentIndex];
+    ssDots:
+      FFrames := ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    ssLine:
+      FFrames := ['-', '\', '|', '/'];
+    ssCircle:
+      FFrames := ['◐', '◓', '◑', '◒'];
   end;
 end;
 
-procedure TSpinningIndicator.Update(const Progress: Integer);
+procedure TSpinner.Update(const Progress: Integer);
 begin
-  if not FActive then
-    Exit;
-    
-  // Update every 100ms
-  if MilliSecondsBetween(Now, FLastUpdate) < 100 then
-    Exit;
-    
-  WriteToConsole(GetCurrentChar);
-  FCurrentIndex := (FCurrentIndex + 1) mod 4;
-  FLastUpdate := Now;
+  if not FActive then Exit;
+  
+  ClearLine;
+  Write(FFrames[FFrame]);
+  FFrame := (FFrame + 1) mod Length(FFrames);
 end;
 
 { TProgressBar }
-
-constructor TProgressBar.Create(const AWidth: Integer);
+constructor TProgressBar.Create(const ATotal: Integer; const AWidth: Integer = 10);
 begin
   inherited Create;
+  FTotal := ATotal;
   FWidth := AWidth;
-  FLastPercentage := -1;
+  FLastProgress := -1;
 end;
 
 procedure TProgressBar.Update(const Progress: Integer);
 var
+  Percentage: Integer;
   FilledWidth: Integer;
-  EmptyWidth: Integer;
-  ProgressText: string;
   i: Integer;
 begin
-  if not FActive then
+  if not FActive then Exit;
+  
+  // Calculate percentage based on current progress and total
+  Percentage := Round((Progress / FTotal) * 100);
+  
+  // Only update if progress has changed
+  if Percentage = FLastProgress then
     Exit;
     
-  if Progress = FLastPercentage then
-    Exit;
-    
-  FLastPercentage := Progress;
+  FLastProgress := Percentage;
   
-  // Calculate the width of the filled portion
-  FilledWidth := (Progress * FWidth) div 100;
-  EmptyWidth := FWidth - FilledWidth;
+  // Calculate how many blocks to fill
+  FilledWidth := Round((Percentage / 100) * FWidth);
   
-  ProgressText := '[';
+  ClearLine;
+  Write('[');
   
-  // Add filled portion
+  // Draw filled portion
   for i := 1 to FilledWidth do
-    ProgressText := ProgressText + '=';
+    Write('=');
     
-  // Add empty portion
-  for i := 1 to EmptyWidth do
-    ProgressText := ProgressText + ' ';
+  // Draw empty portion
+  for i := FilledWidth + 1 to FWidth do
+    Write(' ');
     
-  ProgressText := ProgressText + '] ' + IntToStr(Progress) + '%';
-  
-  WriteToConsole(ProgressText);
+  Write('] ', Percentage, '%');
 end;
-
-{ Helper functions }
 
 function CreateSpinner(const Style: TSpinnerStyle): IProgressIndicator;
 begin
-  Result := TSpinningIndicator.Create(Style);
+  Result := TSpinner.Create(Style);
 end;
 
-function CreateProgressBar(const Width: Integer): IProgressIndicator;
+function CreateProgressBar(const Total: Integer; const Width: Integer): IProgressIndicator;
 begin
-  Result := TProgressBar.Create(Width);
+  Result := TProgressBar.Create(Total, Width);
 end;
 
 end.
