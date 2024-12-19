@@ -30,6 +30,7 @@ type
     function GetParameterValue(const Param: ICommandParameter; out Value: string): Boolean;
     procedure ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
     function GetCommands: TCommandList;
+    procedure ShowBriefHelp;
   public
     constructor Create(const AName, AVersion: string);
     destructor Destroy; override;
@@ -110,41 +111,11 @@ begin
   end;
   
   // Get command name (first argument)
-  if ParamCount = 0 then
-  begin
-    ShowHelp;
-    Exit;
-  end;
-  
-  // Check for global help and version flags
-  for i := 1 to ParamCount do
-  begin
-    if (ParamStr(i) = '-h') or (ParamStr(i) = '--help') then
-    begin
-      if i = 1 then
-      begin
-        ShowHelp;
-        Exit;
-      end;
-      ShowHelpForCommand := True;
-      Break;
-    end;
-    if (ParamStr(i) = '-v') or (ParamStr(i) = '--version') then
-    begin
-      if i = 1 then
-      begin
-        ShowVersion;
-        Exit;
-      end;
-      Break;
-    end;
-  end;
-  
   CmdName := ParamStr(1);
   if StartsStr('-', CmdName) then
   begin
     TConsole.WriteLn('Error: No command specified', ccRed);
-    ShowHelp;
+    ShowBriefHelp;
     Exit(1);
   end;
   
@@ -154,7 +125,7 @@ begin
   if not Assigned(CurrentCmd) then
   begin
     TConsole.WriteLn('Error: Unknown command "' + CmdName + '"', ccRed);
-    ShowHelp;
+    ShowBriefHelp;
     Exit(1);
   end;
   
@@ -184,12 +155,32 @@ begin
       Inc(i);
     end
     else
-      Break;
+    begin
+      // Unknown subcommand
+      TConsole.WriteLn('Error: Unknown subcommand "' + SubCmdName + '" for ' + CurrentCmd.Name, ccRed);
+      TConsole.WriteLn('');
+      TConsole.WriteLn('Available subcommands:', ccCyan);
+      for Cmd in CurrentCmd.SubCommands do
+        TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
+      TConsole.WriteLn('');
+      TConsole.WriteLn('Use "' + ExtractFileName(ParamStr(0)) + ' ' + 
+        CurrentCmd.Name + ' --help" for more information.');
+      Exit(1);
+    end;
   end;
 
-  // Show help if requested or if command has subcommands and no subcommand specified
-  if ShowHelpForCommand or 
-     ((Length(FCurrentCommand.SubCommands) > 0) and (FParamStartIndex = 2)) then
+  // Check for help flag
+  for i := FParamStartIndex to ParamCount do
+  begin
+    if (ParamStr(i) = '-h') or (ParamStr(i) = '--help') then
+    begin
+      ShowCommandHelp(FCurrentCommand);
+      Exit;
+    end;
+  end;
+
+  // Show help if command has subcommands and no subcommand specified
+  if (Length(FCurrentCommand.SubCommands) > 0) and (FParamStartIndex = 2) then
   begin
     ShowCommandHelp(FCurrentCommand);
     Exit;
@@ -528,6 +519,20 @@ function TCLIApplication.GetCommands: TCommandList;
 begin
   // Return the actual commands list instead of creating a copy
   Result := FCommands;
+end;
+
+procedure TCLIApplication.ShowBriefHelp;
+var
+  Cmd: ICommand;
+begin
+  // Show minimal help for error cases
+  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
+  TConsole.WriteLn('');
+  TConsole.WriteLn('Commands:', ccCyan);
+  for Cmd in FCommands do
+    TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
+  TConsole.WriteLn('');
+  TConsole.WriteLn('Use --help for more information.');
 end;
 
 end.
