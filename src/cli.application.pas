@@ -26,6 +26,7 @@ type
     function FindCommand(const Name: string): ICommand;
     function ValidateCommand: Boolean;
     function GetParameterValue(const Param: ICommandParameter; out Value: string): Boolean;
+    procedure ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
   public
     constructor Create(const AName, AVersion: string);
     destructor Destroy; override;
@@ -80,6 +81,20 @@ var
 begin
   Result := 0;
   ShowHelpForCommand := False;
+  
+  // Check for empty command line
+  if ParamCount = 0 then
+  begin
+    ShowHelp;
+    Exit;
+  end;
+  
+  // Check for global flags first
+  if (ParamStr(1) = '--help-complete') then
+  begin
+    ShowCompleteHelp;
+    Exit;
+  end;
   
   // Get command name (first argument)
   if ParamCount = 0 then
@@ -329,8 +344,9 @@ begin
 
   // Global options
   TConsole.WriteLn('Global Options:', ccCyan);
-  TConsole.WriteLn('  -h, --help     Show this help message');
-  TConsole.WriteLn('  -v, --version  Show version information');
+  TConsole.WriteLn('  -h, --help           Show this help message');
+  TConsole.WriteLn('  --help-complete      Show complete reference for all commands');
+  TConsole.WriteLn('  -v, --version        Show version information');
   TConsole.WriteLn('');
 
   // Examples section with better formatting
@@ -417,6 +433,77 @@ end;
 procedure TCLIApplication.ShowVersion;
 begin
   TConsole.WriteLn(FName + ' version ' + FVersion);
+end;
+
+procedure TCLIApplication.ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
+var
+  Cmd: ICommand;
+  Param: ICommandParameter;
+  RequiredText: string;
+  CmdList: array of ICommand;
+begin
+  if Command = nil then
+  begin
+    // Show program header
+    TConsole.WriteLn(FName + ' version ' + FVersion);
+    TConsole.WriteLn('');
+    TConsole.WriteLn('DESCRIPTION', ccCyan);
+    TConsole.WriteLn('  Complete reference for all commands and options');
+    TConsole.WriteLn('');
+    TConsole.WriteLn('GLOBAL OPTIONS', ccCyan);
+    TConsole.WriteLn('  -h, --help           Show command help');
+    TConsole.WriteLn('  --help-complete      Show this complete reference');
+    TConsole.WriteLn('  -v, --version        Show version information');
+    TConsole.WriteLn('');
+    TConsole.WriteLn('COMMANDS', ccCyan);
+    CmdList := FCommands;
+  end
+  else
+  begin
+    TConsole.WriteLn(Indent + Command.Name + ' - ' + Command.Description);
+    
+    // Show command parameters
+    if Length(Command.Parameters) > 0 then
+    begin
+      TConsole.WriteLn('');
+      TConsole.WriteLn(Indent + 'OPTIONS:', ccCyan);
+      for Param in Command.Parameters do
+      begin
+        if Param.Required then
+          RequiredText := ' (required)'
+        else
+          RequiredText := '';
+          
+        TConsole.WriteLn(Indent + '  ' + Param.ShortFlag + ', ' + 
+          PadRight(Param.LongFlag, 20) + Param.Description + RequiredText);
+        
+        if Param.DefaultValue <> '' then
+          TConsole.WriteLn(Indent + '      Default: ' + Param.DefaultValue);
+      end;
+    end;
+    
+    if Length(Command.SubCommands) > 0 then
+    begin
+      TConsole.WriteLn('');
+      TConsole.WriteLn(Indent + 'SUBCOMMANDS:', ccCyan);
+    end;
+    CmdList := Command.SubCommands;
+  end;
+
+  // Recursively show subcommands
+  for Cmd in CmdList do
+  begin
+    if Command = nil then
+      TConsole.WriteLn('');
+    ShowCompleteHelp(Indent + '  ', Cmd);
+  end;
+  
+  if (Command = nil) and (Length(FCommands) > 0) then
+  begin
+    TConsole.WriteLn('');
+    TConsole.WriteLn('For more details on a specific command, use:');
+    TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
+  end;
 end;
 
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
