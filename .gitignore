@@ -1,1 +1,48 @@
- 
+# Free Pascal specific
+*.o
+*.ppu
+*.compiled
+*.or
+*.a
+*.rst
+*.lps
+*.res
+link.res
+*.dbg
+*.tds
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*.bak
+*~
+*.~*
+*.local
+
+# Lazarus specific
+backup/
+lib/
+*.lrs
+*.lrt
+*.lps
+*.lpi.bak
+
+# Debug files
+debug/
+*.dbg
+
+# Heap trace files
+heaptrc.txt
+heaptrc.log
+
+# IDE specific
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db 
