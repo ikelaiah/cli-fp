@@ -100,6 +100,7 @@ begin
   ClearLine;
   Write(FFrames[FFrame]);
   FFrame := (FFrame + 1) mod Length(FFrames);
+  Sleep(100);
 end;
 
 { TProgressBar }
@@ -116,6 +117,7 @@ var
   Percentage: Integer;
   FilledWidth: Integer;
   i: Integer;
+  ProgressText: string;
 begin
   if not FActive then Exit;
   
@@ -131,18 +133,16 @@ begin
   // Calculate how many blocks to fill
   FilledWidth := Round((Percentage / 100) * FWidth);
   
-  ClearLine;
-  Write('[');
+  // Format progress text
+  ProgressText := Format('[%-*.*s] %3d%%', [
+    FWidth,           // Width of the progress bar
+    FWidth,           // Width for string formatting
+    StringOfChar('=', FilledWidth) + StringOfChar(' ', FWidth - FilledWidth),
+    Percentage
+  ]);
   
-  // Draw filled portion
-  for i := 1 to FilledWidth do
-    Write('=');
-    
-  // Draw empty portion
-  for i := FilledWidth + 1 to FWidth do
-    Write(' ');
-    
-  Write('] ', Percentage, '%');
+  ClearLine;
+  Write(ProgressText);
 end;
 
 function CreateSpinner(const Style: TSpinnerStyle): IProgressIndicator;

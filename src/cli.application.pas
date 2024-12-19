@@ -17,6 +17,7 @@ type
     FCurrentCommand: ICommand;
     FParsedParams: TStringList;
     FParamStartIndex: Integer;
+    FDebugMode: Boolean;
     
     procedure ParseCommandLine;
     procedure ShowHelp;
@@ -31,6 +32,7 @@ type
     
     procedure RegisterCommand(const Command: ICommand);
     function Execute: Integer;
+    property DebugMode: Boolean read FDebugMode write FDebugMode;
   end;
 
 { Helper function to create CLI application }
@@ -50,6 +52,7 @@ begin
   FParsedParams := TStringList.Create;
   FParsedParams.CaseSensitive := True;
   FParamStartIndex := 2; // Skip program name and command name
+  FDebugMode := False; // Debug output disabled by default
 end;
 
 destructor TCLIApplication.Destroy;
@@ -73,8 +76,10 @@ var
   i: Integer;
   CurrentCmd: ICommand;
   Cmd: ICommand;
+  ShowHelpForCommand: Boolean;
 begin
   Result := 0;
+  ShowHelpForCommand := False;
   
   // Get command name (first argument)
   if ParamCount = 0 then
@@ -93,7 +98,7 @@ begin
         ShowHelp;
         Exit;
       end;
-      // Help flag will be handled later for commands
+      ShowHelpForCommand := True;
       Break;
     end;
     if (ParamStr(i) = '-v') or (ParamStr(i) = '--version') then
@@ -103,7 +108,6 @@ begin
         ShowVersion;
         Exit;
       end;
-      // Version flag after command is ignored
       Break;
     end;
   end;
@@ -155,14 +159,12 @@ begin
       Break;
   end;
 
-  // Check for help flag before parsing other parameters
-  for i := FParamStartIndex to ParamCount do
+  // Show help if requested or if command has subcommands and no subcommand specified
+  if ShowHelpForCommand or 
+     ((Length(FCurrentCommand.SubCommands) > 0) and (FParamStartIndex = 2)) then
   begin
-    if (ParamStr(i) = '-h') or (ParamStr(i) = '--help') then
-    begin
-      ShowCommandHelp(FCurrentCommand);
-      Exit;
-    end;
+    ShowCommandHelp(FCurrentCommand);
+    Exit;
   end;
   
   // Parse command line arguments
@@ -196,11 +198,14 @@ begin
   FParsedParams.Clear;
   i := FParamStartIndex; // Start after program name and command name(s)
   
-  TConsole.WriteLn('Parsing command line...', ccCyan);
+  if FDebugMode then
+    TConsole.WriteLn('Parsing command line...', ccCyan);
+    
   while i <= ParamCount do
   begin
     Param := ParamStr(i);
-    TConsole.WriteLn('Processing argument ' + IntToStr(i) + ': ' + Param, ccCyan);
+    if FDebugMode then
+      TConsole.WriteLn('Processing argument ' + IntToStr(i) + ': ' + Param, ccCyan);
     
     // Handle --param=value format
     if StartsStr('--', Param) then
@@ -217,7 +222,8 @@ begin
         Inc(i);
       end;
       FParsedParams.Values[Param] := Value;
-      TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
+      if FDebugMode then
+        TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
     end
     // Handle -p value format
     else if StartsStr('-', Param) then
@@ -230,16 +236,20 @@ begin
       else
         Value := '';
       FParsedParams.Values[Param] := Value;
-      TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
+      if FDebugMode then
+        TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
     end;
     
     Inc(i);
   end;
   
-  TConsole.WriteLn('Parsed parameters:', ccCyan);
-  for i := 0 to FParsedParams.Count - 1 do
+  if FDebugMode then
   begin
-    TConsole.WriteLn('  ' + FParsedParams.Names[i] + ' = ' + FParsedParams.ValueFromIndex[i], ccCyan);
+    TConsole.WriteLn('Parsed parameters:', ccCyan);
+    for i := 0 to FParsedParams.Count - 1 do
+    begin
+      TConsole.WriteLn('  ' + FParsedParams.Names[i] + ' = ' + FParsedParams.ValueFromIndex[i], ccCyan);
+    end;
   end;
 end;
 
@@ -302,19 +312,36 @@ procedure TCLIApplication.ShowHelp;
 var
   Cmd: ICommand;
 begin
+  // Program header
   TConsole.WriteLn(FName + ' version ' + FVersion);
   TConsole.WriteLn('');
-  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
+
+  // Basic usage
+  TConsole.WriteLn('Usage:', ccCyan);
+  TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
   TConsole.WriteLn('');
+
+  // Available commands
   TConsole.WriteLn('Commands:', ccCyan);
   for Cmd in FCommands do
     TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
   TConsole.WriteLn('');
+
+  // Global options
   TConsole.WriteLn('Global Options:', ccCyan);
   TConsole.WriteLn('  -h, --help     Show this help message');
   TConsole.WriteLn('  -v, --version  Show version information');
   TConsole.WriteLn('');
-  TConsole.WriteLn('Run ''' + ExtractFileName(ParamStr(0)) + ' <command> --help'' for more information about a command.');
+
+  // Examples section with better formatting
+  TConsole.WriteLn('Examples:', ccCyan);
+  TConsole.WriteLn('  Get help for commands:');
+  TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
+  TConsole.WriteLn('');
+  TConsole.WriteLn('  Available command help:');
+  for Cmd in FCommands do
+    TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + Cmd.Name + ' --help');
+  TConsole.WriteLn('');
 end;
 
 procedure TCLIApplication.ShowCommandHelp(const Command: ICommand);
@@ -338,10 +365,12 @@ begin
   if CommandPath = '' then
     CommandPath := Command.Name;
 
+  // Basic usage and description
   TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
   TConsole.WriteLn('');
   TConsole.WriteLn(Command.Description);
   
+  // Show subcommands if any
   if Length(Command.SubCommands) > 0 then
   begin
     TConsole.WriteLn('');
@@ -350,6 +379,7 @@ begin
       TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
   end;
   
+  // Show parameters if any
   if Length(Command.Parameters) > 0 then
   begin
     TConsole.WriteLn('');
@@ -367,6 +397,20 @@ begin
       if Param.DefaultValue <> '' then
         TConsole.WriteLn('      Default: ' + Param.DefaultValue);
     end;
+  end;
+
+  // Always show examples for commands with subcommands
+  if Length(Command.SubCommands) > 0 then
+  begin
+    TConsole.WriteLn('');
+    TConsole.WriteLn('Examples:', ccCyan);
+    TConsole.WriteLn('  Get help for commands:');
+    TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' <command> --help');
+    TConsole.WriteLn('');
+    TConsole.WriteLn('  Available command help:');
+    for SubCmd in Command.SubCommands do
+      TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
+    TConsole.WriteLn('');
   end;
 end;
 

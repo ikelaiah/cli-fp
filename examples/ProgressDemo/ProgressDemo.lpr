@@ -37,7 +37,7 @@ begin
 
   // First phase: Show spinner while "preparing"
   TConsole.WriteLn('Preparing to process files...', ccCyan);
-  Spinner := CreateSpinner(ssDots);
+  Spinner := CreateSpinner(ssLine);
   Spinner.Start;
   
   try
@@ -83,6 +83,7 @@ begin
   try
     // Create main application
     App := CreateCLIApplication('ProgressDemo', '1.0.0');
+    (App as TCLIApplication).DebugMode := False; // Disable debug output
 
     // Create and configure process command
     Cmd := TProcessCommand.Create('process', 'Process files with progress indication');
