@@ -13,6 +13,17 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
 - Built-in help system
 - Automatic usage examples generation
 
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/cli-fp.git
+   ```
+
+2. Add to your project:
+   - Copy the `src` directory to your project
+   - Add the units to your project's uses clause
+
 ## Quick Start
 
 ### 1. Creating a Simple CLI Application

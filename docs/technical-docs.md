@@ -4,8 +4,6 @@
 
 The Free Pascal CLI Framework is built on a modular, interface-based architecture that promotes extensibility and maintainability. The framework is organized into several key components that work together to provide a complete CLI solution.
 
-## Class Diagram
-
 ```mermaid
 classDiagram
     class ICLIApplication {
@@ -16,87 +14,121 @@ classDiagram
     
     class ICommand {
         <<interface>>
-        +Name: string
-        +Description: string
-        +Parameters: TArray<ICommandParameter>
-        +SubCommands: TArray<ICommand>
+        +GetName(): string
+        +GetDescription(): string
+        +GetParameters(): TArray<ICommandParameter>
+        +GetSubCommands(): TArray<ICommand>
         +Execute(): Integer
     }
     
     class ICommandParameter {
         <<interface>>
-        +ShortFlag: string
-        +LongFlag: string
-        +Description: string
-        +Required: Boolean
-        +ParamType: TParameterType
-        +DefaultValue: string
+        +GetShortFlag(): string
+        +GetLongFlag(): string
+        +GetDescription(): string
+        +GetRequired(): Boolean
+        +GetParamType(): TParameterType
+        +GetDefaultValue(): string
     }
     
     class IProgressIndicator {
         <<interface>>
         +Start()
-        +Update(Value: Integer)
         +Stop()
+        +Update(Progress: Integer)
     }
     
     class TCLIApplication {
         -FName: string
         -FVersion: string
-        -FCommands: array of ICommand
+        -FCommands: TCommandList
         -FCurrentCommand: ICommand
         -FParsedParams: TStringList
+        -FParamStartIndex: Integer
         -FDebugMode: Boolean
         +RegisterCommand(Command: ICommand)
         +Execute(): Integer
-        #ParseCommandLine()
-        #ShowHelp()
-        #ShowCommandHelp()
-        #ShowCompleteHelp()
+        -ParseCommandLine()
+        -ShowHelp()
+        -ShowCommandHelp()
+        -ShowCompleteHelp()
     }
     
     class TBaseCommand {
-        #FName: string
-        #FDescription: string
-        #FParameters: array of ICommandParameter
-        #FSubCommands: array of ICommand
+        -FName: string
+        -FDescription: string
+        -FParameters: array of ICommandParameter
+        -FSubCommands: array of ICommand
+        -FParsedParams: TStringList
         +AddParameter(Parameter: ICommandParameter)
         +AddSubCommand(Command: ICommand)
+        +SetParsedParams(Params: TStringList)
         +Execute(): Integer
-        #GetParameterValue(Flag: string): string
+        #GetParameterValue(Flag: string): Boolean
     }
     
-    class TBaseParameter {
+    class TCommandParameter {
         -FShortFlag: string
         -FLongFlag: string
         -FDescription: string
         -FRequired: Boolean
         -FParamType: TParameterType
         -FDefaultValue: string
+        +Create(ShortFlag, LongFlag, Description: string, Required: Boolean, ParamType: TParameterType, DefaultValue: string)
+    }
+    
+    class TProgressIndicator {
+        #FActive: Boolean
+        +Start()
+        +Stop()
+        +Update(Progress: Integer)*
+        #ClearLine()
     }
     
     class TProgressBar {
         -FTotal: Integer
-        -FCurrentValue: Integer
-        +Update(Value: Integer)
+        -FWidth: Integer
+        -FLastProgress: Integer
+        +Create(Total: Integer, Width: Integer)
+        +Update(Progress: Integer)
     }
     
     class TSpinner {
         -FStyle: TSpinnerStyle
-        -FCurrentFrame: Integer
-        +Update(Value: Integer)
+        -FFrame: Integer
+        -FFrames: array of string
+        +Create(Style: TSpinnerStyle)
+        +Update(Progress: Integer)
+    }
+
+    class TConsole {
+        -FDefaultAttr: Word
+        +SetForegroundColor(Color: TConsoleColor)
+        +SetBackgroundColor(Color: TConsoleColor)
+        +ResetColors()
+        +Write(Text: string)
+        +WriteLn(Text: string)
+        +ClearLine()
+        +MoveCursorUp(Lines: Integer)
+        +MoveCursorDown(Lines: Integer)
+        +MoveCursorLeft(Columns: Integer)
+        +MoveCursorRight(Columns: Integer)
+        +SaveCursorPosition()
+        +RestoreCursorPosition()
     }
 
     ICLIApplication <|.. TCLIApplication
     ICommand <|.. TBaseCommand
-    ICommandParameter <|.. TBaseParameter
-    IProgressIndicator <|.. TProgressBar
-    IProgressIndicator <|.. TSpinner
+    ICommandParameter <|.. TCommandParameter
+    IProgressIndicator <|.. TProgressIndicator
+    TProgressIndicator <|-- TProgressBar
+    TProgressIndicator <|-- TSpinner
     
     TCLIApplication --> ICommand
     TBaseCommand --> ICommandParameter
     TBaseCommand --> ICommand
 ```
+
 
 ## Core Components
 
@@ -107,13 +139,13 @@ classDiagram
 ICommand = interface
   function GetName: string;
   function GetDescription: string;
+  function GetParameters: specialize TArray<ICommandParameter>;
+  function GetSubCommands: specialize TArray<ICommand>;
   function Execute: Integer;
-  function GetParameters: TArray<ICommandParameter>;
-  function GetSubCommands: TArray<ICommand>;
   property Name: string read GetName;
   property Description: string read GetDescription;
-  property Parameters: TArray<ICommandParameter> read GetParameters;
-  property SubCommands: TArray<ICommand> read GetSubCommands;
+  property Parameters: specialize TArray<ICommandParameter> read GetParameters;
+  property SubCommands: specialize TArray<ICommand> read GetSubCommands;
 end;
 ```
 
@@ -139,8 +171,8 @@ end;
 ```pascal
 IProgressIndicator = interface
   procedure Start;
-  procedure Update(const Value: Integer);
   procedure Stop;
+  procedure Update(const Progress: Integer); // 0-100 for percentage
 end;
 ```
 
@@ -155,10 +187,20 @@ The `TCLIApplication` class is the central component that:
 Key methods:
 ```pascal
 TCLIApplication = class(TInterfacedObject, ICLIApplication)
+private
+  FName: string;
+  FVersion: string;
+  FCommands: TCommandList;
+  FCurrentCommand: ICommand;
+  FParsedParams: TStringList;
+  FParamStartIndex: Integer;
+  FDebugMode: Boolean;
+public
   procedure RegisterCommand(const Command: ICommand);
   function Execute: Integer;
-  procedure ParseCommandLine;
-  function ValidateCommand: Boolean;
+  property DebugMode: Boolean read FDebugMode write FDebugMode;
+  property Version: string read FVersion;
+  property Commands: TCommandList read GetCommands;
 end;
 ```
 
@@ -166,208 +208,214 @@ end;
 
 #### `TBaseCommand` (`CLI.Command`)
 Base implementation for commands with:
-- Parameter management
-- Subcommand support
-- Parameter value retrieval
-
-#### `TBaseParameter` (`CLI.Parameter`)
-Base implementation for command parameters with:
-- Flag handling
-- Type validation
-- Default value support
-
-## Implementation Details
-
-### 1. Command-Line Parsing
-
-The framework uses a sophisticated parsing system that:
-- Handles multiple parameter formats
-- Supports parameter value extraction
-- Validates required parameters
-- Applies default values
-
-Key parsing rules:
 ```pascal
-// Long format with equals
---param=value
-
-// Long format with space
---param value
-
-// Short format
--p value
-
-// Boolean flags
---flag
--f
+TBaseCommand = class(TInterfacedObject, ICommand)
+private
+  FName: string;
+  FDescription: string;
+  FParameters: array of ICommandParameter;
+  FSubCommands: array of ICommand;
+  FParsedParams: TStringList;
+protected
+  function GetParameterValue(const Flag: string; out Value: string): Boolean;
+public
+  procedure AddParameter(const Parameter: ICommandParameter);
+  procedure AddSubCommand(const Command: ICommand);
+  procedure SetParsedParams(const Params: TStringList);
+  function Execute: Integer; virtual; abstract;
+end;
 ```
 
-### 2. Progress Indicators
+#### `TCommandParameter` (`CLI.Parameter`)
+Base implementation for command parameters:
+```pascal
+TCommandParameter = class(TInterfacedObject, ICommandParameter)
+private
+  FShortFlag: string;
+  FLongFlag: string;
+  FDescription: string;
+  FRequired: Boolean;
+  FParamType: TParameterType;
+  FDefaultValue: string;
+public
+  constructor Create(const AShortFlag, ALongFlag, ADescription: string;
+    ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '');
+end;
+```
 
-Two types of progress indicators are implemented:
+### 4. Console Support (`CLI.Console`)
 
-#### Spinner
-- Uses ASCII/Unicode characters for animation
-- Non-blocking operation
-- Customizable spinner styles
-
-#### Progress Bar
-- Shows percentage completion
-- Supports custom total values
-- Updates in real-time
-
-### 3. Help System
-
-The help system is implemented in three levels:
-
-1. **Basic Help** (`ShowHelp`)
-   - Shows command list
-   - Displays global options
-   - Provides usage examples
-
-2. **Command Help** (`ShowCommandHelp`)
-   - Shows command usage
-   - Lists command parameters
-   - Displays subcommands
-   - Shows command-specific examples
-
-3. **Complete Help** (`ShowCompleteHelp`)
-   - Shows full command hierarchy
-   - Displays all parameters
-   - Includes detailed descriptions
-
-### 4. Color Support
-
-Console colors are implemented through the `TConsole` class:
+Console color and cursor control:
 ```pascal
 type
   TConsoleColor = (
-    ccDefault,
-    ccBlack,
-    ccRed,
-    ccGreen,
-    ccYellow,
-    ccBlue,
-    ccMagenta,
-    ccCyan,
-    ccWhite
+    ccBlack, ccBlue, ccGreen, ccCyan, 
+    ccRed, ccMagenta, ccYellow, ccWhite,
+    ccBrightBlack, ccBrightBlue, ccBrightGreen, ccBrightCyan,
+    ccBrightRed, ccBrightMagenta, ccBrightYellow, ccBrightWhite
   );
+
+  TConsole = class
+  private
+    class var FDefaultAttr: Word;
+    class procedure InitConsole;
+  public
+    class procedure SetForegroundColor(const Color: TConsoleColor);
+    class procedure SetBackgroundColor(const Color: TConsoleColor);
+    class procedure ResetColors;
+    class procedure Write(const Text: string); overload;
+    class procedure Write(const Text: string; const FgColor: TConsoleColor); overload;
+    class procedure WriteLn(const Text: string); overload;
+    class procedure WriteLn(const Text: string; const FgColor: TConsoleColor); overload;
+    // Cursor control methods
+    class procedure ClearLine;
+    class procedure MoveCursorUp(const Lines: Integer = 1);
+    class procedure MoveCursorDown(const Lines: Integer = 1);
+    class procedure MoveCursorLeft(const Columns: Integer = 1);
+    class procedure MoveCursorRight(const Columns: Integer = 1);
+    class procedure SaveCursorPosition;
+    class procedure RestoreCursorPosition;
+  end;
+```
+
+### 5. Progress Indicators (`CLI.Progress`)
+
+Two types of progress indicators:
+
+#### Spinner
+```pascal
+type
+  TSpinnerStyle = (
+    ssDots,    // ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+    ssLine,    // -\|/
+    ssCircle   // ◐◓◑◒
+  );
+
+  TSpinner = class(TProgressIndicator)
+  private
+    FStyle: TSpinnerStyle;
+    FFrame: Integer;
+    FFrames: array of string;
+  public
+    constructor Create(const AStyle: TSpinnerStyle);
+    procedure Update(const Progress: Integer); override;
+  end;
+```
+
+#### Progress Bar
+```pascal
+TProgressBar = class(TProgressIndicator)
+private
+  FTotal: Integer;
+  FWidth: Integer;
+  FLastProgress: Integer;
+public
+  constructor Create(const ATotal: Integer; const AWidth: Integer = 10);
+  procedure Update(const Progress: Integer); override;
+end;
 ```
 
 ## Error Handling
 
-The framework implements robust error handling:
+The framework implements robust error handling through:
 
-1. **Parameter Validation**
-   - Required parameter checks
-   - Type validation
-   - Default value application
-
-2. **Command Execution**
-   - Exception handling
-   - Error reporting
-   - Exit code management
-
-3. **User Input Validation**
-   - Command existence checks
-   - Parameter format validation
-   - Value type checking
-
-## Performance Considerations
-
-1. **Memory Management**
-   - Interface-based reference counting
-   - Automatic cleanup of command objects
-   - Proper resource disposal
-
-2. **Command Processing**
-   - Efficient parameter parsing
-   - Minimal string operations
-   - Optimized help text generation
-
-## Extension Points
-
-The framework can be extended through:
-
-1. **Custom Commands**
-   - Inherit from `TBaseCommand`
-   - Implement custom `Execute` method
-   - Add specialized parameters
-
-2. **Custom Parameters**
-   - Create new parameter types
-   - Implement custom validation
-   - Add specialized formatting
-
-3. **Custom Progress Indicators**
-   - Implement `IProgressIndicator`
-   - Create new visualization styles
-   - Add custom update logic
-
-## Debug Support
-
-Debug mode provides:
-- Parameter parsing details
-- Command execution flow
-- Error tracking information
-
-Enable with:
+1. **Exception Classes** (`CLI.Errors`)
 ```pascal
-(App as TCLIApplication).DebugMode := True;
+type
+  ECLIException = class(Exception);
+  ECommandNotFoundException = class(ECLIException);
+  EInvalidParameterException = class(ECLIException);
+  ERequiredParameterMissingException = class(ECLIException);
+  EInvalidParameterValueException = class(ECLIException);
+  ECommandExecutionException = class(ECLIException);
 ```
 
-## Best Practices for Development
+2. **Parameter Validation**
+- Required parameter checks
+- Type validation
+- Default value application
+
+3. **Command Validation**
+- Command existence checks
+- Subcommand validation
+- Parameter format validation
+
+## Platform-Specific Considerations
+
+### Windows Console Support
+```pascal
+{$IFDEF WINDOWS}
+  // Uses Windows API for console manipulation
+  Handle := GetStdHandle(STD_OUTPUT_HANDLE);
+  GetConsoleScreenBufferInfo(Handle, Info);
+  SetConsoleTextAttribute(Handle, Attributes);
+{$ENDIF}
+```
+
+### Unix/Linux Console Support
+```pascal
+{$ELSE}
+  // Uses ANSI escape sequences
+  System.Write(#27'[<color_code>m');
+{$ENDIF}
+```
+
+## Best Practices
 
 1. **Command Implementation**
-   ```pascal
-   type
-     TMyCommand = class(TBaseCommand)
-     public
-       constructor Create;
-       function Execute: Integer; override;
-     end;
-   ```
+```pascal
+type
+  TMyCommand = class(TBaseCommand)
+  public
+    constructor Create;
+    function Execute: Integer; override;
+  end;
+```
 
 2. **Parameter Definition**
-   ```pascal
-   Cmd.AddParameter(CreateParameter(
-     '-p',
-     '--param',
-     'Parameter description',
-     True,
-     ptString,
-     'default'
-   ));
-   ```
+```pascal
+Cmd.AddParameter(CreateParameter(
+  '-p',
+  '--param',
+  'Parameter description',
+  True,
+  ptString,
+  'default'
+));
+```
 
 3. **Progress Indication**
-   ```pascal
-   var
-     Progress: IProgressIndicator;
-   begin
-     Progress := CreateProgressBar(Total);
-     try
-       Progress.Start;
-       // Work
-     finally
-       Progress.Stop;
-     end;
-   end;
-   ```
+```pascal
+var
+  Progress: IProgressIndicator;
+begin
+  Progress := CreateProgressBar(100, 20); // total=100, width=20
+  Progress.Start;
+  try
+    // Update progress
+    Progress.Update(50); // 50%
+  finally
+    Progress.Stop;
+  end;
+end;
+```
 
-## Testing Guidelines
+4. **Color Usage**
+- Use red for errors
+- Use yellow for warnings
+- Use green for success messages
+- Use cyan for information
+- Use white for normal output
 
-1. **Command Testing**
-   - Test required parameters
-   - Verify help output
-   - Check execution results
-
-2. **Parameter Testing**
-   - Test various formats
-   - Verify validation
-   - Check default values
-
-3. **Integration Testing**
-   - Test command hierarchy
-   - Verify help system
-   - Check error handling 
+5. **Error Handling**
+```pascal
+try
+  Result := Command.Execute;
+except
+  on E: ECommandExecutionException do
+  begin
+    TConsole.WriteLn('Error: ' + E.Message, ccRed);
+    Result := 1;
+  end;
+end;
+```
