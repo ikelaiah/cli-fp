@@ -8,7 +8,34 @@ This guide will walk you through creating your first command-line application us
 
 - Basic knowledge of Free Pascal/Delphi syntax
 - Free Pascal Compiler (FPC) installed
-- A text editor or IDE
+- Lazarus IDE installed
+
+
+## Table of Contents
+- [Beginner's Guide to CLI Framework](#beginners-guide-to-cli-framework)
+  - [Introduction](#introduction)
+  - [Prerequisites](#prerequisites)
+  - [Table of Contents](#table-of-contents)
+  - [Part 1: Understanding the Basics](#part-1-understanding-the-basics)
+    - [What is a CLI Application?](#what-is-a-cli-application)
+    - [Core Concepts](#core-concepts)
+  - [Part 2: Creating Your First CLI App](#part-2-creating-your-first-cli-app)
+    - [Step 1: Project Setup in Lazarus](#step-1-project-setup-in-lazarus)
+    - [Step 2: Creating the Application](#step-2-creating-the-application)
+    - [Step 3: Adding Our First Command](#step-3-adding-our-first-command)
+    - [Step 4: Adding Parameters](#step-4-adding-parameters)
+    - [Step 5: Adding a Progress Indicator](#step-5-adding-a-progress-indicator)
+    - [Step 6: Adding the Clone Command](#step-6-adding-the-clone-command)
+    - [Step 7: Organizing Commands](#step-7-organizing-commands)
+  - [Common Patterns and Best Practices](#common-patterns-and-best-practices)
+  - [Next Steps](#next-steps)
+  - [Common Issues and Solutions](#common-issues-and-solutions)
+  - [Getting Help](#getting-help)
+  - [Complete Application Code](#complete-application-code)
+    - [Building and Running](#building-and-running)
+    - [Next Steps](#next-steps-1)
+  - [Debugging Tips](#debugging-tips)
+
 
 ## Part 1: Understanding the Basics
 
@@ -36,19 +63,22 @@ A Command-Line Interface (CLI) application is a program that users interact with
 
 Let's create a simple Git-like application step by step.
 
-### Step 1: Project Setup
+### Step 1: Project Setup in Lazarus
 
-1. Create a new project directory:
-```bash
-mkdir my-git-cli
-cd my-git-cli
-```
+1. Launch Lazarus and create a new Project from **Project -> New Project -> Program**. 
 
-2. Create a new program file `mygit.pas`:
+2. Press Ctrl+S to save the lot:
+   - save the project as `MyGit.lpi` in a new folder, 
+   - and save the blank/empty main unit as `MyGit.lpr`.
+
+3. Add the source directory to your project's search path; **Project -> Project Options ... -> Compiler Options -> Paths -> Other unit files**
+
+4. Add the units to your uses clause:
+
 ```pascal
 program MyGit;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 uses
   SysUtils,
@@ -579,14 +609,13 @@ end.
 
 ### Building and Running
 
-1. Save the code as `mygit.pas`
+1. Save the main unit file -- `MyGit.lpr`.
 
 2. Compile the program:
-```bash
-fpc mygit.pas
-```
+   - Lazarus: Run -> Clean up and build
 
-3. Try the commands:
+3. Open your terminal and try the commands:
+
 ```bash
 # Show help
 ./mygit --help
