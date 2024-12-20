@@ -6,11 +6,11 @@
 
 
 ```
-╔══════════════════════════╗
-║ CLI·FP                 ║
-║ [ Modern CLI Framework ] ║
-║ > _                      ║
-╚══════════════════════════╝
+╭──── CLI·FP ────╮
+│ Robust • Fast  │
+│ CLI Framework  │
+│ > _            │
+╰────────────────╯
 ```
 
 A modern Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
