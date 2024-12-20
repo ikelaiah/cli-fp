@@ -6,7 +6,9 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  CLI.Interfaces, CLI.Application, CLI.Command, CLI.Parameter, CLI.Progress;
+  CLI.Interfaces,
+  CLI.Application, CLI.Command, CLI.Parameter,
+  CLI.Progress, CLI.Console;
 
 type
   { TCLIFrameworkTests }
@@ -51,6 +53,13 @@ type
     procedure Test_5_3_CompleteHelp;
     procedure Test_5_4_HelpExamples;
     procedure Test_5_5_SubCommandHelp;
+
+    // 6.x - Console Color Tests
+    procedure Test_6_1_BasicColors;
+    procedure Test_6_2_BrightColors;
+    procedure Test_6_3_BackgroundColors;
+    procedure Test_6_4_ColorReset;
+    procedure Test_6_5_WriteWithColors;
   end;
 
 implementation
@@ -397,6 +406,96 @@ begin
     App.Free;
   end;
 end;
+
+// 6.x - Console Color Tests
+
+procedure TCLIFrameworkTests.Test_6_1_BasicColors;
+begin
+  try
+    // Test basic colors
+    TConsole.WriteLn('Testing basic colors:', ccWhite);
+    TConsole.WriteLn('Black text', ccBlack);
+    TConsole.WriteLn('Blue text', ccBlue);
+    TConsole.WriteLn('Green text', ccGreen);
+    TConsole.WriteLn('Cyan text', ccCyan);
+    TConsole.WriteLn('Red text', ccRed);
+    TConsole.WriteLn('Magenta text', ccMagenta);
+    TConsole.WriteLn('Yellow text', ccYellow);
+    TConsole.WriteLn('White text', ccWhite);
+    AssertTrue('Basic colors should not raise exceptions', True);
+  finally
+    TConsole.ResetColors;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_6_2_BrightColors;
+begin
+  try
+    // Test bright colors
+    TConsole.WriteLn('Testing bright colors:', ccWhite);
+    TConsole.WriteLn('Bright Black text', ccBrightBlack);
+    TConsole.WriteLn('Bright Blue text', ccBrightBlue);
+    TConsole.WriteLn('Bright Green text', ccBrightGreen);
+    TConsole.WriteLn('Bright Cyan text', ccBrightCyan);
+    TConsole.WriteLn('Bright Red text', ccBrightRed);
+    TConsole.WriteLn('Bright Magenta text', ccBrightMagenta);
+    TConsole.WriteLn('Bright Yellow text', ccBrightYellow);
+    TConsole.WriteLn('Bright White text', ccBrightWhite);
+    AssertTrue('Bright colors should not raise exceptions', True);
+  finally
+    TConsole.ResetColors;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_6_3_BackgroundColors;
+begin
+  try
+    // Test background colors
+    TConsole.WriteLn('Testing background colors:', ccWhite);
+    TConsole.SetBackgroundColor(ccBlue);
+    TConsole.WriteLn('Text with blue background', ccWhite);
+    TConsole.SetBackgroundColor(ccGreen);
+    TConsole.WriteLn('Text with green background', ccBlack);
+    AssertTrue('Background colors should not raise exceptions', True);
+  finally
+    TConsole.ResetColors;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_6_4_ColorReset;
+begin
+  try
+    // Test color reset functionality
+    TConsole.WriteLn('Testing color reset:', ccWhite);
+    TConsole.SetForegroundColor(ccRed);
+    TConsole.SetBackgroundColor(ccYellow);
+    TConsole.Write('Colored text');
+    TConsole.ResetColors;
+    TConsole.WriteLn(' - should be back to default colors');
+    AssertTrue('Color reset should not raise exceptions', True);
+  finally
+    TConsole.ResetColors; // Make absolutely sure colors are reset
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_6_5_WriteWithColors;
+begin
+  try
+    // Test Write and WriteLn with colors
+    TConsole.WriteLn('Testing Write/WriteLn with colors:', ccWhite);
+    TConsole.Write('This is ', ccWhite);
+    TConsole.Write('multi', ccRed);
+    TConsole.Write('-', ccWhite);
+    TConsole.Write('colored', ccBlue);
+    TConsole.WriteLn(' text', ccGreen);
+    AssertTrue('Write with colors should not raise exceptions', True);
+  finally
+    TConsole.ResetColors;
+  end;
+end;
+
+
+
 
 initialization
   RegisterTest(TCLIFrameworkTests);

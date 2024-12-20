@@ -112,11 +112,15 @@ class procedure TConsole.ResetColors;
 {$IFDEF WINDOWS}
 var
   Handle: THandle;
+  DefaultAttr: Word;
 begin
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
-  SetConsoleTextAttribute(Handle, FOldTextAttr);
+  // On Windows, the default is usually white text on black background (0x07)
+  DefaultAttr := $07;
+  SetConsoleTextAttribute(Handle, DefaultAttr);
 {$ELSE}
 begin
+  // ANSI reset sequence resets both foreground and background
   System.Write(#27'[0m');
 {$ENDIF}
 end;
