@@ -82,24 +82,28 @@ type
 
 ```mermaid
 flowchart TD
-    A[Start Application] --> B[Initialize CLI App]
-    B --> C[Register Commands]
-    C --> D[Parse Command Line]
-    D --> E{Valid Command?}
-    E -->|No| F[Show Help]
-    E -->|Yes| G{Has Subcommands?}
-    G -->|Yes| H[Process Subcommand]
-    H --> I{Valid Subcommand?}
-    I -->|No| J[Show Subcommand Help]
-    I -->|Yes| K[Process Parameters]
-    G -->|No| K
-    K --> L{Valid Parameters?}
-    L -->|No| M[Show Parameter Help]
-    L -->|Yes| N[Execute Command]
-    N --> O[Return Exit Code]
-    F --> O
-    J --> O
-    M --> O
+    A[Start Application] --> B[Parse Command Line]
+    B --> C{Empty Command Line?}
+    C -->|Yes| D[Show General Help]
+    C -->|No| E{Help or Version?}
+    E -->|Yes| F[Show Help/Version]
+    E -->|No| G{Valid Command?}
+    G -->|No| H[Show Error & Brief Help]
+    G -->|Yes| I{Has Subcommands?}
+    I -->|Yes| J[Process Subcommand]
+    J --> K{Valid Subcommand?}
+    K -->|No| L[Show Subcommand Help]
+    K -->|Yes| M[Parse Parameters]
+    I -->|No| M
+    M --> N{Valid Parameters?}
+    N -->|No| O[Show Parameter Help]
+    N -->|Yes| P[Execute Command]
+    P --> Q[Return Exit Code]
+    D --> Q
+    F --> Q
+    H --> Q
+    L --> Q
+    O --> Q
 ```
 
 ### Command Parameter Building Flow

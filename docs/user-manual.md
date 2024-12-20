@@ -52,44 +52,54 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
 ```mermaid
 flowchart TD
     A[Start Application] --> B[Parse Command Line]
-    B --> C{Valid Command?}
-    C -->|No| D[Show Help]
-    C -->|Yes| E{Has Subcommands?}
-    E -->|Yes| F[Process Subcommand]
-    F --> G{Valid Subcommand?}
-    G -->|No| H[Show Subcommand Help]
-    G -->|Yes| I[Process Parameters]
-    E -->|No| I
-    I --> J{Valid Parameters?}
-    J -->|No| K[Show Parameter Help]
-    J -->|Yes| L[Execute Command]
-    L --> M[Return Exit Code]
-    D --> M
-    H --> M
-    K --> M
+    B --> C{Empty Command Line?}
+    C -->|Yes| D[Show General Help]
+    C -->|No| E{Help or Version?}
+    E -->|Yes| F[Show Help/Version]
+    E -->|No| G{Valid Command?}
+    G -->|No| H[Show Error & Brief Help]
+    G -->|Yes| I{Has Subcommands?}
+    I -->|Yes| J[Process Subcommand]
+    J --> K{Valid Subcommand?}
+    K -->|No| L[Show Subcommand Help]
+    K -->|Yes| M[Parse Parameters]
+    I -->|No| M
+    M --> N{Valid Parameters?}
+    N -->|No| O[Show Parameter Help]
+    N -->|Yes| P[Execute Command]
+    P --> Q[Return Exit Code]
+    D --> Q
+    F --> Q
+    H --> Q
+    L --> Q
+    O --> Q
 ```
 
 ## Command Parameter Building Flow
 
 ```mermaid
 flowchart TD
-    A[Create Command] --> B[Add Parameters]
-    B --> C{Parameter Type?}
-    C -->|String| D[Create String Parameter]
-    C -->|Integer| E[Create Integer Parameter]
-    C -->|Boolean| F[Create Boolean Flag]
-    C -->|Float| G[Create Float Parameter]
-    D --> H[Set Flags]
-    E --> H
-    F --> H
-    G --> H
-    H --> I[Set Description]
-    I --> J[Set Required/Optional]
-    J --> K[Set Default Value]
-    K --> L[Add to Command]
-    L --> M{More Parameters?}
-    M -->|Yes| B
-    M -->|No| N[Register Command]
+    A[Start Command Creation] --> B[Define Command Class]
+    B --> C[Implement Execute Method]
+    C --> D[Create Command Instance]
+    D --> E[Add Parameters]
+    E --> F{Parameter Type?}
+    F -->|String| G[Add String Parameter]
+    F -->|Integer| H[Add Integer Parameter]
+    F -->|Boolean| I[Add Boolean Flag]
+    F -->|Float| J[Add Float Parameter]
+    G --> K[Configure Parameter]
+    H --> K
+    I --> K
+    J --> K
+    K --> L[Set Short Flag]
+    L --> M[Set Long Flag]
+    M --> N[Set Description]
+    N --> O[Set Required/Optional]
+    O --> P[Set Default Value]
+    P --> Q{More Parameters?}
+    Q -->|Yes| E
+    Q -->|No| R[Register Command]
 ```
 
 ## Installation
