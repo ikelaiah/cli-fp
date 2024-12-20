@@ -21,6 +21,7 @@ This guide will walk you through creating your first command-line application us
     - [Core Concepts](#core-concepts)
     - [Understanding Classes in Object Pascal](#understanding-classes-in-object-pascal)
     - [Application Flow](#application-flow)
+    - [Command Parameter Building Flow](#command-parameter-building-flow)
   - [Part 2: Creating Your First CLI App](#part-2-creating-your-first-cli-app)
     - [Step 1: Project Setup in Lazarus](#step-1-project-setup-in-lazarus)
     - [Step 2: Creating the Application](#step-2-creating-the-application)
@@ -80,13 +81,52 @@ type
 ### Application Flow
 
 ```mermaid
-   flowchart TD
-       A[Start] --> B[Initialize Application]
-       B --> C{User Input}
-       C -->|Init Command| D[Initialize Repository]
-       C -->|Clone Command| E[Clone Repository]
-       D --> F[End]
-       E --> F
+flowchart TD
+    A[Start Application] --> B[Initialize CLI App]
+    B --> C[Register Commands]
+    C --> D[Parse Command Line]
+    D --> E{Valid Command?}
+    E -->|No| F[Show Help]
+    E -->|Yes| G{Has Subcommands?}
+    G -->|Yes| H[Process Subcommand]
+    H --> I{Valid Subcommand?}
+    I -->|No| J[Show Subcommand Help]
+    I -->|Yes| K[Process Parameters]
+    G -->|No| K
+    K --> L{Valid Parameters?}
+    L -->|No| M[Show Parameter Help]
+    L -->|Yes| N[Execute Command]
+    N --> O[Return Exit Code]
+    F --> O
+    J --> O
+    M --> O
+```
+
+### Command Parameter Building Flow
+
+```mermaid
+flowchart TD
+    A[Start Command Creation] --> B[Define Command Class]
+    B --> C[Implement Execute Method]
+    C --> D[Create Command Instance]
+    D --> E[Add Parameters]
+    E --> F{Parameter Type?}
+    F -->|String| G[Add String Parameter]
+    F -->|Integer| H[Add Integer Parameter]
+    F -->|Boolean| I[Add Boolean Flag]
+    F -->|Float| J[Add Float Parameter]
+    G --> K[Configure Parameter]
+    H --> K
+    I --> K
+    J --> K
+    K --> L[Set Short Flag]
+    L --> M[Set Long Flag]
+    M --> N[Set Description]
+    N --> O[Set Required/Optional]
+    O --> P[Set Default Value]
+    P --> Q{More Parameters?}
+    Q -->|Yes| E
+    Q -->|No| R[Register Command]
 ```
 
 ## Part 2: Creating Your First CLI App

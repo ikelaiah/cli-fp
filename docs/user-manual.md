@@ -4,6 +4,40 @@
 
 The Free Pascal CLI Framework is a modern, feature-rich library for building command-line applications. It provides an intuitive way to create CLIs with commands, subcommands, parameters, and interactive progress indicators.
 
+
+## Table of Contents
+
+- [CLI Framework User Manual](#cli-framework-user-manual)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Application Flow](#application-flow)
+  - [Command Parameter Building Flow](#command-parameter-building-flow)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+    - [1. Creating a Simple CLI Application](#1-creating-a-simple-cli-application)
+    - [2. Creating a Git-like CLI](#2-creating-a-git-like-cli)
+    - [3. Progress Indicators](#3-progress-indicators)
+      - [Spinner Types](#spinner-types)
+      - [Using Spinners](#using-spinners)
+      - [Progress Bars](#progress-bars)
+      - [Choosing Between Spinner and Progress Bar](#choosing-between-spinner-and-progress-bar)
+  - [Parameter Types Reference](#parameter-types-reference)
+    - [1. String Parameters](#1-string-parameters)
+    - [2. Integer Parameters](#2-integer-parameters)
+    - [3. Boolean Flags](#3-boolean-flags)
+    - [4. Float Parameters](#4-float-parameters)
+  - [Command-Line Usage](#command-line-usage)
+    - [Basic Command Structure](#basic-command-structure)
+    - [Getting Help](#getting-help)
+    - [Parameter Formats](#parameter-formats)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
+  - [Best Practices](#best-practices)
+  - [Getting Help](#getting-help-1)
+  - [Summary](#summary)
+
+
 ## Features
 
 - Command and subcommand support
@@ -12,6 +46,51 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
 - Colored console output
 - Built-in help system
 - Automatic usage examples generation
+
+## Application Flow
+
+```mermaid
+flowchart TD
+    A[Start Application] --> B[Parse Command Line]
+    B --> C{Valid Command?}
+    C -->|No| D[Show Help]
+    C -->|Yes| E{Has Subcommands?}
+    E -->|Yes| F[Process Subcommand]
+    F --> G{Valid Subcommand?}
+    G -->|No| H[Show Subcommand Help]
+    G -->|Yes| I[Process Parameters]
+    E -->|No| I
+    I --> J{Valid Parameters?}
+    J -->|No| K[Show Parameter Help]
+    J -->|Yes| L[Execute Command]
+    L --> M[Return Exit Code]
+    D --> M
+    H --> M
+    K --> M
+```
+
+## Command Parameter Building Flow
+
+```mermaid
+flowchart TD
+    A[Create Command] --> B[Add Parameters]
+    B --> C{Parameter Type?}
+    C -->|String| D[Create String Parameter]
+    C -->|Integer| E[Create Integer Parameter]
+    C -->|Boolean| F[Create Boolean Flag]
+    C -->|Float| G[Create Float Parameter]
+    D --> H[Set Flags]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Set Description]
+    I --> J[Set Required/Optional]
+    J --> K[Set Default Value]
+    K --> L[Add to Command]
+    L --> M{More Parameters?}
+    M -->|Yes| B
+    M -->|No| N[Register Command]
+```
 
 ## Installation
 
@@ -378,6 +457,15 @@ Use a **Progress Bar** when:
 
 ## Parameter Types Reference
 
+
+| Type        | Description                | Example Code            |
+| ----------- |--------------------------- | ------------------------|
+| String      | Handles text inputs        | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptString)` |
+| Integer     | Handles whole numbers      | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptInteger)` |
+| Boolean     | Handles flags (true/false) | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptBoolean)` |
+| Float       | Handles decimal numbers    | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptFloat)` |
+
+
 ### 1. String Parameters
 
 ```pascal
@@ -567,3 +655,8 @@ The framework supports various parameter formats:
 - Check command-specific help with `<command> --help`
 - Enable debug mode for troubleshooting
 - Refer to the technical documentation for development details
+
+## Summary
+
+This manual has walked you through building and extending CLI applications using the Free Pascal CLI Framework. By following these guidelines and best practices, you can create robust and user-friendly command-line tools.
+Happy Coding!
