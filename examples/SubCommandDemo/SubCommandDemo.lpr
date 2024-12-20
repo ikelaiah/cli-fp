@@ -24,6 +24,7 @@
 {$mode objfpc}  // Use Object Pascal mode for modern OOP features
 {$H+}           // Use AnsiString instead of ShortString for better string handling
 {$J-}           // Disable writeable typed constants for safety
+
 { Import required units }
 uses
   SysUtils,         // Standard system utilities (e.g., GetCurrentDir)
