@@ -4,6 +4,40 @@
 
 The Free Pascal CLI Framework is a modern, feature-rich library for building command-line applications. It provides an intuitive way to create CLIs with commands, subcommands, parameters, and interactive progress indicators.
 
+
+## Table of Contents
+
+- [CLI Framework User Manual](#cli-framework-user-manual)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Application Flow](#application-flow)
+  - [Command Parameter Building Flow](#command-parameter-building-flow)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+    - [1. Creating a Simple CLI Application](#1-creating-a-simple-cli-application)
+    - [2. Creating a Git-like CLI](#2-creating-a-git-like-cli)
+    - [3. Progress Indicators](#3-progress-indicators)
+      - [Spinner Types](#spinner-types)
+      - [Using Spinners](#using-spinners)
+      - [Progress Bars](#progress-bars)
+      - [Choosing Between Spinner and Progress Bar](#choosing-between-spinner-and-progress-bar)
+  - [Parameter Types Reference](#parameter-types-reference)
+    - [1. String Parameters](#1-string-parameters)
+    - [2. Integer Parameters](#2-integer-parameters)
+    - [3. Boolean Flags](#3-boolean-flags)
+    - [4. Float Parameters](#4-float-parameters)
+  - [Command-Line Usage](#command-line-usage)
+    - [Basic Command Structure](#basic-command-structure)
+    - [Getting Help](#getting-help)
+    - [Parameter Formats](#parameter-formats)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
+  - [Best Practices](#best-practices)
+  - [Getting Help](#getting-help-1)
+  - [Summary](#summary)
+
+
 ## Features
 
 - Command and subcommand support
@@ -12,6 +46,61 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
 - Colored console output
 - Built-in help system
 - Automatic usage examples generation
+
+## Application Flow
+
+```mermaid
+flowchart TD
+    A[Start Application] --> B[Parse Command Line]
+    B --> C{Empty Command Line?}
+    C -->|Yes| D[Show General Help]
+    C -->|No| E{Help or Version?}
+    E -->|Yes| F[Show Help/Version]
+    E -->|No| G{Valid Command?}
+    G -->|No| H[Show Error & Brief Help]
+    G -->|Yes| I{Has Subcommands?}
+    I -->|Yes| J[Process Subcommand]
+    J --> K{Valid Subcommand?}
+    K -->|No| L[Show Subcommand Help]
+    K -->|Yes| M[Parse Parameters]
+    I -->|No| M
+    M --> N{Valid Parameters?}
+    N -->|No| O[Show Parameter Help]
+    N -->|Yes| P[Execute Command]
+    P --> Q[Return Exit Code]
+    D --> Q
+    F --> Q
+    H --> Q
+    L --> Q
+    O --> Q
+```
+
+## Command Parameter Building Flow
+
+```mermaid
+flowchart TD
+    A[Start Command Creation] --> B[Define Command Class]
+    B --> C[Implement Execute Method]
+    C --> D[Create Command Instance]
+    D --> E[Add Parameters]
+    E --> F{Parameter Type?}
+    F -->|String| G[Add String Parameter]
+    F -->|Integer| H[Add Integer Parameter]
+    F -->|Boolean| I[Add Boolean Flag]
+    F -->|Float| J[Add Float Parameter]
+    G --> K[Configure Parameter]
+    H --> K
+    I --> K
+    J --> K
+    K --> L[Set Short Flag]
+    L --> M[Set Long Flag]
+    M --> N[Set Description]
+    N --> O[Set Required/Optional]
+    O --> P[Set Default Value]
+    P --> Q{More Parameters?}
+    Q -->|Yes| E
+    Q -->|No| R[Register Command]
+```
 
 ## Installation
 
@@ -201,44 +290,191 @@ end;
 
 ### 3. Progress Indicators
 
+The framework provides two types of progress indicators: spinners for indeterminate progress (when you don't know the total steps) and progress bars for determinate progress (when you know the total steps).
+
+#### Spinner Types
+
+The framework supports various spinner styles to match your application's needs:
+
+1. **Dots (ssDots)** - Braille dots animation
+   ```
+   ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+   ```
+   Best for: Modern terminals with Unicode support
+   ```pascal
+   Spinner := CreateSpinner(ssDots);
+   ```
+
+2. **Line (ssLine)** - Simple ASCII line animation
+   ```
+   -\|/
+   ```
+   Best for: Legacy terminals or when Unicode isn't supported
+   ```pascal
+   Spinner := CreateSpinner(ssLine);  // Default style
+   ```
+
+3. **Circle (ssCircle)** - Unicode circle animation
+   ```
+   ◐◓◑◒
+   ```
+   Best for: Clean, minimalist look
+   ```pascal
+   Spinner := CreateSpinner(ssCircle);
+   ```
+
+4. **Square (ssSquare)** - Square rotation animation
+   ```
+   ◰◳◲◱
+   ```
+   Best for: Alternative to circle style
+   ```pascal
+   Spinner := CreateSpinner(ssSquare);
+   ```
+
+5. **Arrow (ssArrow)** - Arrow rotation animation
+   ```
+   ←↖↑↗→↘↓↙
+   ```
+   Best for: Directional indication
+   ```pascal
+   Spinner := CreateSpinner(ssArrow);
+   ```
+
+6. **Bounce (ssBounce)** - Bouncing dot animation
+   ```
+   ⠁⠂⠄⠂
+   ```
+   Best for: Subtle indication
+   ```pascal
+   Spinner := CreateSpinner(ssBounce);
+   ```
+
+7. **Bar (ssBar)** - Wave block animation
+   ```
+   ▏▎▍▌▋▊▉█▊▋▌▍▎▏
+   ```
+   Best for: Smooth, wave-like animation that flows left to right
+   ```pascal
+   Spinner := CreateSpinner(ssBar);
+   ```
+   The animation creates a fluid motion by:
+   - Starting thin on the left (▏)
+   - Growing progressively thicker (▎▍▌▋▊▉)
+   - Reaching full block (█)
+   - Smoothly reducing thickness (▊▋▌▍▎▏)
+   This creates a natural wave-like effect that's easy on the eyes.
+
+#### Using Spinners
+
+Here's a complete example of using a spinner:
+
 ```pascal
-// Spinner for indeterminate progress
+procedure ProcessFiles(const Files: TStringList);
 var
   Spinner: IProgressIndicator;
+  i: Integer;
 begin
-  Spinner := CreateSpinner(ssLine);
+  // Create a spinner with dots style
+  Spinner := CreateSpinner(ssDots);
+  
+  // Start the spinner
   Spinner.Start;
   try
-    // Your long-running task here
-    Sleep(1000);
+    TConsole.WriteLn('Processing files...', ccCyan);
+    
+    // Your processing loop
+    for i := 0 to Files.Count - 1 do
+    begin
+      // Update spinner (will animate)
+      Spinner.Update(0);  // The parameter is ignored for spinners
+      
+      // Do your work here
+      ProcessFile(Files[i]);
+      Sleep(100);  // Simulate work
+    end;
+    
+    TConsole.WriteLn('Processing complete!', ccGreen);
   finally
+    // Always stop the spinner in a finally block
     Spinner.Stop;
   end;
 end;
+```
 
-// Progress bar for determinate progress
+Important notes for using spinners:
+- Always use a try-finally block to ensure the spinner is stopped
+- Call Update regularly to maintain animation
+- Choose a style appropriate for your terminal's capabilities
+- The Update parameter is ignored for spinners (used for interface compatibility)
+
+#### Progress Bars
+
+For operations where you know the total steps, use a progress bar:
+
+```pascal
+procedure CopyFiles(const Files: TStringList);
 var
   Progress: IProgressIndicator;
-  Total: Integer;
+  i: Integer;
 begin
-  Total := 100;
-  Progress := CreateProgressBar(Total, 20); // 20 chars wide
+  // Create a progress bar (total steps, width in characters)
+  Progress := CreateProgressBar(Files.Count, 20);
+  
+  // Start the progress bar
   Progress.Start;
   try
-    TConsole.WriteLn('Processing...', ccCyan);
-    for i := 1 to Total do
+    TConsole.WriteLn('Copying files...', ccCyan);
+    
+    // Your processing loop
+    for i := 0 to Files.Count - 1 do
     begin
-      Progress.Update(i);
-      Sleep(50); // Simulate work
+      // Update progress (current step)
+      Progress.Update(i + 1);
+      
+      // Do your work here
+      CopyFile(Files[i], DestPath + ExtractFileName(Files[i]));
+      Sleep(50);  // Simulate work
     end;
-    TConsole.WriteLn('Complete!', ccGreen);
+    
+    TConsole.WriteLn('Copy complete!', ccGreen);
   finally
+    // Always stop the progress bar in a finally block
     Progress.Stop;
   end;
 end;
 ```
 
+Progress bar features:
+- Shows percentage complete
+- Visual bar indicates progress
+- Automatically updates only when percentage changes
+- Width is customizable
+
+#### Choosing Between Spinner and Progress Bar
+
+Use a **Spinner** when:
+- The operation has no measurable progress
+- You can't determine the total steps
+- The operation is relatively quick
+- You want to show activity without specifics
+
+Use a **Progress Bar** when:
+- You know the total number of steps
+- The operation has measurable progress
+- You want to show specific completion percentage
+- The user needs to know how much longer to wait
+
 ## Parameter Types Reference
+
+
+| Type        | Description                | Example Code            |
+| ----------- |--------------------------- | ------------------------|
+| String      | Handles text inputs        | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptString)` |
+| Integer     | Handles whole numbers      | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptInteger)` |
+| Boolean     | Handles flags (true/false) | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptBoolean)` |
+| Float       | Handles decimal numbers    | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptFloat)` |
+
 
 ### 1. String Parameters
 
@@ -429,3 +665,8 @@ The framework supports various parameter formats:
 - Check command-specific help with `<command> --help`
 - Enable debug mode for troubleshooting
 - Refer to the technical documentation for development details
+
+## Summary
+
+This manual has walked you through building and extending CLI applications using the Free Pascal CLI Framework. By following these guidelines and best practices, you can create robust and user-friendly command-line tools.
+Happy Coding!

@@ -1,11 +1,36 @@
 # Test Output
 
-## 2024-12-20
+## 2024-12-21
 
 ```bash
-C:\Users\iwank\Documents\github\cli-fp\tests>TestRunner.exe -a --format=plain
- Time:00.000 N:25 E:0 F:0 I:0
-  TCLIFrameworkTests Time:00.000 N:25 E:0 F:0 I:0
+$ TestRunner.exe -a --format=plain
+Testing basic colors:
+Black text
+Blue text
+Green text
+Cyan text
+Red text
+Magenta text
+Yellow text
+White text
+Testing bright colors:
+Bright Black text
+Bright Blue text
+Bright Green text
+Bright Cyan text
+Bright Red text
+Bright Magenta text
+Bright Yellow text
+Bright White text
+Testing background colors:
+Text with blue background
+Text with green background
+Testing color reset:
+Colored text - should be back to default colors
+Testing Write/WriteLn with colors:
+This is multi-colored text
+ Time:00.003 N:30 E:0 F:0 I:0
+  TCLIFrameworkTests Time:00.002 N:30 E:0 F:0 I:0
     00.000  Test_1_1_CreateApplication
     00.000  Test_1_2_ApplicationVersion
     00.000  Test_1_3_RegisterCommand
@@ -31,15 +56,26 @@ C:\Users\iwank\Documents\github\cli-fp\tests>TestRunner.exe -a --format=plain
     00.000  Test_5_3_CompleteHelp
     00.000  Test_5_4_HelpExamples
     00.000  Test_5_5_SubCommandHelp
+    00.001  Test_6_1_BasicColors
+    00.001  Test_6_2_BrightColors
+    00.000  Test_6_3_BackgroundColors
+    00.000  Test_6_4_ColorReset
+    00.000  Test_6_5_WriteWithColors
 
-Number of run tests: 25
+Number of run tests: 30
 Number of errors:    0
 Number of failures:  0
 
 
 
 Heap dump by heaptrc unit of C:\Users\iwank\Documents\github\cli-fp\tests\TestRunner.exe
-738 memory blocks allocated : 47618/49496
-738 memory blocks freed     : 47618/49496
+789 memory blocks allocated : 51257/53232
+789 memory blocks freed     : 51257/53232
 0 unfreed memory blocks : 0
+True heap size : 229376 (256 used in System startup)
+True free heap : 229120
+
+$
 ```
+
+![alt text](images/20241221-screenshot.png)

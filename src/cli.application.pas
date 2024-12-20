@@ -2,48 +2,114 @@ unit CLI.Application;
 
 {$mode objfpc}{$H+}
 
+{ This unit implements the core CLI application functionality.
+  It handles command registration, parameter parsing, help system,
+  and command execution flow. }
+
 interface
 
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, CLI.Interfaces;
 
 type
+  { List type for storing registered commands }
   TCommandList = specialize TList<ICommand>;
 
-  { Main CLI application class }
+  { TCLIApplication - Main application class that implements ICLIApplication
+    Handles:
+    - Command registration and management
+    - Command-line parsing
+    - Parameter validation
+    - Help system
+    - Command execution }
   TCLIApplication = class(TInterfacedObject, ICLIApplication)
   private
-    FName: string;
-    FVersion: string;
-    FCommands: TCommandList;
-    FCurrentCommand: ICommand;
-    FParsedParams: TStringList;
-    FParamStartIndex: Integer;
-    FDebugMode: Boolean;
+    FName: string;              // Application name
+    FVersion: string;           // Application version
+    FCommands: TCommandList;    // List of registered commands
+    FCurrentCommand: ICommand;  // Currently executing command
+    FParsedParams: TStringList; // Parsed command-line parameters
+    FParamStartIndex: Integer;  // Index where command parameters start
+    FDebugMode: Boolean;        // Debug output flag
     
+    { Parses command-line arguments into FParsedParams
+      Handles both --param=value and -p value formats }
     procedure ParseCommandLine;
+    
+    { Shows general help with command list and global options }
     procedure ShowHelp;
+    
+    { Shows application version }
     procedure ShowVersion;
+    
+    { Shows detailed help for a specific command
+      @param Command The command to show help for }
     procedure ShowCommandHelp(const Command: ICommand);
+    
+    { Finds a command by name
+      @param Name The command name to find
+      @returns ICommand if found, nil if not found }
     function FindCommand(const Name: string): ICommand;
+    
+    { Validates current command parameters
+      Checks required parameters and unknown flags
+      @returns True if validation passes, False otherwise }
     function ValidateCommand: Boolean;
+    
+    { Gets parameter value for a command parameter
+      @param Param The parameter to get value for
+      @param Value Output parameter that receives the value
+      @returns True if parameter has value, False otherwise }
     function GetParameterValue(const Param: ICommandParameter; out Value: string): Boolean;
+    
+    { Shows complete help for all commands
+      @param Indent Current indentation level for formatting
+      @param Command Current command being documented, nil for root level }
     procedure ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
+    
+    { Gets the list of registered commands
+      @returns TCommandList containing all registered commands }
     function GetCommands: TCommandList;
+    
+    { Shows brief help when errors occur }
     procedure ShowBriefHelp;
+    
+    { Gets list of valid parameter flags for current command
+      @returns TStringList containing all valid flags }
     function GetValidParameterFlags: TStringList;
   public
+    { Creates a new CLI application instance
+      @param AName Application name
+      @param AVersion Application version }
     constructor Create(const AName, AVersion: string);
+    
+    { Cleans up application resources }
     destructor Destroy; override;
     
+    { Registers a new command with the application
+      @param Command The command to register
+      @raises Exception if command with same name exists }
     procedure RegisterCommand(const Command: ICommand);
+    
+    { Executes the application
+      Parses command line, validates parameters, and runs command
+      @returns Integer exit code (0 for success, non-zero for error) }
     function Execute: Integer;
+    
+    { Debug mode flag - enables detailed output when true }
     property DebugMode: Boolean read FDebugMode write FDebugMode;
+    
+    { Application version string }
     property Version: string read FVersion;
+    
+    { List of registered commands }
     property Commands: TCommandList read GetCommands;
   end;
 
-{ Helper function to create CLI application }
+{ Helper function to create a new CLI application instance
+  @param Name Application name
+  @param Version Application version
+  @returns ICLIApplication interface to the new instance }
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
 
 implementation
@@ -51,6 +117,10 @@ implementation
 uses
   StrUtils, CLI.Command, CLI.Console;
 
+{ Constructor: Initializes a new CLI application instance
+  @param AName The name of the application
+  @param AVersion The version string
+  Note: Creates empty command list and parameter storage }
 constructor TCLIApplication.Create(const AName, AVersion: string);
 begin
   inherited Create;
@@ -58,19 +128,25 @@ begin
   FVersion := AVersion;
   FCommands := TCommandList.Create;
   FParsedParams := TStringList.Create;
-  FParsedParams.CaseSensitive := True;
-  FParamStartIndex := 2; // Skip program name and command name
-  FDebugMode := False; // Debug output disabled by default
+  FParsedParams.CaseSensitive := True;  // Parameters are case-sensitive
+  FParamStartIndex := 2;                // Skip program name and command name
+  FDebugMode := False;                  // Debug output disabled by default
 end;
 
+{ Destructor: Cleans up application resources
+  Note: Ensures proper cleanup of command list and parameter storage }
 destructor TCLIApplication.Destroy;
 begin
-  FCurrentCommand := nil;
-  FCommands.Free;
-  FParsedParams.Free;
+  FCurrentCommand := nil;  // Release current command reference
+  FCommands.Free;         // Free command list
+  FParsedParams.Free;     // Free parameter storage
   inherited;
 end;
 
+{ RegisterCommand: Adds a new command to the application
+  @param Command The command to register
+  @raises Exception if a command with the same name already exists
+  Note: Command names are case-insensitive for comparison }
 procedure TCLIApplication.RegisterCommand(const Command: ICommand);
 var
   i: Integer;
@@ -83,6 +159,14 @@ begin
   FCommands.Add(Command);
 end;
 
+{ Execute: Main entry point for running the application
+  Handles:
+  - Parameter parsing
+  - Command identification
+  - Subcommand resolution
+  - Help display
+  - Command execution
+  @returns Integer exit code (0 for success, non-zero for error) }
 function TCLIApplication.Execute: Integer;
 var
   CmdName: string;
@@ -97,21 +181,21 @@ begin
   Result := 0;
   ShowHelpForCommand := False;
   
-  // Check for empty command line
+  // Check for empty command line - show general help
   if ParamCount = 0 then
   begin
     ShowHelp;
     Exit;
   end;
   
-  // Check for global flags first
+  // Handle global help flag
   if (ParamStr(1) = '--help-complete') then
   begin
     ShowCompleteHelp;
     Exit;
   end;
   
-  // Get command name (first argument)
+  // Get and validate command name
   CmdName := ParamStr(1);
   if StartsStr('-', CmdName) then
   begin
@@ -132,13 +216,14 @@ begin
   
   FCurrentCommand := CurrentCmd;
   
-  // Check for subcommand
+  // Process subcommands if present
   i := 2;
   while (i <= ParamCount) and not StartsStr('-', ParamStr(i)) do
   begin
     SubCmdName := ParamStr(i);
     SubCmd := nil;
     
+    // Search for matching subcommand
     for Cmd in CurrentCmd.SubCommands do
     begin
       if SameText(Cmd.Name, SubCmdName) then
@@ -157,7 +242,7 @@ begin
     end
     else
     begin
-      // Unknown subcommand
+      // Show available subcommands on error
       TConsole.WriteLn('Error: Unknown subcommand "' + SubCmdName + '" for ' + CurrentCmd.Name, ccRed);
       TConsole.WriteLn('');
       TConsole.WriteLn('Available subcommands:', ccCyan);
@@ -170,7 +255,7 @@ begin
     end;
   end;
 
-  // Check for help flag
+  // Check for help request for current command
   for i := FParamStartIndex to ParamCount do
   begin
     if (ParamStr(i) = '-h') or (ParamStr(i) = '--help') then
@@ -180,7 +265,7 @@ begin
     end;
   end;
 
-  // Show help if command has subcommands and no subcommand specified
+  // Show help for commands with subcommands when no subcommand specified
   if (Length(FCurrentCommand.SubCommands) > 0) and (FParamStartIndex = 2) then
   begin
     ShowCommandHelp(FCurrentCommand);
@@ -190,7 +275,7 @@ begin
   // Parse command line arguments
   ParseCommandLine;
   
-  // Pass parsed parameters to the command
+  // Set up command for execution
   Command := FCurrentCommand as TBaseCommand;
   Command.SetParsedParams(FParsedParams);
   
@@ -198,7 +283,7 @@ begin
   if not ValidateCommand then
     Exit(1);
     
-  // Execute the command
+  // Execute the command with error handling
   try
     Result := FCurrentCommand.Execute;
   except
@@ -210,6 +295,13 @@ begin
   end;
 end;
 
+{ ParseCommandLine: Processes command line arguments into parameter dictionary
+  Handles:
+  - Long format (--param=value)
+  - Long format with space (--param value)
+  - Short format (-p value)
+  - Boolean flags (--flag)
+  Note: Updates FParsedParams with parsed values }
 procedure TCLIApplication.ParseCommandLine;
 var
   i: Integer;
@@ -273,6 +365,10 @@ begin
   end;
 end;
 
+{ FindCommand: Searches for a command by name
+  @param Name The command name to find
+  @returns ICommand if found, nil if not found
+  Note: Command names are case-insensitive }
 function TCLIApplication.FindCommand(const Name: string): ICommand;
 var
   i: Integer;
@@ -283,6 +379,9 @@ begin
       Exit(FCommands[i]);
 end;
 
+{ GetValidParameterFlags: Creates list of valid parameter flags
+  @returns TStringList containing all valid parameter flags
+  Note: Includes both command-specific and global flags }
 function TCLIApplication.GetValidParameterFlags: TStringList;
 var
   Param: ICommandParameter;
@@ -290,7 +389,7 @@ begin
   Result := TStringList.Create;
   Result.CaseSensitive := True;
   
-  // Add all valid parameter flags for the current command
+  // Add command-specific parameter flags
   for Param in FCurrentCommand.Parameters do
   begin
     Result.Add(Param.LongFlag);
@@ -304,6 +403,12 @@ begin
   Result.Add('-v');
 end;
 
+{ ValidateCommand: Checks if all parameters are valid
+  Verifies:
+  - All parameters are recognized
+  - Required parameters are provided
+  - Parameter values are present when needed
+  @returns True if validation passes, False if any check fails }
 function TCLIApplication.ValidateCommand: Boolean;
 var
   Param: ICommandParameter;
@@ -328,7 +433,7 @@ begin
       end;
     end;
 
-    // Check required parameters
+    // Validate required parameters
     for Param in FCurrentCommand.Parameters do
     begin
       if Param.Required then
@@ -350,6 +455,11 @@ begin
   end;
 end;
 
+{ GetParameterValue: Retrieves value for a parameter
+  @param Param The parameter to get value for
+  @param Value Output parameter that receives the value
+  @returns True if parameter has value (provided or default), False otherwise
+  Note: Checks both long and short forms of the parameter }
 function TCLIApplication.GetParameterValue(const Param: ICommandParameter; 
   out Value: string): Boolean;
 begin
@@ -369,6 +479,13 @@ begin
   end;
 end;
 
+{ ShowHelp: Displays general application help
+  Shows:
+  - Application name and version
+  - Basic usage
+  - Available commands
+  - Global options
+  - Usage examples }
 procedure TCLIApplication.ShowHelp;
 var
   Cmd: ICommand;
@@ -395,7 +512,7 @@ begin
   TConsole.WriteLn('  -v, --version        Show version information');
   TConsole.WriteLn('');
 
-  // Examples section with better formatting
+  // Examples section
   TConsole.WriteLn('Examples:', ccCyan);
   TConsole.WriteLn('  Get help for commands:');
   TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
@@ -406,6 +523,15 @@ begin
   TConsole.WriteLn('');
 end;
 
+{ ShowCommandHelp: Displays detailed help for a specific command
+  @param Command The command to show help for
+  Shows:
+  - Command usage
+  - Description
+  - Available subcommands
+  - Command parameters
+  - Parameter defaults
+  - Usage examples }
 procedure TCLIApplication.ShowCommandHelp(const Command: ICommand);
 var
   Param: ICommandParameter;
@@ -414,7 +540,7 @@ var
   i: Integer;
   SubCmd: ICommand;
 begin
-  // Build command path from parameters
+  // Build full command path
   CommandPath := '';
   for i := 1 to ParamCount do
   begin
@@ -427,12 +553,12 @@ begin
   if CommandPath = '' then
     CommandPath := Command.Name;
 
-  // Basic usage and description
+  // Show usage and description
   TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
   TConsole.WriteLn('');
   TConsole.WriteLn(Command.Description);
   
-  // Show subcommands if any
+  // List subcommands if any
   if Length(Command.SubCommands) > 0 then
   begin
     TConsole.WriteLn('');
@@ -461,7 +587,7 @@ begin
     end;
   end;
 
-  // Always show examples for commands with subcommands
+  // Show examples for commands with subcommands
   if Length(Command.SubCommands) > 0 then
   begin
     TConsole.WriteLn('');
@@ -476,11 +602,21 @@ begin
   end;
 end;
 
+{ ShowVersion: Displays application version }
 procedure TCLIApplication.ShowVersion;
 begin
   TConsole.WriteLn(FName + ' version ' + FVersion);
 end;
 
+{ ShowCompleteHelp: Displays complete help for all commands
+  @param Indent Current indentation level for formatting
+  @param Command Current command being documented, nil for root level
+  Shows:
+  - Full application description
+  - Global options
+  - All commands with full details
+  - All subcommands recursively
+  - All parameters with defaults }
 procedure TCLIApplication.ShowCompleteHelp(const Indent: string = ''; const Command: ICommand = nil);
 var
   Cmd: ICommand;
@@ -490,7 +626,7 @@ var
 begin
   if Command = nil then
   begin
-    // Show program header
+    // Show program header and global information
     TConsole.WriteLn(FName + ' version ' + FVersion);
     TConsole.WriteLn('');
     TConsole.WriteLn('DESCRIPTION', ccCyan);
@@ -503,7 +639,7 @@ begin
     TConsole.WriteLn('');
     TConsole.WriteLn('COMMANDS', ccCyan);
     
-    // Show all commands
+    // Show all commands recursively
     for i := 0 to FCommands.Count - 1 do
     begin
       if i > 0 then
@@ -513,6 +649,7 @@ begin
   end
   else
   begin
+    // Show command details
     TConsole.WriteLn(Indent + Command.Name + ' - ' + Command.Description);
     
     // Show command parameters
@@ -535,6 +672,7 @@ begin
       end;
     end;
     
+    // Show subcommands recursively
     if Length(Command.SubCommands) > 0 then
     begin
       TConsole.WriteLn('');
@@ -544,6 +682,7 @@ begin
     end;
   end;
   
+  // Show help usage hint at root level
   if (Command = nil) and (FCommands.Count > 0) then
   begin
     TConsole.WriteLn('');
@@ -552,17 +691,19 @@ begin
   end;
 end;
 
-function CreateCLIApplication(const Name, Version: string): ICLIApplication;
-begin
-  Result := TCLIApplication.Create(Name, Version);
-end;
-
+{ GetCommands: Returns the list of registered commands
+  @returns TCommandList containing all registered commands
+  Note: Returns direct reference to command list }
 function TCLIApplication.GetCommands: TCommandList;
 begin
-  // Return the actual commands list instead of creating a copy
   Result := FCommands;
 end;
 
+{ ShowBriefHelp: Displays brief help for error cases
+  Shows:
+  - Basic usage
+  - Available commands
+  - Help command reminder }
 procedure TCLIApplication.ShowBriefHelp;
 var
   Cmd: ICommand;
@@ -575,6 +716,15 @@ begin
     TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
   TConsole.WriteLn('');
   TConsole.WriteLn('Use --help for more information.');
+end;
+
+{ CreateCLIApplication: Factory function to create new CLI application
+  @param Name Application name
+  @param Version Application version string
+  @returns ICLIApplication interface to new application instance }
+function CreateCLIApplication(const Name, Version: string): ICLIApplication;
+begin
+  Result := TCLIApplication.Create(Name, Version);
 end;
 
 end.

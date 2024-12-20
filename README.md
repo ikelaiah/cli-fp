@@ -13,7 +13,26 @@
 ╰────────────────╯
 ```
 
-A modern Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
+A robust Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
+
+## 📑 Table of Contents
+
+- [CLI Framework for Free Pascal 🚀](#cli-framework-for-free-pascal-)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [✨ Features](#-features)
+  - [🚀 Quick Start](#-quick-start)
+  - [📖 System Requirements](#-system-requirements)
+    - [Tested Environments](#tested-environments)
+    - [Theoretical Compatibility](#theoretical-compatibility)
+    - [Dependencies](#dependencies)
+    - [Build Requirements](#build-requirements)
+  - [📖 Documentation](#-documentation)
+  - [🎯 Use Cases](#-use-cases)
+  - [🤝 Contributing](#-contributing)
+  - [📝 License](#-license)
+  - [🙏 Acknowledgments](#-acknowledgments)
+  - [📞 Contact](#-contact)
+
 
 ## ✨ Features
 
@@ -55,13 +74,13 @@ No complex build system needed! Just:
 # Clone the repository
 git clone https://github.com/yourusername/cli-fp.git
 
-# Copy the source files to your project
-# OR add the source directory to your project's search path
+# Copy the source files to your project's directory
 ```
 
 2. **Use in Your Project**
 
-Simply add the units to your uses clause:
+- Add the source directory to your project's search path (Project -> Project Options ... -> Compiler Options -> Paths -> Other unit files)
+- Add the units to your uses clause:
 
 ```pascal
 uses
