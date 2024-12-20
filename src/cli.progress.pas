@@ -16,15 +16,23 @@ uses
   Classes, SysUtils, CLI.Interfaces, CLI.Console;
 
 type
-  { TSpinnerStyle - Defines the visual style of the spinner animation
+  { TSpinnerStyle - Enumeration defining different spinner animation styles
     Available styles:
     - ssDots: Braille dots animation (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏)
     - ssLine: Simple ASCII line animation (-\|/)
-    - ssCircle: Unicode circle animation (◐◓◑◒) }
+    - ssCircle: Unicode circle animation (◐◓◑◒)
+    - ssSquare: Square rotation animation (◰◳◲◱)
+    - ssArrow: Arrow rotation animation (←↖↑↗→↘↓↙)
+    - ssBounce: Bouncing dot animation (⠁⠂⠄⠂)
+    - ssBar: Vertical bar animation (▁▂▃▄▅▆▇█▇▆▅▄▃▂▁) }
   TSpinnerStyle = (
     ssDots,    // ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
     ssLine,    // -\|/
-    ssCircle   // ◐◓◑◒
+    ssCircle,  // ◐◓◑◒
+    ssSquare,  // ◰◳◲◱
+    ssArrow,   // ←↖↑↗→↘↓↙
+    ssBounce,  // ⠁⠂⠄⠂
+    ssBar      // ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁
   );
 
   { TProgressIndicator - Base class for progress indicators

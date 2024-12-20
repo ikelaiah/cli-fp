@@ -201,42 +201,174 @@ end;
 
 ### 3. Progress Indicators
 
+The framework provides two types of progress indicators: spinners for indeterminate progress (when you don't know the total steps) and progress bars for determinate progress (when you know the total steps).
+
+#### Spinner Types
+
+The framework supports various spinner styles to match your application's needs:
+
+1. **Dots (ssDots)** - Braille dots animation
+   ```
+   ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+   ```
+   Best for: Modern terminals with Unicode support
+   ```pascal
+   Spinner := CreateSpinner(ssDots);
+   ```
+
+2. **Line (ssLine)** - Simple ASCII line animation
+   ```
+   -\|/
+   ```
+   Best for: Legacy terminals or when Unicode isn't supported
+   ```pascal
+   Spinner := CreateSpinner(ssLine);  // Default style
+   ```
+
+3. **Circle (ssCircle)** - Unicode circle animation
+   ```
+   ◐◓◑◒
+   ```
+   Best for: Clean, minimalist look
+   ```pascal
+   Spinner := CreateSpinner(ssCircle);
+   ```
+
+4. **Square (ssSquare)** - Square rotation animation
+   ```
+   ◰◳◲◱
+   ```
+   Best for: Alternative to circle style
+   ```pascal
+   Spinner := CreateSpinner(ssSquare);
+   ```
+
+5. **Arrow (ssArrow)** - Arrow rotation animation
+   ```
+   ←↖↑↗→↘↓↙
+   ```
+   Best for: Directional indication
+   ```pascal
+   Spinner := CreateSpinner(ssArrow);
+   ```
+
+6. **Bounce (ssBounce)** - Bouncing dot animation
+   ```
+   ⠁⠂⠄⠂
+   ```
+   Best for: Subtle indication
+   ```pascal
+   Spinner := CreateSpinner(ssBounce);
+   ```
+
+7. **Bar (ssBar)** - Vertical bar animation
+   ```
+   ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁
+   ```
+   Best for: Vertical space-constrained UIs
+   ```pascal
+   Spinner := CreateSpinner(ssBar);
+   ```
+
+#### Using Spinners
+
+Here's a complete example of using a spinner:
+
 ```pascal
-// Spinner for indeterminate progress
+procedure ProcessFiles(const Files: TStringList);
 var
   Spinner: IProgressIndicator;
+  i: Integer;
 begin
-  Spinner := CreateSpinner(ssLine);
+  // Create a spinner with dots style
+  Spinner := CreateSpinner(ssDots);
+  
+  // Start the spinner
   Spinner.Start;
   try
-    // Your long-running task here
-    Sleep(1000);
+    TConsole.WriteLn('Processing files...', ccCyan);
+    
+    // Your processing loop
+    for i := 0 to Files.Count - 1 do
+    begin
+      // Update spinner (will animate)
+      Spinner.Update(0);  // The parameter is ignored for spinners
+      
+      // Do your work here
+      ProcessFile(Files[i]);
+      Sleep(100);  // Simulate work
+    end;
+    
+    TConsole.WriteLn('Processing complete!', ccGreen);
   finally
+    // Always stop the spinner in a finally block
     Spinner.Stop;
   end;
 end;
+```
 
-// Progress bar for determinate progress
+Important notes for using spinners:
+- Always use a try-finally block to ensure the spinner is stopped
+- Call Update regularly to maintain animation
+- Choose a style appropriate for your terminal's capabilities
+- The Update parameter is ignored for spinners (used for interface compatibility)
+
+#### Progress Bars
+
+For operations where you know the total steps, use a progress bar:
+
+```pascal
+procedure CopyFiles(const Files: TStringList);
 var
   Progress: IProgressIndicator;
-  Total: Integer;
+  i: Integer;
 begin
-  Total := 100;
-  Progress := CreateProgressBar(Total, 20); // 20 chars wide
+  // Create a progress bar (total steps, width in characters)
+  Progress := CreateProgressBar(Files.Count, 20);
+  
+  // Start the progress bar
   Progress.Start;
   try
-    TConsole.WriteLn('Processing...', ccCyan);
-    for i := 1 to Total do
+    TConsole.WriteLn('Copying files...', ccCyan);
+    
+    // Your processing loop
+    for i := 0 to Files.Count - 1 do
     begin
-      Progress.Update(i);
-      Sleep(50); // Simulate work
+      // Update progress (current step)
+      Progress.Update(i + 1);
+      
+      // Do your work here
+      CopyFile(Files[i], DestPath + ExtractFileName(Files[i]));
+      Sleep(50);  // Simulate work
     end;
-    TConsole.WriteLn('Complete!', ccGreen);
+    
+    TConsole.WriteLn('Copy complete!', ccGreen);
   finally
+    // Always stop the progress bar in a finally block
     Progress.Stop;
   end;
 end;
 ```
+
+Progress bar features:
+- Shows percentage complete
+- Visual bar indicates progress
+- Automatically updates only when percentage changes
+- Width is customizable
+
+#### Choosing Between Spinner and Progress Bar
+
+Use a **Spinner** when:
+- The operation has no measurable progress
+- You can't determine the total steps
+- The operation is relatively quick
+- You want to show activity without specifics
+
+Use a **Progress Bar** when:
+- You know the total number of steps
+- The operation has measurable progress
+- You want to show specific completion percentage
+- The user needs to know how much longer to wait
 
 ## Parameter Types Reference
 
