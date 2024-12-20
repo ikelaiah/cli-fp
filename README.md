@@ -13,7 +13,7 @@
 ╰────────────────╯
 ```
 
-A modern Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
+A robust Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
 
 ## 📑 Table of Contents
 
