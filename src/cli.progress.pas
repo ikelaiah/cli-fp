@@ -16,15 +16,7 @@ uses
   Classes, SysUtils, CLI.Interfaces, CLI.Console;
 
 type
-  { TSpinnerStyle - Enumeration defining different spinner animation styles
-    Available styles:
-    - ssDots: Braille dots animation (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏)
-    - ssLine: Simple ASCII line animation (-\|/)
-    - ssCircle: Unicode circle animation (◐◓◑◒)
-    - ssSquare: Square rotation animation (◰◳◲◱)
-    - ssArrow: Arrow rotation animation (←↖↑↗→↘↓↙)
-    - ssBounce: Bouncing dot animation (⠁⠂⠄⠂)
-    - ssBar: Vertical bar animation (▁▂▃▄▅▆▇█▇▆▅▄▃▂▁) }
+  { Spinner styles }
   TSpinnerStyle = (
     ssDots,    // ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
     ssLine,    // -\|/
@@ -32,7 +24,7 @@ type
     ssSquare,  // ◰◳◲◱
     ssArrow,   // ←↖↑↗→↘↓↙
     ssBounce,  // ⠁⠂⠄⠂
-    ssBar      // ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁
+    ssBar      // ▏▎▍▌▋▊▉█▊▋▌▍▎▏
   );
 
   { TProgressIndicator - Base class for progress indicators
@@ -168,6 +160,14 @@ begin
       FFrames := ['-', '\', '|', '/'];
     ssCircle:
       FFrames := ['◐', '◓', '◑', '◒'];
+    ssSquare:
+      FFrames := ['◰', '◳', '◲', '◱'];
+    ssArrow:
+      FFrames := ['←', '↖', '↑', '↗', '→', '↘', '↓', '↙'];
+    ssBounce:
+      FFrames := ['⠁', '⠂', '⠄', '⠂'];
+    ssBar:
+      FFrames := ['▏', '▎', '▍', '▌', '▋', '▊', '▉', '█', '▊', '▋', '▌', '▍', '▎', '▏'];
   end;
 end;
 

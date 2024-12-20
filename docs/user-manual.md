@@ -261,14 +261,20 @@ The framework supports various spinner styles to match your application's needs:
    Spinner := CreateSpinner(ssBounce);
    ```
 
-7. **Bar (ssBar)** - Vertical bar animation
+7. **Bar (ssBar)** - Wave block animation
    ```
-   ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁
+   ▏▎▍▌▋▊▉█▊▋▌▍▎▏
    ```
-   Best for: Vertical space-constrained UIs
+   Best for: Smooth, wave-like animation that flows left to right
    ```pascal
    Spinner := CreateSpinner(ssBar);
    ```
+   The animation creates a fluid motion by:
+   - Starting thin on the left (▏)
+   - Growing progressively thicker (▎▍▌▋▊▉)
+   - Reaching full block (█)
+   - Smoothly reducing thickness (▊▋▌▍▎▏)
+   This creates a natural wave-like effect that's easy on the eyes.
 
 #### Using Spinners
 
