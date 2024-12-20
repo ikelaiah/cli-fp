@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated beginners guide 
 - Updated test output
 - More comments
+- New style for spinner
 
 ## [1.0.0] - 2024-12-20
 
