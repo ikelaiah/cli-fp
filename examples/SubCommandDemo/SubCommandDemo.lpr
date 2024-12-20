@@ -1,107 +1,112 @@
-program SubCommandDemo;
-
-{
-  This example demonstrates how to create a subcommand for a main command.
-  It creates a repository manager with subcommands for initializing, cloning,
-  and managing remotes.
-
-  repo
-  ├── init
-  │   ├── --path (optional)
-  │   └── --bare (flag)
-  ├── clone
-  │   ├── --url (required)
-  │   ├── --path (optional)
-  │   ├── --branch (optional, default: main)
-  │   └── --depth (optional, default: full)
-  └── remote
-      ├── add
-      │   ├── --name (required)
-      │   └── --url (required)
-      └── remove
-          └── --name (required)
-
-  # Initialize a repository
-  SubCommandDemo repo init --path /my/repo --bare
+{ SubCommandDemo - An example showing how to create hierarchical commands
   
-  # Clone a repository
-  SubCommandDemo repo clone --url https://github.com/user/repo --branch develop
-  
-  # Add a remote
-  SubCommandDemo repo remote add --name upstream --url https://github.com/upstream/repo
-  
-  # Remove a remote
-  SubCommandDemo repo remote remove --name upstream
+  This program demonstrates creating a Git-like repository manager with
+  subcommands organized in a tree structure:
+
+  repo                    (root command)
+  ├── init                (subcommand)
+  │   ├── --path          (optional parameter)
+  │   └── --bare          (flag parameter)
+  ├── clone               (subcommand)
+  │   ├── --url           (required parameter)
+  │   ├── --path          (optional parameter)
+  │   ├── --branch        (optional parameter)
+  │   └── --depth         (optional parameter)
+  └── remote              (command group)
+      ├── add             (subcommand)
+      │   ├── --name      (required parameter)
+      │   └── --url       (required parameter)
+      └── remove          (subcommand)
+          └── --name      (required parameter)
 }
 
-{$mode objfpc}{$H+}
-
+{ Compiler directives }
+{$mode objfpc}  // Use Object Pascal mode for modern OOP features
+{$H+}           // Use AnsiString instead of ShortString for better string handling
+{$J-}           // Disable writeable typed constants for safety
+{ Import required units }
 uses
-  SysUtils,
-  CLI.Interfaces,
-  CLI.Application,
-  CLI.Parameter,
-  CLI.Command,
-  CLI.Console;
+  SysUtils,         // Standard system utilities (e.g., GetCurrentDir)
+  CLI.Interfaces,   // Core interfaces for CLI components
+  CLI.Application,  // Main application framework
+  CLI.Parameter,    // Parameter handling and validation
+  CLI.Command,      // Base command implementation
+  CLI.Console;      // Colored console output
 
 type
-  { Base command for repo operations }
+  { Base command for repo operations
+    This is the root command that serves as a container for subcommands }
   TRepoCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
   end;
 
-  { Init command }
+  { Init command - Initializes a new repository
+    Supports:
+    - Optional path parameter
+    - Bare repository flag }
   TRepoInitCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
   end;
 
-  { Clone command }
+  { Clone command - Clones a remote repository
+    Supports:
+    - Required URL parameter
+    - Optional path, branch, and depth parameters }
   TRepoCloneCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
   end;
 
-  { Remote command group }
+  { Remote command group - Container for remote-related commands
+    This command doesn't do anything itself but groups remote subcommands }
   TRemoteCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
   end;
 
-  { Remote add command }
+  { Remote add command - Adds a new remote repository reference
+    Requires both name and URL parameters }
   TRemoteAddCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
   end;
 
-  { Remote remove command }
+  { Remote remove command - Removes a remote repository reference
+    Requires the name parameter }
   TRemoteRemoveCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
   end;
 
-{ TRepoCommand }
+{ TRepoCommand implementation
+  This is a command group, so it just shows help when executed directly }
 function TRepoCommand.Execute: Integer;
 begin
-  // This is a command group, just show help
+  // Command groups should show help instead of doing any action
   ShowHelp;
-  Result := 0;
+  Result := 0;  // Return success
 end;
 
-{ TRepoInitCommand }
+{ TRepoInitCommand implementation
+  Handles repository initialization with optional path and bare flag }
 function TRepoInitCommand.Execute: Integer;
 var
-  Path: string;
-  BareValue: string;
-  Bare: Boolean;
+  Path: string;      // Repository path
+  BareValue: string; // Raw value from bare flag
+  Bare: Boolean;     // Converted bare flag value
 begin
-  Result := 0;
+  Result := 0;  // Default to success
+
+  // Get path parameter or use current directory if not specified
   if not GetParameterValue('--path', Path) then
     Path := GetCurrentDir;
 
+  // Get bare flag value (true if flag is present)
   Bare := GetParameterValue('--bare', BareValue);
 
+  // Display operation details in color
   TConsole.WriteLn('Initializing repository...', ccCyan);
   TConsole.WriteLn('  Path: ' + Path, ccWhite);
   if Bare then
@@ -110,28 +115,33 @@ begin
     TConsole.WriteLn('  Type: Regular repository', ccWhite);
 end;
 
-{ TRepoCloneCommand }
+{ TRepoCloneCommand implementation
+  Handles repository cloning with various options }
 function TRepoCloneCommand.Execute: Integer;
 var
-  URL, Path, Branch: string;
-  Depth: string;
+  URL, Path, Branch: string;  // Command parameters
+  Depth: string;             // Clone depth option
 begin
-  Result := 0;
+  Result := 0;  // Default to success
+
+  // URL is required - exit with error if missing
   if not GetParameterValue('--url', URL) then
   begin
     TConsole.WriteLn('Error: URL is required', ccRed);
-    Exit(1);
+    Exit(1);  // Return error code
   end;
 
+  // Get optional parameters with defaults
   if not GetParameterValue('--path', Path) then
-    Path := ExtractFileName(URL);
+    Path := ExtractFileName(URL);  // Use repo name from URL
 
   if not GetParameterValue('--branch', Branch) then
-    Branch := 'main';
+    Branch := 'main';  // Default to main branch
 
   if not GetParameterValue('--depth', Depth) then
-    Depth := 'full';
+    Depth := 'full';  // Default to full clone
 
+  // Display operation details in color
   TConsole.WriteLn('Cloning repository...', ccCyan);
   TConsole.WriteLn('  From: ' + URL, ccWhite);
   TConsole.WriteLn('  To: ' + Path, ccWhite);
@@ -139,20 +149,23 @@ begin
   TConsole.WriteLn('  Depth: ' + Depth, ccWhite);
 end;
 
-{ TRemoteCommand }
+{ TRemoteCommand implementation
+  Another command group that just shows help }
 function TRemoteCommand.Execute: Integer;
 begin
-  // This is a command group, just show help
   ShowHelp;
   Result := 0;
 end;
 
-{ TRemoteAddCommand }
+{ TRemoteAddCommand implementation
+  Adds a new remote with name and URL }
 function TRemoteAddCommand.Execute: Integer;
 var
   RemoteName, RemoteURL: string;
 begin
   Result := 0;
+
+  // Both name and URL are required
   if not GetParameterValue('--name', RemoteName) then
   begin
     TConsole.WriteLn('Error: Remote name is required', ccRed);
@@ -165,41 +178,49 @@ begin
     Exit(1);
   end;
 
+  // Display operation details
   TConsole.WriteLn('Adding remote...', ccCyan);
   TConsole.WriteLn('  Name: ' + RemoteName, ccWhite);
   TConsole.WriteLn('  URL: ' + RemoteURL, ccWhite);
 end;
 
-{ TRemoteRemoveCommand }
+{ TRemoteRemoveCommand implementation
+  Removes a remote by name }
 function TRemoteRemoveCommand.Execute: Integer;
 var
   RemoteName: string;
 begin
   Result := 0;
+
+  // Name is required
   if not GetParameterValue('--name', RemoteName) then
   begin
     TConsole.WriteLn('Error: Remote name is required', ccRed);
     Exit(1);
   end;
 
+  // Display operation details
   TConsole.WriteLn('Removing remote...', ccCyan);
   TConsole.WriteLn('  Name: ' + RemoteName, ccWhite);
 end;
 
+{ Main program variables }
 var
-  App: ICLIApplication;
-  RepoCmd: TRepoCommand;
-  InitCmd: TRepoInitCommand;
-  CloneCmd: TRepoCloneCommand;
-  RemoteCmd: TRemoteCommand;
-  RemoteAddCmd: TRemoteAddCommand;
-  RemoteRemoveCmd: TRemoteRemoveCommand;
+  App: ICLIApplication;          // Main application interface
+  RepoCmd: TRepoCommand;         // Root command for repo operations
+  InitCmd: TRepoInitCommand;     // Init subcommand
+  CloneCmd: TRepoCloneCommand;   // Clone subcommand
+  RemoteCmd: TRemoteCommand;     // Remote command group
+  RemoteAddCmd: TRemoteAddCommand;     // Remote add subcommand
+  RemoteRemoveCmd: TRemoteRemoveCommand; // Remote remove subcommand
+
+{ Main program }
 begin
   try
-    // Create main application
+    // Create main application with name and version
     App := CreateCLIApplication('RepoManager', '1.0.0');
 
-    // Create main repo command group
+    // Create and register the main repo command group
     RepoCmd := TRepoCommand.Create('repo', 'Repository management commands');
     App.RegisterCommand(RepoCmd);
 
@@ -232,7 +253,7 @@ begin
     RemoteRemoveCmd.AddParameter(CreateParameter('-n', '--name', 'Remote name', True, ptString));
     RemoteCmd.AddSubCommand(RemoteRemoveCmd);
 
-    // Clean up command references
+    // Clean up command references (not strictly necessary but good practice)
     RepoCmd := nil;
     InitCmd := nil;
     CloneCmd := nil;
@@ -240,9 +261,10 @@ begin
     RemoteAddCmd := nil;
     RemoteRemoveCmd := nil;
 
-    // Execute the application
+    // Execute the application and get exit code
     ExitCode := App.Execute;
   except
+    // Handle any unhandled exceptions
     on E: Exception do
     begin
       TConsole.WriteLn('Error: ' + E.Message, ccRed);
