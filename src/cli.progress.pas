@@ -97,9 +97,10 @@ procedure TSpinner.Update(const Progress: Integer);
 begin
   if not FActive then Exit;
   
-  ClearLine;
+  Write(#13);  // Carriage return to start of line
   Write(FFrames[FFrame]);
   FFrame := (FFrame + 1) mod Length(FFrames);
+  Flush(Output);  // Ensure the output is displayed immediately
   Sleep(100);
 end;
 
