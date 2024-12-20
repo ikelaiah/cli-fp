@@ -136,6 +136,11 @@ end;
 3. We use a spinner to show activity
 4. We use colored output for better user experience
 
+**Note:** At this point, we've defined our command, but it won't work until we:
+1. Create an instance of it
+2. Add parameters (which we'll do in Step 4)
+3. Register it with the application
+
 ### Step 4: Adding Parameters
 
 Let's add the path parameter to our init command:
@@ -198,12 +203,55 @@ end;
 3. Provides a better user experience
 
 **Available Spinner Styles:**
-- `ssDots`: ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ (Good for modern terminals)
-- `ssLine`: -\|/ (Works in all terminals)
-- `ssCircle`: ◐◓◑◒ (Clean look)
-- And more...
+1. `ssDots` - Braille dots animation
+   ```
+   ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+   ```
+   Best for: Modern terminals with Unicode support
 
-### Step 6: Adding More Commands
+2. `ssLine` - Simple ASCII line animation
+   ```
+   -\|/
+   ```
+   Best for: Legacy terminals or when Unicode isn't supported
+
+3. `ssCircle` - Unicode circle animation
+   ```
+   ◐◓◑◒
+   ```
+   Best for: Clean, minimalist look
+
+4. `ssSquare` - Square rotation animation
+   ```
+   ◰◳◲◱
+   ```
+   Best for: Alternative to circle style
+
+5. `ssArrow` - Arrow rotation animation
+   ```
+   ←↖↑↗→↘↓↙
+   ```
+   Best for: Directional indication
+
+6. `ssBounce` - Bouncing dot animation
+   ```
+   ⠁⠂⠄⠂
+   ```
+   Best for: Subtle indication
+
+7. `ssBar` - Block animation
+   ```
+   ▏▎▍▌▋▊▉█▊▋▌▍▎▏
+   ```
+   Best for: Smooth, wave-like animation
+
+**Choosing a Spinner Style:**
+- Use `ssLine` for maximum compatibility
+- Use `ssDots` or `ssCircle` for modern terminals
+- Consider your terminal's font support
+- Test on target platforms
+
+### Step 6: Adding the Clone Command
 
 Now let's add a `clone` command:
 
@@ -238,6 +286,21 @@ begin
   end;
 end;
 ```
+
+**Understanding URL Validation:**
+```pascal
+if (Pos('http://', Url) = 0) and (Pos('https://', Url) = 0) then
+begin
+  TConsole.WriteLn('Error: Invalid URL. Must start with http:// or https://', ccRed);
+  Exit(1);
+end;
+```
+
+Why validate URLs?
+1. Prevents malformed input early
+2. Provides clear error messages
+3. Improves security by restricting protocols
+4. Helps users identify mistakes quickly
 
 **Add it to the application:**
 ```pascal
@@ -547,3 +610,47 @@ Now that you have a working CLI application, you can:
 6. Add logging and debugging features
 
 Remember to check the user manual for more advanced features and options! 
+
+## Debugging Tips
+
+When developing your CLI application, these debugging techniques can help:
+
+1. **Enable Debug Mode**
+   ```pascal
+   (App as TCLIApplication).DebugMode := True;
+   ```
+   This will show additional information about:
+   - Command registration
+   - Parameter parsing
+   - Execution flow
+
+2. **Add Debug Output**
+   ```pascal
+   if (App as TCLIApplication).DebugMode then
+     TConsole.WriteLn('Debug: ' + Message, ccYellow);
+   ```
+
+3. **Test Parameter Values**
+   ```pascal
+   var
+     Value: string;
+   begin
+     if GetParameterValue('--param', Value) then
+       TConsole.WriteLn('Got value: ' + Value)
+     else
+       TConsole.WriteLn('Parameter not provided');
+   end;
+   ```
+
+4. **Command Hierarchy**
+   - Use `--help-complete` to view full command tree
+   - Check parent-child relationships
+   - Verify parameter registration
+
+5. **Common Debug Scenarios**
+   - Command not found: Check registration order
+   - Parameter not recognized: Verify parameter creation
+   - Wrong parameter type: Check conversion logic
+   - Progress indicator issues: Check Start/Stop pairs
+
+Remember to test your application thoroughly on different platforms and environments! 
