@@ -15,7 +15,8 @@ type
   { Console utilities }
   TConsole = class
   private
-    class var FOldTextAttr: Word;
+    class var FDefaultAttr: Word;  // Store initial console attributes
+    class procedure InitConsole;    // Called in initialization section
   public
     class procedure SetForegroundColor(const Color: TConsoleColor);
     class procedure SetBackgroundColor(const Color: TConsoleColor);
@@ -42,6 +43,24 @@ uses
   BaseUnix, termio;
 {$ENDIF}
 
+class procedure TConsole.InitConsole;
+{$IFDEF WINDOWS}
+var
+  Handle: THandle;
+  Info: TConsoleScreenBufferInfo;
+begin
+  Handle := GetStdHandle(STD_OUTPUT_HANDLE);
+  if GetConsoleScreenBufferInfo(Handle, Info) then
+    FDefaultAttr := Info.wAttributes
+  else
+    FDefaultAttr := $07;
+{$ELSE}
+begin
+  // Nothing needed for ANSI terminals
+  // They handle reset via ANSI escape sequence #27'[0m'
+{$ENDIF}
+end;
+
 class procedure TConsole.SetForegroundColor(const Color: TConsoleColor);
 {$IFDEF WINDOWS}
 var
@@ -50,7 +69,6 @@ var
 begin
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleScreenBufferInfo(Handle, Info);
-  FOldTextAttr := Info.wAttributes;
   SetConsoleTextAttribute(Handle, (Info.wAttributes and $F0) or Ord(Color));
 {$ELSE}
 begin
@@ -83,7 +101,6 @@ var
 begin
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleScreenBufferInfo(Handle, Info);
-  FOldTextAttr := Info.wAttributes;
   SetConsoleTextAttribute(Handle, (Info.wAttributes and $0F) or (Ord(Color) shl 4));
 {$ELSE}
 begin
@@ -112,15 +129,11 @@ class procedure TConsole.ResetColors;
 {$IFDEF WINDOWS}
 var
   Handle: THandle;
-  DefaultAttr: Word;
 begin
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
-  // On Windows, the default is usually white text on black background (0x07)
-  DefaultAttr := $07;
-  SetConsoleTextAttribute(Handle, DefaultAttr);
+  SetConsoleTextAttribute(Handle, FDefaultAttr);
 {$ELSE}
 begin
-  // ANSI reset sequence resets both foreground and background
   System.Write(#27'[0m');
 {$ENDIF}
 end;
@@ -186,4 +199,6 @@ begin
   ResetColors;
 end;
 
+initialization
+  TConsole.InitConsole;
 end.
