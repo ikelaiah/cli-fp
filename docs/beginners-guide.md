@@ -19,6 +19,8 @@ This guide will walk you through creating your first command-line application us
   - [Part 1: Understanding the Basics](#part-1-understanding-the-basics)
     - [What is a CLI Application?](#what-is-a-cli-application)
     - [Core Concepts](#core-concepts)
+    - [Understanding Classes in Object Pascal](#understanding-classes-in-object-pascal)
+    - [Application Flow](#application-flow)
   - [Part 2: Creating Your First CLI App](#part-2-creating-your-first-cli-app)
     - [Step 1: Project Setup in Lazarus](#step-1-project-setup-in-lazarus)
     - [Step 2: Creating the Application](#step-2-creating-the-application)
@@ -34,6 +36,7 @@ This guide will walk you through creating your first command-line application us
   - [Complete Application Code](#complete-application-code)
     - [Building and Running](#building-and-running)
     - [Next Steps](#next-steps-1)
+  - [Congratulations!](#congratulations)
   - [Debugging Tips](#debugging-tips)
 
 
@@ -58,6 +61,33 @@ A Command-Line Interface (CLI) application is a program that users interact with
 3. **Progress Indicators**: Visual feedback during long operations
    - Spinners for unknown duration tasks
    - Progress bars for tasks with known steps
+
+### Understanding Classes in Object Pascal
+
+In Object Pascal, a class is a blueprint for creating objects. It encapsulates data and methods that operate on that data. Here's a simple example:
+
+```pascal
+type
+  TMyClass = class
+  private
+    FValue: Integer;
+  public
+    procedure SetValue(AValue: Integer);
+    function GetValue: Integer;
+  end;
+``` 
+
+### Application Flow
+
+```mermaid
+   flowchart TD
+       A[Start] --> B[Initialize Application]
+       B --> C{User Input}
+       C -->|Init Command| D[Initialize Repository]
+       C -->|Clone Command| E[Clone Repository]
+       D --> F[End]
+       E --> F
+```
 
 ## Part 2: Creating Your First CLI App
 
@@ -639,6 +669,12 @@ Now that you have a working CLI application, you can:
 6. Add logging and debugging features
 
 Remember to check the user manual for more advanced features and options! 
+
+## Congratulations!
+You've successfully built your first CLI application using the Free Pascal CLI Framework. From here, you can explore adding more commands, integrating with version control systems, or even contributing to the framework itself.
+
+Happy Coding!
+
 
 ## Debugging Tips
 
