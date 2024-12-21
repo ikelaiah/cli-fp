@@ -1,15 +1,16 @@
-# CLI Framework for Free Pascal 🚀
+# Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-3.6-orange.svg)](https://www.lazarus-ide.org/)
 
+A robust toolkit for building command-line (terminal) applications in Free Pascal. Leverage Pascal's strong typing and compile-time checks while creating modern terminal tools with features like `git`-style commands, progress bars, and rich output.
 
-A robust and fast Free Pascal framework for building professional CLI (Command-Line Interface) or terminal applications. Create command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
+Combines Free Pascal's speed and reliability with the features you'd expect from modern frameworks. The object-oriented design handles the complex parts, letting you focus on your application's logic.
 
 ## 📑 Table of Contents
 
-- [CLI Framework for Free Pascal 🚀](#cli-framework-for-free-pascal-)
+- [Command-Line Interface Framework for Free Pascal 🚀](#command-line-interface-framework-for-free-pascal-)
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
