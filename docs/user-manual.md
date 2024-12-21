@@ -34,6 +34,7 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
   - [Troubleshooting](#troubleshooting)
     - [Common Issues](#common-issues)
   - [Best Practices](#best-practices)
+  - [Useful Unicode Characters for CLI Interfaces](#useful-unicode-characters-for-cli-interfaces)
   - [Getting Help](#getting-help-1)
   - [Summary](#summary)
 
@@ -658,6 +659,33 @@ The framework supports various parameter formats:
    - Use progress bars for determinate progress
    - Always stop indicators in a finally block
    - Provide status messages with progress
+
+## Useful Unicode Characters for CLI Interfaces
+
+```
+// Status indicators
+'✓' // Success/Done
+'✘' // Error/Failed
+'⚠' // Warning
+'ℹ' // Info
+'❯' // Current item/Selection
+'►' // Action/Process
+'•' // Bullet point
+'○' // Empty bullet
+'●' // Filled bullet
+
+// Progress/Loading
+'⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' // Braille dots animation
+'◐◓◑◒' // Circle animation
+'▏▎▍▌▋▊▉█' // Progress bar blocks
+
+// Borders/Boxes
+'╔═╗' // Top border
+'║ ║' // Side borders
+'╚═╝' // Bottom border
+```
+
+
 
 ## Getting Help
 

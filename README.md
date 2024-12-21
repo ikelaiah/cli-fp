@@ -21,6 +21,7 @@ A robust Free Pascal framework for building professional CLI applications. Creat
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
+  - [📖 Screenshots](#-screenshots)
   - [📖 System Requirements](#-system-requirements)
     - [Tested Environments](#tested-environments)
     - [Theoretical Compatibility](#theoretical-compatibility)
@@ -159,6 +160,12 @@ That's it! No makefiles, no complex configuration, no external dependencies.
 
 Just pure Object Pascal code.
 
+## 📖 Screenshots
+
+![ColorDemo Help](docs/images/colordemo-help.png)
+![ColorDemo Greeting](docs/images/colordemo-greeting.png)
+*Above: The ColorDemo example showing professional CLI styling with colors, Unicode characters, and progress indicators.*
+
 ## 📖 System Requirements
 
 ### Tested Environments
@@ -189,7 +196,9 @@ Just pure Object Pascal code.
 
 ## 📖 Documentation
 
+- [Beginners Guide](docs/beginners-guide.md): A guide for beginners to get started with the framework
 - [User Manual](docs/user-manual.md): Complete guide for using the framework
+- [API Reference](docs/api-reference.md): Detailed API reference for the framework
 - [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
 - [Examples](examples/): Working example applications
 
@@ -228,3 +237,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Your Name - [ikelaiah](https://github.com/ikelaiah)
 
 Project Link: [https://github.com/ikelaiah/cli-fp](https://github.com/ikelaiah/cli-fp) 
+
+
