@@ -171,9 +171,9 @@ Just pure Object Pascal code.
   - Linux (Any distribution with FPC support)
   - macOS (with FPC support)
   - FreeBSD
-- **Compiler**: Free Pascal 3.2.0 or higher
+- **Compiler**: Free Pascal 3.2.2 or higher
 - **IDE**: Any IDE that supports Free Pascal
-  - Lazarus 2.2.0 or higher
+  - Lazarus 3.6 or higher
   - VS Code with OmniPascal
   - Other text editors
 
@@ -183,8 +183,8 @@ Just pure Object Pascal code.
 
 ### Build Requirements
 - Free Pascal Compiler (FPC) 3.2.0+
-- At least 50MB disk space
-- Basic development tools (git, text editor)
+- Lazarus 3.6+
+- Basic development tools (git, terminal, etc)
 
 ## 📖 Documentation
 
@@ -221,8 +221,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Inspired by modern CLI frameworks
-- Built with Free Pascal
-- Community feedback and contributions
+- Built with Free Pascal and Lazarus IDE
 
 ## 📞 Contact
 
