@@ -182,7 +182,7 @@ Just pure Object Pascal code.
 - Uses only standard Free Pascal RTL units
 
 ### Build Requirements
-- Free Pascal Compiler (FPC) 3.2.0+
+- Free Pascal Compiler (FPC) 3.2.2+
 - Lazarus 3.6+
 - Basic development tools (git, terminal, etc)
 
