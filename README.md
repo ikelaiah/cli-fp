@@ -5,7 +5,7 @@
 [![Lazarus](https://img.shields.io/badge/Lazarus-3.6-orange.svg)](https://www.lazarus-ide.org/)
 
 
-A robust and fast Free Pascal framework for building professional CLI applications. Create command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
+A robust and fast Free Pascal framework for building professional CLI (Command-Line Interface) or terminal applications. Create command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design.
 
 ## 📑 Table of Contents
 
