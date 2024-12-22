@@ -100,6 +100,15 @@ type
     procedure AddFlag(const ShortFlag, LongFlag, Description: string;
       const DefaultValue: string = 'true');
     
+    { Helper: Adds a boolean parameter that requires explicit true/false value  
+      @param ShortFlag Short form flag (e.g., '-c')
+      @param LongFlag Long form flag (e.g., '--colorful')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean; const DefaultValue: string);
+    
     { Helper: Adds a float parameter
       @param ShortFlag Short form flag (e.g., '-r')
       @param LongFlag Long form flag (e.g., '--rate')
@@ -186,6 +195,8 @@ type
     
     { Array of subcommands }
     property SubCommands: specialize TArray<ICommand> read GetSubCommands;
+       
+
   end;
 
 implementation
@@ -283,6 +294,18 @@ procedure TBaseCommand.AddFlag(const ShortFlag, LongFlag, Description: string;
   const DefaultValue: string = 'true');
 begin
   AddParameter(ShortFlag, LongFlag, Description, False, ptBoolean, DefaultValue);
+end;
+
+{ Adds a boolean parameter that requires explicit true/false value }
+procedure TBaseCommand.AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean; const DefaultValue: string);
+begin
+  if (DefaultValue <> 'true') and (DefaultValue <> 'false') then
+    raise EInvalidParameterValueException.CreateFmt(
+      'Invalid default value for boolean parameter %s: %s. Must be "true" or "false".',
+      [LongFlag, DefaultValue]);
+      
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptBoolean, DefaultValue);
 end;
 
 { AddFloatParameter: Helper to add a float parameter }
@@ -463,5 +486,7 @@ begin
     end;
   end;
 end;
+
+
 
 end.

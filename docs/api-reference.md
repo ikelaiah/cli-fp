@@ -416,14 +416,21 @@ type
 
 function TTestCommand.Execute: Integer;
 var
-  IsForced: Boolean;
+  IsForced, IsVerbose: Boolean;
 begin
-  // Get flag value
+  // Get flag value (true when present)
   GetParameterValue('--force', IsForced);
   if IsForced then
     TConsole.WriteLn('Force flag is enabled', ccGreen)
   else
     TConsole.WriteLn('Force flag is disabled', ccYellow);
+
+  // Get boolean value (explicit true/false)
+  GetParameterValue('--verbose', IsVerbose);
+  if IsVerbose then
+    TConsole.WriteLn('Verbose mode is ON', ccGreen)
+  else
+    TConsole.WriteLn('Verbose mode is OFF', ccYellow);
     
   Result := 0;
 end;
@@ -437,8 +444,11 @@ begin
   
   Cmd := TTestCommand.Create('test', 'Test parameters');
   
-  // Flag (internally uses ptBoolean)
+  // Flag (defaults to true when present)
   Cmd.AddFlag('-f', '--force', 'Force operation');
+  
+  // Boolean (requires explicit true/false value)
+  Cmd.AddBooleanParameter('-v', '--verbose', 'Verbose mode', False, 'false');
   
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
@@ -447,9 +457,14 @@ end;
 
 Command-line usage:
 ```bash
-# Flag usage
+# Flag usage (AddFlag)
 myapp test --force  # Flag is present (true)
 myapp test         # Flag is not present (false)
+
+# Boolean usage (AddBooleanParameter)
+myapp test --verbose=true   # Explicitly set to true
+myapp test --verbose=false  # Explicitly set to false
+myapp test                  # Uses default value (false)
 ```
 
 ### Advanced Examples
