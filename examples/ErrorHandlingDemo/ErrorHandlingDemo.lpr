@@ -117,8 +117,6 @@ begin
       Files.Add(Path + '\file9.txt');
       Files.Add(Path + '\file10.txt');
 
-
-
       // Process each file with error handling
       for i := 0 to Files.Count - 1 do
       begin

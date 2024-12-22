@@ -154,7 +154,7 @@ begin
       '--path',                    // Long flag
       'Path to initialize repository', // Description
       False,                       // Not required
-      GetCurrentDir               // Default value
+      GetCurrentDir                // Default value
     );
 
     // Create and configure the 'clone' command
