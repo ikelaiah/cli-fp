@@ -1,4 +1,4 @@
-# Beginner's Guide to CLI Framework
+# Guide to CLI Framework - Creating a Git-like CLI Application
 
 ## Introduction
 
@@ -12,7 +12,7 @@ This guide will walk you through creating your first command-line application us
 
 
 ## Table of Contents
-- [Beginner's Guide to CLI Framework](#beginners-guide-to-cli-framework)
+- [Guide to CLI Framework - Creating a Git-like CLI Application](#guide-to-cli-framework---creating-a-git-like-cli-application)
   - [Introduction](#introduction)
   - [Prerequisites](#prerequisites)
   - [Table of Contents](#table-of-contents)
