@@ -76,7 +76,7 @@ No complex build system needed! Just:
 # Clone the repository
 git clone https://github.com/yourusername/cli-fp.git
 
-# Copy the source files to your project's directory
+# Or copy the source files to your project's directory
 ```
 
 2. **Use in Your Project**
