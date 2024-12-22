@@ -110,6 +110,13 @@ type
     
     { List of registered commands }
     property Commands: TCommandList read GetCommands;
+    
+    { For testing purposes }
+    property ParsedParams: TStringList read FParsedParams;
+    property CurrentCommand: ICommand read FCurrentCommand write FCurrentCommand;
+    
+    { For testing validation }
+    function TestValidateCommand: Boolean;
   end;
 
 { Helper function to create a new CLI application instance
@@ -793,6 +800,12 @@ begin
         end;
       end;
   end;
+end;
+
+{ TestValidateCommand: Public wrapper for ValidateCommand for testing }
+function TCLIApplication.TestValidateCommand: Boolean;
+begin
+  Result := ValidateCommand;
 end;
 
 end.
