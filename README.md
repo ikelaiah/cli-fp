@@ -14,6 +14,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
+  - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
   - [📖 Screenshots](#-screenshots)
   - [📖 System Requirements](#-system-requirements)
     - [Tested Environments](#tested-environments)
@@ -103,8 +104,18 @@ type
   end;
 
 function TGreetCommand.Execute: Integer;
+var
+  Name: string;
+  Count: string;
+  i: Integer;
 begin
-  WriteLn('Hello, CLI World!');
+  // Get parameter values using helper methods
+  GetParameterValue('--name', Name);
+  GetParameterValue('--count', Count);
+  
+  for i := 1 to StrToIntDef(Count, 1) do
+    WriteLn('Hello, ', Name, '!');
+    
   Result := 0;
 end;
 
@@ -114,6 +125,11 @@ var
 begin
   App := CreateCLIApplication('MyApp', '1.0.0');
   Cmd := TGreetCommand.Create('greet', 'Say hello');
+  
+  // Add parameters using new helper methods
+  Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+  Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
+  
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
 end.
@@ -122,36 +138,64 @@ end.
 **Output:**
 
 ```
-$ ./MyApp.exe
-MyApp version 1.0.0
+$ ./MyApp.exe greet --name "John" --count 3
+Hello, John!
+Hello, John!
+Hello, John!
 
-Usage:
-  MyApp.exe <command> [options]
-
-Commands:
-  greet          Say hello
-
-Global Options:
-  -h, --help           Show this help message
-  --help-complete      Show complete reference for all commands
-  -v, --version        Show version information
-
-Examples:
-  Get help for commands:
-    MyApp.exe <command> --help
-
-  Available command help:
-    MyApp.exe greet --help
-```
-
-```
 $ ./MyApp.exe greet
-Hello, CLI World!
-``` 
+Hello, World!
+```
 
-That's it! No makefiles, no complex configuration, no external dependencies. 
+## 🎯 Parameter Types and Validation
 
-Just pure Object Pascal code.
+The framework provides type-safe parameter handling with built-in validation:
+
+```pascal
+// String parameter with default value
+Cmd.AddStringParameter('-n', '--name', 'Name to use', False, 'default');
+
+// Required integer parameter
+Cmd.AddIntegerParameter('-c', '--count', 'Count value', True);
+
+// Boolean flag (always optional)
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+
+// Float parameter
+Cmd.AddFloatParameter('-r', '--rate', 'Rate value', False, '1.0');
+
+// File/directory path
+Cmd.AddPathParameter('-p', '--path', 'File path', True);
+
+// URL with validation
+Cmd.AddUrlParameter('-u', '--url', 'Repository URL', True);
+
+// Password (masked in help/logs)
+Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+
+// Array (comma-separated values)
+Cmd.AddArrayParameter('-t', '--tags', 'Tags list', False, 'tag1,tag2');
+
+// Date/time with format validation
+Cmd.AddDateTimeParameter('-d', '--date', 'Start date');
+
+// Enumerated value
+Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+```
+
+Each parameter type includes:
+- Automatic type validation
+- Help text generation
+- Default value support
+- Required/optional status
+- Short (-x) and long (--xxx) flags
+
+The framework validates parameters automatically:
+- Required parameters must be provided
+- Integer/float values must be valid numbers
+- URLs must start with http://, https://, git://, or ssh://
+- Date/time values must match the expected format
+- Enum values must match one of the allowed values
 
 ## 📖 Screenshots
 
