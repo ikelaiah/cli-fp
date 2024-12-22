@@ -1,6 +1,6 @@
 unit CLI.Interfaces;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 interface
 

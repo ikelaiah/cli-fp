@@ -1,6 +1,6 @@
 unit CLI.Progress;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit provides progress indicator functionality for CLI applications.
   It includes two types of progress indicators:

@@ -91,7 +91,7 @@ uses
 ```pascal
 program MyApp;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 uses
   SysUtils, CLI.Interfaces, CLI.Application, CLI.Command;

@@ -1,6 +1,6 @@
 unit CLI.Console;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit provides console output functionality with color support.
   It handles both Windows and ANSI terminal color codes, cursor movement,

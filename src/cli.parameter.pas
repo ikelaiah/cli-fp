@@ -1,6 +1,6 @@
 unit CLI.Parameter;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit implements command parameter functionality.
   It provides the foundation for handling command-line parameters

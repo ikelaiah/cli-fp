@@ -1,6 +1,6 @@
 unit CLI.Command;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit implements the base command functionality.
   It provides the foundation for creating CLI commands with parameters

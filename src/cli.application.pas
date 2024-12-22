@@ -1,6 +1,6 @@
 unit CLI.Application;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit implements the core CLI application functionality.
   It handles command registration, parameter parsing, help system,
