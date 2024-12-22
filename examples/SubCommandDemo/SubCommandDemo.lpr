@@ -233,7 +233,7 @@ begin
 
     // Create and configure clone command
     CloneCmd := TRepoCloneCommand.Create('clone', 'Clone a repository');
-    CloneCmd.AddStringParameter('-u', '--url', 'Repository URL', True);
+    CloneCmd.AddUrlParameter('-u', '--url', 'Repository URL', True);
     CloneCmd.AddPathParameter('-p', '--path', 'Target path');
     CloneCmd.AddStringParameter('-b', '--branch', 'Branch to clone', False, 'main');
     CloneCmd.AddStringParameter('-d', '--depth', 'Clone depth', False, 'full');

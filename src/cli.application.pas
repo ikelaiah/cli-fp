@@ -77,6 +77,12 @@ type
     { Gets list of valid parameter flags for current command
       @returns TStringList containing all valid flags }
     function GetValidParameterFlags: TStringList;
+    
+    { Validates a parameter value based on its type
+      @param Param The parameter to validate
+      @param Value The value to validate
+      @returns True if validation passes, False if any check fails }
+    function ValidateParameterValue(const Param: ICommandParameter; const Value: string): Boolean;
   public
     { Creates a new CLI application instance
       @param AName Application name
@@ -433,21 +439,23 @@ begin
       end;
     end;
 
-    // Validate required parameters
+    // Validate required parameters and their values
     for Param in FCurrentCommand.Parameters do
     begin
-      if Param.Required then
+      // Check both long and short flags
+      HasValue := GetParameterValue(Param, Value);
+      
+      if Param.Required and not HasValue then
       begin
-        // Check both long and short flags
-        HasValue := (FParsedParams.Values[Param.LongFlag] <> '') or
-                   (FParsedParams.Values[Param.ShortFlag] <> '');
-                   
-        if not HasValue and (Param.DefaultValue = '') then
-        begin
-          TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
-          ShowCommandHelp(FCurrentCommand);
-          Exit(False);
-        end;
+        TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
+        ShowCommandHelp(FCurrentCommand);
+        Exit(False);
+      end;
+      
+      if HasValue and not ValidateParameterValue(Param, Value) then
+      begin
+        ShowCommandHelp(FCurrentCommand);
+        Exit(False);
       end;
     end;
   finally
@@ -725,6 +733,66 @@ end;
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
 begin
   Result := TCLIApplication.Create(Name, Version);
+end;
+
+{ Validates a parameter value based on its type
+  @param Param The parameter to validate
+  @param Value The value to validate
+  @returns True if validation passes, False if any check fails }
+function TCLIApplication.ValidateParameterValue(const Param: ICommandParameter; const Value: string): Boolean;
+
+  function IsValidUrl(const URL: string): Boolean;
+  begin
+    Result := (Pos('http://', LowerCase(URL)) = 1) or
+              (Pos('https://', LowerCase(URL)) = 1) or
+              (Pos('git://', LowerCase(URL)) = 1) or
+              (Pos('ssh://', LowerCase(URL)) = 1);
+  end;
+
+begin
+  Result := True;
+  case Param.ParamType of
+    ptInteger:
+      begin
+        try
+          StrToInt(Value);
+        except
+          on E: EConvertError do
+          begin
+            TConsole.WriteLn(Format('Error: Parameter "%s" must be an integer', [Param.LongFlag]), ccRed);
+            Result := False;
+          end;
+        end;
+      end;
+    ptFloat:
+      begin
+        try
+          StrToFloat(Value);
+        except
+          on E: EConvertError do
+          begin
+            TConsole.WriteLn(Format('Error: Parameter "%s" must be a float', [Param.LongFlag]), ccRed);
+            Result := False;
+          end;
+        end;
+      end;
+    ptBoolean:
+      begin
+        if not (SameText(Value, 'true') or SameText(Value, 'false')) then
+        begin
+          TConsole.WriteLn(Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag]), ccRed);
+          Result := False;
+        end;
+      end;
+    ptUrl:
+      begin
+        if not IsValidUrl(Value) then
+        begin
+          TConsole.WriteLn(Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://', [Param.LongFlag]), ccRed);
+          Result := False;
+        end;
+      end;
+  end;
 end;
 
 end.
