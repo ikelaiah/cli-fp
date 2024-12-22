@@ -107,7 +107,7 @@ begin
     // Create and configure process command
     Cmd := TProcessCommand.Create('process', 'Process files with progress indication');
     // Add optional count parameter
-    Cmd.AddParameter(CreateParameter(
+    Cmd.AddParameter(
       '-c',           // Short flag
       '--count',      // Long flag
       'Number of files to process', // Description

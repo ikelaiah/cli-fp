@@ -64,6 +64,16 @@ type
       @param Parameter The parameter to add }
     procedure AddParameter(const Parameter: ICommandParameter);
     
+    { Adds a parameter to the command with direct values
+      @param ShortFlag Short form flag (e.g., '-n')
+      @param LongFlag Long form flag (e.g., '--name')
+      @param Description Parameter description for help
+      @param Required Whether parameter is required
+      @param ParamType Parameter data type
+      @param DefaultValue Default value if not provided }
+    procedure AddParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '');
+    
     { Adds a subcommand to this command
       @param Command The subcommand to add }
     procedure AddSubCommand(const Command: ICommand);
@@ -147,6 +157,22 @@ procedure TBaseCommand.AddParameter(const Parameter: ICommandParameter);
 begin
   SetLength(FParameters, Length(FParameters) + 1);
   FParameters[High(FParameters)] := Parameter;
+end;
+
+{ AddParameter: Adds a parameter to the command with direct values
+  @param ShortFlag Short form flag (e.g., '-n')
+  @param LongFlag Long form flag (e.g., '--name')
+  @param Description Parameter description for help
+  @param Required Whether parameter is required
+  @param ParamType Parameter data type
+  @param DefaultValue Default value if not provided }
+procedure TBaseCommand.AddParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '');
+var
+  Param: ICommandParameter;
+begin
+  Param := TCommandParameter.Create(ShortFlag, LongFlag, Description, Required, ParamType, DefaultValue);
+  AddParameter(Param);
 end;
 
 { AddSubCommand: Adds a subcommand to this command

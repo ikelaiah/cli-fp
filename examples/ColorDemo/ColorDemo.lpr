@@ -137,7 +137,7 @@ begin
     
     // Create the greet command and configure its parameters
     Cmd := TGreetCommand.Create('greet', 'Display a colorful greeting');
-    Cmd.AddParameter(CreateParameter(
+    Cmd.AddParameter(
       '-n',            // Short form
       '--name',        // Long form
       'Name to greet', // Description

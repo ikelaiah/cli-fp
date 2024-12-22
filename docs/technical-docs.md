@@ -374,7 +374,7 @@ type
 
 2. **Parameter Definition**
 ```pascal
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-p',
   '--param',
   'Parameter description',

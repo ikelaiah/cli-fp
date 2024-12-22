@@ -164,7 +164,7 @@ begin
     App := CreateCLIApplication('MyApp', '1.0.0');
     
     Cmd := TGreetCommand.Create('greet', 'Greet a person');
-    Cmd.AddParameter(CreateParameter(
+    Cmd.AddParameter(
       '-n',
       '--name',
       'Name to greet',
@@ -255,7 +255,7 @@ begin
     RepoCmd := TBaseCommand.Create('repo', 'Repository management');
     
     CloneCmd := TCloneCommand.Create('clone', 'Clone a repository');
-    CloneCmd.AddParameter(CreateParameter(
+    CloneCmd.AddParameter(
       '-u',
       '--url',
       'Repository URL to clone',
@@ -265,7 +265,7 @@ begin
     RepoCmd.AddSubCommand(CloneCmd);
     
     InitCmd := TInitCommand.Create('init', 'Initialize a repository');
-    InitCmd.AddParameter(CreateParameter(
+    InitCmd.AddParameter(
       '-p',
       '--path',
       'Path to initialize repository',
@@ -481,7 +481,7 @@ Use a **Progress Bar** when:
 
 ```pascal
 // Required string parameter
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-n',
   '--name',
   'Your name',
@@ -490,7 +490,7 @@ Cmd.AddParameter(CreateParameter(
 ));
 
 // Optional string with default
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-p',
   '--path',
   'File path',
@@ -504,7 +504,7 @@ Cmd.AddParameter(CreateParameter(
 
 ```pascal
 // Required integer
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-c',
   '--count',
   'Number of items',
@@ -513,7 +513,7 @@ Cmd.AddParameter(CreateParameter(
 ));
 
 // Optional with default
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-l',
   '--limit',
   'Result limit',
@@ -527,7 +527,7 @@ Cmd.AddParameter(CreateParameter(
 
 ```pascal
 // Simple flag
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-f',
   '--force',
   'Force operation',
@@ -536,7 +536,7 @@ Cmd.AddParameter(CreateParameter(
 ));
 
 // Flag with default
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-v',
   '--verbose',
   'Enable verbose output',
@@ -550,7 +550,7 @@ Cmd.AddParameter(CreateParameter(
 
 ```pascal
 // Optional float with default
-Cmd.AddParameter(CreateParameter(
+Cmd.AddParameter(
   '-r',
   '--rate',
   'Processing rate',

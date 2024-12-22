@@ -209,7 +209,7 @@ begin
   Cmd := TValidateCommand.Create('validate', 'Validate files');
 
   // Add required path parameter
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-p',            // Short form
     '--path',        // Long form
     'Path to validate', // Description
@@ -218,7 +218,7 @@ begin
   ));
 
   // Add optional stop-on-error flag
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-s',                          // Short form
     '--stop-on-error',            // Long form
     'Stop processing on first error', // Description

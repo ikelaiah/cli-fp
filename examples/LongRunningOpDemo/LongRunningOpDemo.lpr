@@ -131,13 +131,13 @@ begin
 
   // Create and configure the process command
   Cmd := TProcessCommand.Create('process', 'Process files');
-  Cmd.AddParameter(CreateParameter('-v',           // Short flag
-    '--verbose',    // Long flag
-    'Show detailed progress',  // Description
-    False,          // Not required
-    ptBoolean,      // Boolean parameter type
-    'false'         // Default value
-    ));
+  Cmd.AddParameter('-v',           // Short flag
+                   '--verbose',    // Long flag
+                   'Show detailed progress',  // Description
+                   False,          // Not required
+                   ptBoolean,      // Boolean parameter type
+                   'false'         // Default value
+                   );
 
   // Register command and run the application
   App.RegisterCommand(Cmd);

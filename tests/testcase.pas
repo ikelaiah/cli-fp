@@ -167,7 +167,7 @@ var
 begin
   Cmd := TTestCommand.Create('test', 'Test command');
   try
-    Cmd.AddParameter(CreateParameter('-t', '--test', 'Test parameter', False, ptString, ''));
+    Cmd.AddParameter('-t', '--test', 'Test parameter', False, ptString, ''));
     AssertEquals('Should have one parameter', 1, Length(Cmd.Parameters));
   finally
     Cmd.Free;

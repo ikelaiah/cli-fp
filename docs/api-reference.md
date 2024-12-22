@@ -387,7 +387,7 @@ begin
   App := CreateCLIApplication('MyApp', '1.0.0');
   
   Cmd := TGreetCommand.Create('greet', 'Greet a person');
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-n',
     '--name',
     'Name to greet',
@@ -450,7 +450,7 @@ begin
   Cmd := TCopyCommand.Create('copy', 'Copy a file');
   
   // Add required parameters
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-s',
     '--source',
     'Source file path',
@@ -458,7 +458,7 @@ begin
     ptString
   ));
   
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-d',
     '--dest',
     'Destination path',
@@ -467,7 +467,7 @@ begin
   ));
   
   // Add optional flag
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-f',
     '--force',
     'Overwrite if exists',
@@ -525,7 +525,7 @@ begin
   Cmd := TTestCommand.Create('test', 'Test parameters');
   
   // Flag parameter (just presence)
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-f',
     '--force',
     'Force operation',
@@ -534,7 +534,7 @@ begin
   ));
   
   // Boolean parameter (true/false value)
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-v',
     '--verbose',
     'Verbose mode (true/false)',
@@ -698,7 +698,7 @@ begin
 
   // Create and configure the process command
   Cmd := TProcessCommand.Create('process', 'Process files');
-  Cmd.AddParameter(CreateParameter('-v',           // Short flag
+  Cmd.AddParameter('-v',           // Short flag
     '--verbose',    // Long flag
     'Show detailed progress',  // Description
     False,          // Not required
@@ -924,7 +924,7 @@ begin
   Cmd := TValidateCommand.Create('validate', 'Validate files');
 
   // Add required path parameter
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-p',            // Short form
     '--path',        // Long form
     'Path to validate', // Description
@@ -933,7 +933,7 @@ begin
   ));
 
   // Add optional stop-on-error flag
-  Cmd.AddParameter(CreateParameter(
+  Cmd.AddParameter(
     '-s',                          // Short form
     '--stop-on-error',            // Long form
     'Stop processing on first error', // Description

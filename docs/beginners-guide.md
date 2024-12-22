@@ -260,7 +260,7 @@ begin
     InitCmd := TInitCommand.Create('init', 'Initialize a repository');
     
     // Add the path parameter
-    InitCmd.AddParameter(CreateParameter(
+    InitCmd.AddParameter(
       '-p',            // Short form
       '--path',        // Long form
       'Path to initialize repository',  // Description
@@ -414,7 +414,7 @@ begin
   // ... previous code ...
   
   CloneCmd := TCloneCommand.Create('clone', 'Clone a repository');
-  CloneCmd.AddParameter(CreateParameter(
+  CloneCmd.AddParameter(
     '-u',
     '--url',
     'Repository URL to clone',
@@ -641,7 +641,7 @@ begin
     
     // Create and configure the init command
     InitCmd := TInitCommand.Create('init', 'Initialize a repository');
-    InitCmd.AddParameter(CreateParameter(
+    InitCmd.AddParameter(
       '-p',
       '--path',
       'Path to initialize repository',
@@ -652,7 +652,7 @@ begin
     
     // Create and configure the clone command
     CloneCmd := TCloneCommand.Create('clone', 'Clone a repository');
-    CloneCmd.AddParameter(CreateParameter(
+    CloneCmd.AddParameter(
       '-u',
       '--url',
       'Repository URL to clone',
