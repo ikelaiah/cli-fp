@@ -15,6 +15,13 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
   - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
+    - [Basic Types](#basic-types)
+    - [Boolean and Flags](#boolean-and-flags)
+    - [Path and URL Types](#path-and-url-types)
+    - [Complex Types](#complex-types)
+    - [Common Features](#common-features)
+    - [Validation Rules](#validation-rules)
+    - [Usage in Code](#usage-in-code)
   - [📖 Screenshots](#-screenshots)
   - [📖 System Requirements](#-system-requirements)
     - [Tested Environments](#tested-environments)
@@ -95,33 +102,40 @@ program MyApp;
 {$mode objfpc}{$H+}{$J-}
 
 uses
-  SysUtils, CLI.Interfaces, CLI.Application, CLI.Command;
+  SysUtils,
+  CLI.Interfaces,
+  CLI.Application,
+  CLI.Command;
 
 type
+  // Define a new command
   TGreetCommand = class(TBaseCommand)
   public
-    function Execute: Integer; override;
+    function Execute: integer; override;
   end;
 
-function TGreetCommand.Execute: Integer;
-var
-  UserName: string;
-  PrintCount: string;
-  i: Integer;
-begin
-  // Get parameter values using helper methods
-  GetParameterValue('--name', UserName);
-  GetParameterValue('--count', PrintCount);
+  // Define the command's Execute behaviour
+  function TGreetCommand.Execute: integer;
+  var
+    UserName: string;
+    PrintCount: string;
+    i: integer;
+  begin
+    // Get parameter values using helper methods
+    GetParameterValue('--name', UserName);
+    GetParameterValue('--count', PrintCount);
 
-  for i := 1 to StrToIntDef(PrintCount, 1) do
-    WriteLn('Hello, ', UserName, '!');
+    for i := 1 to StrToIntDef(PrintCount, 1) do
+      WriteLn('Hello, ', UserName, '!');
 
-  Result := 0;
-end;
+    Result := 0;
+  end;
 
 var
   App: ICLIApplication;
   Cmd: TGreetCommand;
+
+  // Main block
 begin
   App := CreateCLIApplication('MyApp', '1.0.0');
   Cmd := TGreetCommand.Create('greet', 'Say hello');
@@ -130,7 +144,10 @@ begin
   Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
   Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
 
+  // Register the command to the application
   App.RegisterCommand(Cmd);
+
+  // Execute the application
   ExitCode := App.Execute;
 end.
 ```
@@ -149,53 +166,127 @@ Hello, World!
 
 ## 🎯 Parameter Types and Validation
 
-The framework provides type-safe parameter handling with built-in validation:
+The framework provides comprehensive type-safe parameter handling with built-in validation. Each parameter type has specific behaviors and validation rules:
+
+### Basic Types
 
 ```pascal
-// String parameter with default value
+// String parameter: Any text value
 Cmd.AddStringParameter('-n', '--name', 'Name to use', False, 'default');
+// Output: -n, --name           Name to use
+//        Default: default
 
-// Required integer parameter
+// Integer parameter: Whole numbers
 Cmd.AddIntegerParameter('-c', '--count', 'Count value', True);
+// Output: -c, --count          Count value (required)
+// Validates: Must be a valid integer
 
-// Boolean flag (always optional)
-Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
-
-// Float parameter
+// Float parameter: Decimal numbers
 Cmd.AddFloatParameter('-r', '--rate', 'Rate value', False, '1.0');
-
-// File/directory path
-Cmd.AddPathParameter('-p', '--path', 'File path', True);
-
-// URL with validation
-Cmd.AddUrlParameter('-u', '--url', 'Repository URL', True);
-
-// Password (masked in help/logs)
-Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
-
-// Array (comma-separated values)
-Cmd.AddArrayParameter('-t', '--tags', 'Tags list', False, 'tag1,tag2');
-
-// Date/time with format validation
-Cmd.AddDateTimeParameter('-d', '--date', 'Start date');
-
-// Enumerated value
-Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+// Output: -r, --rate           Rate value
+//        Default: 1.0
+// Validates: Must be a valid floating-point number
 ```
 
-Each parameter type includes:
-- Automatic type validation
-- Help text generation
-- Default value support
-- Required/optional status
-- Short (-x) and long (--xxx) flags
+### Boolean and Flags
 
-The framework validates parameters automatically:
-- Required parameters must be provided
-- Integer/float values must be valid numbers
-- URLs must start with http://, https://, git://, or ssh://
-- Date/time values must match the expected format
-- Enum values must match one of the allowed values
+```pascal
+// Boolean flag: Presence indicates true
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+// Output: -v, --verbose        Enable verbose output
+//        Default: true when flag is present
+
+// Boolean parameter: Explicit true/false
+Cmd.AddParameter('-d', '--debug', 'Debug mode', False, ptBoolean, 'false');
+// Output: -d, --debug          Debug mode
+// Validates: Must be 'true' or 'false'
+```
+
+### Path and URL Types
+
+```pascal
+// File/directory path
+Cmd.AddPathParameter('-p', '--path', 'Input file path', True);
+// Output: -p, --path           Input file path (required)
+// Future: Will validate path exists (planned feature)
+
+// URL with protocol validation
+Cmd.AddUrlParameter('-u', '--url', 'Repository URL', True);
+// Output: -u, --url            Repository URL (required) (must be a valid URL)
+// Validates: Must start with http://, https://, git://, or ssh://
+```
+
+### Complex Types
+
+```pascal
+// Enumerated values
+Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error', False, 'info');
+// Output: -l, --level          Log level (allowed: debug|info|warn|error)
+//        Default: info
+// Validates: Value must match one of the allowed options
+
+// Date/time values
+Cmd.AddDateTimeParameter('-d', '--date', 'Start date');
+// Output: -d, --date           Start date (format: YYYY-MM-DD HH:MM:SS)
+// Validates: Must match the date/time format
+
+// Array (comma-separated values)
+Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
+// Output: -t, --tags           Tag list (comma-separated)
+//        Default: tag1,tag2
+// Behavior: Values are split on commas
+
+// Password (masked in output)
+Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+// Output: -k, --api-key        API Key (required) (value will be masked)
+// Behavior: Value is masked in help text and logs
+```
+
+### Common Features
+
+All parameter types include:
+- **Short and Long Forms**: Each parameter can be accessed via short (-x) or long (--xxx) form
+- **Help Text Generation**: Automatic generation of formatted help text with descriptions
+- **Default Values**: Optional default values when parameter is not provided
+- **Required Flag**: Can be marked as required or optional
+- **Type Validation**: Automatic validation based on the parameter type
+- **Error Messages**: Clear error messages when validation fails
+
+### Validation Rules
+
+The framework automatically validates parameters:
+1. **Required Parameters**: Must be provided by the user
+2. **Type Validation**:
+   - Integer: Must be a valid whole number
+   - Float: Must be a valid decimal number
+   - Boolean: Must be 'true' or 'false'
+   - URL: Must start with valid protocol
+   - DateTime: Must match YYYY-MM-DD HH:MM:SS format
+   - Enum: Must match one of the allowed values
+3. **Default Values**: Used when parameter is optional and not provided
+4. **Error Handling**: Clear error messages with suggestions when validation fails
+
+### Usage in Code
+
+To retrieve parameter values in your command's Execute method:
+
+```pascal
+function TMyCommand.Execute: Integer;
+var
+  StringValue: string;
+  IntValue: Integer;
+  IsEnabled: Boolean;
+begin
+  // Get parameter values
+  GetParameterValue('--name', StringValue);
+  if GetParameterValue('--count', IntValue) then
+    // Parameter was provided or has default
+  if GetParameterValue('--verbose', IsEnabled) then
+    // Flag was present
+    
+  Result := 0;
+end;
+```
 
 ## 📖 Screenshots
 
