@@ -32,11 +32,11 @@ type
     Result := 0;
   end;
 
+{ Main program setup }
 var
   App: ICLIApplication;
   Cmd: TGreetCommand;
 
-  // Main block
 begin
   App := CreateCLIApplication('MyApp', '1.0.0');
   Cmd := TGreetCommand.Create('greet', 'Say hello');

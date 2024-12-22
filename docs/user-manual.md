@@ -23,17 +23,31 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
       - [Progress Bars](#progress-bars)
       - [Choosing Between Spinner and Progress Bar](#choosing-between-spinner-and-progress-bar)
   - [Parameter Types Reference](#parameter-types-reference)
-    - [1. String Parameters](#1-string-parameters)
-    - [2. Integer Parameters](#2-integer-parameters)
-    - [3. Boolean Flags](#3-boolean-flags)
-    - [4. Float Parameters](#4-float-parameters)
+    - [1. Basic Types](#1-basic-types)
+      - [String Parameters](#string-parameters)
+      - [Integer Parameters](#integer-parameters)
+      - [Float Parameters](#float-parameters)
+    - [2. Boolean and Flags](#2-boolean-and-flags)
+      - [Boolean Parameters](#boolean-parameters)
+      - [Flag Parameters](#flag-parameters)
+    - [3. Path and URL Types](#3-path-and-url-types)
+      - [Path Parameters](#path-parameters)
+      - [URL Parameters](#url-parameters)
+    - [4. Complex Types](#4-complex-types)
+      - [Enumerated Values](#enumerated-values)
+      - [DateTime Parameters](#datetime-parameters)
+      - [Array Parameters](#array-parameters)
+      - [Password Parameters](#password-parameters)
+    - [Parameter Validation](#parameter-validation)
+    - [Error Handling](#error-handling)
+    - [Best Practices](#best-practices)
   - [Command-Line Usage](#command-line-usage)
     - [Basic Command Structure](#basic-command-structure)
     - [Getting Help](#getting-help)
     - [Parameter Formats](#parameter-formats)
   - [Troubleshooting](#troubleshooting)
     - [Common Issues](#common-issues)
-  - [Best Practices](#best-practices)
+  - [Best Practices](#best-practices-1)
   - [Useful Unicode Characters for CLI Interfaces](#useful-unicode-characters-for-cli-interfaces)
   - [Getting Help](#getting-help-1)
   - [Summary](#summary)
@@ -468,97 +482,198 @@ Use a **Progress Bar** when:
 
 ## Parameter Types Reference
 
+The framework provides a rich set of parameter types with built-in validation:
 
-| Type        | Description                | Example Code            |
-| ----------- |--------------------------- | ------------------------|
-| String      | Handles text inputs        | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptString)` |
-| Integer     | Handles whole numbers      | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptInteger)` |
-| Boolean     | Handles flags (true/false) | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptBoolean)` |
-| Float       | Handles decimal numbers    | `CreateParameter('-shortFlag', '--longFlag', 'description', boolReqd, ptFloat)` |
+### 1. Basic Types
 
-
-### 1. String Parameters
-
+#### String Parameters
 ```pascal
-// Required string parameter
-Cmd.AddParameter(
-  '-n',
-  '--name',
-  'Your name',
-  True,      // Required
-  ptString
-));
-
 // Optional string with default
-Cmd.AddParameter(
-  '-p',
-  '--path',
-  'File path',
-  False,     // Optional
-  ptString,
-  './default.txt'  // Default value
-));
+Cmd.AddStringParameter('-n', '--name', 'Your name', False, 'World');
+
+// Required string
+Cmd.AddStringParameter('-p', '--path', 'File path', True);
 ```
 
-### 2. Integer Parameters
-
+#### Integer Parameters
 ```pascal
+// Optional integer with default
+Cmd.AddIntegerParameter('-c', '--count', 'Number of items', False, '10');
+
 // Required integer
-Cmd.AddParameter(
-  '-c',
-  '--count',
-  'Number of items',
-  True,
-  ptInteger
-));
-
-// Optional with default
-Cmd.AddParameter(
-  '-l',
-  '--limit',
-  'Result limit',
-  False,
-  ptInteger,
-  '10'
-));
+Cmd.AddIntegerParameter('-l', '--limit', 'Result limit', True);
 ```
 
-### 3. Boolean Flags
-
-```pascal
-// Simple flag
-Cmd.AddParameter(
-  '-f',
-  '--force',
-  'Force operation',
-  False,
-  ptBoolean
-));
-
-// Flag with default
-Cmd.AddParameter(
-  '-v',
-  '--verbose',
-  'Enable verbose output',
-  False,
-  ptBoolean,
-  'false'
-));
-```
-
-### 4. Float Parameters
-
+#### Float Parameters
 ```pascal
 // Optional float with default
-Cmd.AddParameter(
-  '-r',
-  '--rate',
-  'Processing rate',
-  False,
-  ptFloat,
-  '1.0'
-));
+Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
+
+// Required float
+Cmd.AddFloatParameter('-t', '--threshold', 'Error threshold', True);
 ```
+
+### 2. Boolean and Flags
+
+#### Boolean Parameters
+```pascal
+// Boolean with explicit value
+Cmd.AddParameter('-d', '--debug', 'Debug mode', False, ptBoolean, 'false');
+// Usage: --debug=true or --debug=false
+```
+
+#### Flag Parameters
+```pascal
+// Simple presence flag (defaults to true when present)
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+// Usage: Just add --verbose to enable
+```
+
+### 3. Path and URL Types
+
+#### Path Parameters
+```pascal
+// File or directory path
+Cmd.AddPathParameter('-i', '--input', 'Input directory', True);
+Cmd.AddPathParameter('-o', '--output', 'Output file', False, './output.txt');
+```
+
+#### URL Parameters
+```pascal
+// URL with protocol validation
+Cmd.AddUrlParameter('-u', '--url', 'Repository URL', True);
+// Validates: Must start with http://, https://, git://, or ssh://
+```
+
+### 4. Complex Types
+
+#### Enumerated Values
+```pascal
+// Enum with allowed values
+Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error', False, 'info');
+// Validates: Value must be one of the specified options
+```
+
+#### DateTime Parameters
+```pascal
+// Date/time values
+Cmd.AddDateTimeParameter('-s', '--start', 'Start date/time');
+// Format: YYYY-MM-DD HH:MM:SS
+```
+
+#### Array Parameters
+```pascal
+// Comma-separated lists
+Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
+// Usage: --tags=web,api,test
+```
+
+#### Password Parameters
+```pascal
+// Sensitive values (masked in output)
+Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+// Value will be masked in help text and logs
+```
+
+### Parameter Validation
+
+The framework automatically validates parameters based on their type:
+
+1. **Required Parameters**
+   ```pascal
+   Cmd.AddStringParameter('-n', '--name', 'Name', True);  // Must be provided
+   ```
+
+2. **Type Validation**
+   ```pascal
+   // Integer validation
+   Cmd.AddIntegerParameter('-c', '--count', 'Count');
+   // Will fail if value is not a valid integer
+
+   // Float validation
+   Cmd.AddFloatParameter('-r', '--rate', 'Rate');
+   // Will fail if value is not a valid float
+
+   // URL validation
+   Cmd.AddUrlParameter('-u', '--url', 'URL');
+   // Will fail if URL doesn't start with valid protocol
+   ```
+
+3. **Enum Validation**
+   ```pascal
+   Cmd.AddEnumParameter('-m', '--mode', 'Mode', 'fast|normal|safe');
+   // Will fail if value is not one of the allowed options
+   ```
+
+4. **DateTime Validation**
+   ```pascal
+   Cmd.AddDateTimeParameter('-d', '--date', 'Date');
+   // Will fail if not in YYYY-MM-DD HH:MM:SS format
+   ```
+
+### Error Handling
+
+The framework provides clear error messages for validation failures:
+
+```pascal
+try
+  // Your command execution code
+except
+  on E: EInvalidParameterValueException do
+    WriteLn('Invalid parameter value: ', E.Message);
+  on E: ERequiredParameterMissingException do
+    WriteLn('Missing required parameter: ', E.Message);
+end;
+```
+
+### Best Practices
+
+1. **Use Descriptive Names**
+   ```pascal
+   // Good
+   Cmd.AddStringParameter('-n', '--name', 'User name');
+   
+   // Not as clear
+   Cmd.AddStringParameter('-x', '--x', 'Name');
+   ```
+
+2. **Provide Helpful Descriptions**
+   ```pascal
+   // Good
+   Cmd.AddIntegerParameter('-c', '--count', 'Number of items to process (1-100)');
+   
+   // Too vague
+   Cmd.AddIntegerParameter('-c', '--count', 'Count');
+   ```
+
+3. **Use Appropriate Types**
+   ```pascal
+   // Good
+   Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
+   
+   // Not as good
+   Cmd.AddStringParameter('-u', '--url', 'Repository URL');
+   ```
+
+4. **Set Sensible Defaults**
+   ```pascal
+   // Good
+   Cmd.AddIntegerParameter('-l', '--limit', 'Result limit', False, '10');
+   
+   // May surprise users
+   Cmd.AddIntegerParameter('-l', '--limit', 'Result limit', False, '999999');
+   ```
+
+5. **Group Related Parameters**
+   ```pascal
+   // Input/Output parameters
+   Cmd.AddPathParameter('-i', '--input', 'Input file');
+   Cmd.AddPathParameter('-o', '--output', 'Output file');
+   
+   // Configuration parameters
+   Cmd.AddEnumParameter('-l', '--log-level', 'Log level', 'debug|info|warn');
+   Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+   ```
 
 ## Command-Line Usage
 
