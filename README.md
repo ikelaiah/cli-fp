@@ -105,17 +105,17 @@ type
 
 function TGreetCommand.Execute: Integer;
 var
-  Name: string;
-  Count: string;
+  UserName: string;
+  PrintCount: string;
   i: Integer;
 begin
   // Get parameter values using helper methods
-  GetParameterValue('--name', Name);
-  GetParameterValue('--count', Count);
-  
-  for i := 1 to StrToIntDef(Count, 1) do
-    WriteLn('Hello, ', Name, '!');
-    
+  GetParameterValue('--name', UserName);
+  GetParameterValue('--count', PrintCount);
+
+  for i := 1 to StrToIntDef(PrintCount, 1) do
+    WriteLn('Hello, ', UserName, '!');
+
   Result := 0;
 end;
 
@@ -125,11 +125,11 @@ var
 begin
   App := CreateCLIApplication('MyApp', '1.0.0');
   Cmd := TGreetCommand.Create('greet', 'Say hello');
-  
+
   // Add parameters using new helper methods
   Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
   Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
-  
+
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
 end.
