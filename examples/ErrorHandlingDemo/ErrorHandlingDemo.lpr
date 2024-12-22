@@ -209,23 +209,19 @@ begin
   Cmd := TValidateCommand.Create('validate', 'Validate files');
 
   // Add required path parameter
-  Cmd.AddParameter(
+  Cmd.AddPathParameter(
     '-p',            // Short form
     '--path',        // Long form
     'Path to validate', // Description
-    True,            // Required parameter
-    ptString         // Parameter type: string
-  ));
+    True             // Required parameter
+  );
 
   // Add optional stop-on-error flag
-  Cmd.AddParameter(
+  Cmd.AddFlag(
     '-s',                          // Short form
     '--stop-on-error',            // Long form
-    'Stop processing on first error', // Description
-    False,                        // Optional parameter
-    ptBoolean,                    // Parameter type: boolean
-    'false'                       // Default value
-  ));
+    'Stop processing on first error' // Description
+  );
 
   // Register command and run the application
   App.RegisterCommand(Cmd);

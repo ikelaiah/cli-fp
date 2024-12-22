@@ -227,16 +227,16 @@ begin
 
     // Create and configure init command
     InitCmd := TRepoInitCommand.Create('init', 'Initialize a new repository');
-    InitCmd.AddParameter('-p', '--path', 'Repository path', False, ptString));
-    InitCmd.AddParameter('-b', '--bare', 'Create a bare repository', False, ptFlag));
+    InitCmd.AddPathParameter('-p', '--path', 'Repository path');
+    InitCmd.AddFlag('-b', '--bare', 'Create a bare repository');
     RepoCmd.AddSubCommand(InitCmd);
 
     // Create and configure clone command
     CloneCmd := TRepoCloneCommand.Create('clone', 'Clone a repository');
-    CloneCmd.AddParameter('-u', '--url', 'Repository URL', True, ptString));
-    CloneCmd.AddParameter('-p', '--path', 'Target path', False, ptString));
-    CloneCmd.AddParameter('-b', '--branch', 'Branch to clone', False, ptString, 'main'));
-    CloneCmd.AddParameter('-d', '--depth', 'Clone depth', False, ptString, 'full'));
+    CloneCmd.AddStringParameter('-u', '--url', 'Repository URL', True);
+    CloneCmd.AddPathParameter('-p', '--path', 'Target path');
+    CloneCmd.AddStringParameter('-b', '--branch', 'Branch to clone', False, 'main');
+    CloneCmd.AddStringParameter('-d', '--depth', 'Clone depth', False, 'full');
     RepoCmd.AddSubCommand(CloneCmd);
 
     // Create remote command group
@@ -245,13 +245,13 @@ begin
 
     // Create and configure remote add command
     RemoteAddCmd := TRemoteAddCommand.Create('add', 'Add a new remote');
-    RemoteAddCmd.AddParameter('-n', '--name', 'Remote name', True, ptString));
-    RemoteAddCmd.AddParameter('-u', '--url', 'Remote URL', True, ptString));
+    RemoteAddCmd.AddStringParameter('-n', '--name', 'Remote name', True);
+    RemoteAddCmd.AddUrlParameter('-u', '--url', 'Remote URL', True);
     RemoteCmd.AddSubCommand(RemoteAddCmd);
 
     // Create and configure remote remove command
     RemoteRemoveCmd := TRemoteRemoveCommand.Create('remove', 'Remove a remote');
-    RemoteRemoveCmd.AddParameter('-n', '--name', 'Remote name', True, ptString));
+    RemoteRemoveCmd.AddStringParameter('-n', '--name', 'Remote name', True);
     RemoteCmd.AddSubCommand(RemoteRemoveCmd);
 
     // Clean up command references (not strictly necessary but good practice)

@@ -95,8 +95,8 @@ begin
       - Required flag (False = optional)
       - Parameter type (string/integer)
       - Default value }
-    Cmd.AddParameter('-n', '--name', 'Name to greet', False, ptString, 'World'));
-    Cmd.AddParameter('-c', '--count', 'Number of times to greet', False, ptInteger, '1'));
+    Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+    Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
 
     { Register the command with the application
       This makes it available for use }
