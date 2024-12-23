@@ -4,11 +4,133 @@
 
 The Free Pascal CLI Framework is a modern, feature-rich library for building command-line applications. It provides an intuitive way to create CLIs with commands, subcommands, parameters, and interactive progress indicators.
 
+## Quick Reference Cheat Sheet
+
+Essential commands for building CLI applications:
+
+### Create Application
+```pascal
+// Create new CLI application
+App := CreateCLIApplication('AppName', '1.0.0');
+```
+
+### Create Command
+```pascal
+// Create a command with name and description
+Cmd := TBaseCommand.Create('command-name', 'Command description');
+```
+
+### Add Parameters
+```pascal
+// String parameter
+Cmd.AddStringParameter('-n', '--name', 'Description', False, 'default');
+
+// Integer parameter
+Cmd.AddIntegerParameter('-c', '--count', 'Description', True);  // Required
+
+// Float parameter
+Cmd.AddFloatParameter('-r', '--rate', 'Description', False, '1.0');
+
+// Boolean flag (presence means true)
+Cmd.AddFlag('-v', '--verbose', 'Description');
+
+// Boolean parameter (explicit true/false)
+Cmd.AddBooleanParameter('-d', '--debug', 'Description', False, 'false');
+
+// Path parameter
+Cmd.AddPathParameter('-p', '--path', 'Description', False, GetCurrentDir);
+
+// Enum parameter
+Cmd.AddEnumParameter('-l', '--level', 'Description', 'debug|info|warn|error');
+
+// DateTime parameter (format: YYYY-MM-DD HH:MM)
+Cmd.AddDateTimeParameter('-d', '--date', 'Description');
+
+// Array parameter (comma-separated values)
+Cmd.AddArrayParameter('-t', '--tags', 'Description', False, 'tag1,tag2');
+
+// Password parameter (masked in output)
+Cmd.AddPasswordParameter('-k', '--key', 'Description', True);
+
+// URL parameter (validates URL format)
+Cmd.AddUrlParameter('-u', '--url', 'Description', True);
+```
+
+### Get Parameter Values
+```pascal
+var
+  StrValue: string;
+  IntValue: Integer;
+  FloatValue: Double;
+  BoolValue: Boolean;
+begin
+  // Returns True if parameter exists or has default value
+  if GetParameterValue('--param-name', StrValue) then
+    // Use StrValue...
+
+  // Framework automatically converts to correct type
+  GetParameterValue('--count', IntValue);
+  GetParameterValue('--rate', FloatValue);
+  GetParameterValue('--verbose', BoolValue);
+end;
+```
+
+### Add Subcommands
+```pascal
+// Create main command
+MainCmd := TBaseCommand.Create('git', 'Git operations');
+
+// Create and add subcommand
+SubCmd := TBaseCommand.Create('clone', 'Clone repository');
+MainCmd.AddSubCommand(SubCmd);
+```
+
+### Register and Run
+```pascal
+// Register command
+App.RegisterCommand(Cmd);
+
+// Run application
+ExitCode := App.Execute;
+```
+
+### Progress Indicators
+```pascal
+// Spinner (for unknown duration)
+Spinner := CreateSpinner(ssDots);
+Spinner.Start;
+try
+  // Work here...
+finally
+  Spinner.Stop;
+end;
+
+// Progress bar (for known steps)
+Progress := CreateProgressBar(TotalSteps);
+Progress.Start;
+try
+  for i := 1 to TotalSteps do
+  begin
+    // Work here...
+    Progress.Update(i);
+  end;
+finally
+  Progress.Stop;
+end;
+```
 
 ## Table of Contents
 
 - [CLI Framework User Manual](#cli-framework-user-manual)
   - [Overview](#overview)
+  - [Quick Reference Cheat Sheet](#quick-reference-cheat-sheet)
+    - [Create Application](#create-application)
+    - [Create Command](#create-command)
+    - [Add Parameters](#add-parameters)
+    - [Get Parameter Values](#get-parameter-values)
+    - [Add Subcommands](#add-subcommands)
+    - [Register and Run](#register-and-run)
+    - [Progress Indicators](#progress-indicators)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Application Flow](#application-flow)
@@ -52,13 +174,13 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
   - [Getting Help](#getting-help-1)
   - [Summary](#summary)
   - [Cheat Sheet](#cheat-sheet)
-    - [Create Application](#create-application)
-    - [Create Command](#create-command)
-    - [Add Parameters](#add-parameters)
-    - [Get Parameter Values](#get-parameter-values)
-    - [Add Subcommands](#add-subcommands)
-    - [Register and Run](#register-and-run)
-    - [Progress Indicators](#progress-indicators)
+    - [Create Application](#create-application-1)
+    - [Create Command](#create-command-1)
+    - [Add Parameters](#add-parameters-1)
+    - [Get Parameter Values](#get-parameter-values-1)
+    - [Add Subcommands](#add-subcommands-1)
+    - [Register and Run](#register-and-run-1)
+    - [Progress Indicators](#progress-indicators-1)
 
 
 

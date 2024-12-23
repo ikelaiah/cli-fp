@@ -257,8 +257,7 @@ Each parameter type has built-in validation:
 
 ## 📖 Documentation
 
-- [Beginners Guide](docs/beginners-guide.md): A guide for beginners to get started with the framework
-- [User Manual](docs/user-manual.md): Complete guide for using the framework
+- [User Manual](docs/user-manual.md): Complete guide for using the framework, *including a cheat sheet*
 - [API Reference](docs/api-reference.md): Detailed API reference for the framework
 - [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
 - [Examples](examples/): Working example applications
