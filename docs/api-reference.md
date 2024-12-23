@@ -121,19 +121,76 @@ Each helper method:
 
 Example usage:
 ```pascal
-Cmd := TTestCommand.Create('test', 'Test parameters');
-  
-// Add various parameters
-Cmd.AddStringParameter('-n', '--name', 'Your name');
-Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);  // Required
-Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
-Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
-Cmd.AddDateTimeParameter('-d', '--date', 'Start date');  // Format: YYYY-MM-DD HH:MM
-Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
-Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
-Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
-Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+type
+  TTestCommand = class(TBaseCommand)
+  public
+    function Execute: Integer; override;
+  end;
 
+function TTestCommand.Execute: Integer;
+var
+  Name: string;
+  Count: Integer;
+  Rate: Double;
+  Level: string;
+begin
+  // Get parameter values using helper methods
+  if GetParameterValue('--name', Name) then
+    WriteLn('Name: ', Name);
+    
+  if GetParameterValue('--count', Count) then
+    WriteLn('Count: ', Count);
+    
+  if GetParameterValue('--rate', Rate) then
+    WriteLn('Rate: ', Rate:0:2);
+    
+  if GetParameterValue('--level', Level) then
+    WriteLn('Level: ', Level);
+
+  if GetParameterValue('--verbose', Verbose) then
+    WriteLn('Verbose: ', Verbose);
+    
+  if GetParameterValue('--date', DateStr) then
+    WriteLn('Date: ', DateStr);
+    
+  if GetParameterValue('--url', Url) then
+    WriteLn('URL: ', Url);
+    
+  if GetParameterValue('--tags', Tags) then
+    WriteLn('Tags: ', Tags);
+    
+  if GetParameterValue('--api-key', ApiKey) then
+    WriteLn('API Key: ', ApiKey);
+
+  Result := 0;
+end;
+
+var
+  App: ICLIApplication;
+  Cmd: TTestCommand;
+begin
+  App := CreateCLIApplication('TestApp', '1.0.0');
+  
+  // Create command and add parameters
+  Cmd := TTestCommand.Create('test', 'Test parameters');
+  
+  // Add various parameters
+  Cmd.AddStringParameter('-n', '--name', 'Your name');
+  Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);  // Required
+  Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
+  Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+  Cmd.AddDateTimeParameter('-d', '--date', 'Start date');  // Format: YYYY-MM-DD HH:MM
+  Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+  Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
+  Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
+  Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+  
+  // Register command
+  App.RegisterCommand(Cmd);
+  
+  // Execute application
+  ExitCode := App.Execute;
+end;
 ```
 
 ##### `ICommandParameter`

@@ -32,8 +32,14 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
       - [Enumerated Values](#enumerated-values)
       - [URL Parameters](#url-parameters)
       - [Array Parameters](#array-parameters)
+      - [Password Parameters](#password-parameters)
     - [Parameter Validation](#parameter-validation)
-    - [Error Handling](#error-handling)
+    - [Basic Types](#basic-types-1)
+    - [Complex Types](#complex-types)
+    - [Error Messages](#error-messages)
+    - [Required Parameters](#required-parameters)
+    - [Default Values](#default-values)
+    - [Getting Parameter Values](#getting-parameter-values)
     - [Best Practices](#best-practices)
   - [Command-Line Usage](#command-line-usage)
     - [Basic Command Structure](#basic-command-structure)
@@ -45,6 +51,18 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
   - [Useful Unicode Characters for CLI Interfaces](#useful-unicode-characters-for-cli-interfaces)
   - [Getting Help](#getting-help-1)
   - [Summary](#summary)
+  - [Cheat Sheet](#cheat-sheet)
+    - [Create Application](#create-application)
+    - [Create Command](#create-command)
+    - [Add Parameters](#add-parameters)
+    - [Get Parameter Values](#get-parameter-values)
+    - [Add Subcommands](#add-subcommands)
+    - [Register and Run](#register-and-run)
+    - [Progress Indicators](#progress-indicators)
+
+
+
+
 
 
 ## Features
@@ -531,81 +549,128 @@ AddUrlParameter('-u', '--url', 'Repository URL');
 AddArrayParameter('-t', '--tags', 'Tag list');
 ```
 
+#### Password Parameters
+```pascal
+// Value is masked in help text and logs
+AddPasswordParameter('-k', '--api-key', 'API Key');
+```
+
 ### Parameter Validation
 
-All parameters are validated before the command's Execute method is called. If validation fails, an error message is displayed and the command is not executed.
+The framework validates all parameters before executing a command. Each parameter type has specific validation rules:
 
-Example error messages:
-- Integer: "Parameter '--count' must be an integer"
-- Float: "Parameter '--rate' must be a float"
-- Boolean: "Parameter '--debug' must be 'true' or 'false'"
-- DateTime: "Parameter '--date' must be in format YYYY-MM-DD HH:MM"
-- URL: "Parameter '--url' must be a valid URL starting with http://, https://, git://, or ssh://"
-- Enum: "Parameter '--level' must be one of: debug|info|warn|error"
+### Basic Types
+- **String**: No validation
+- **Integer**: Must be a valid integer number
+- **Float**: Must be a valid floating-point number
+- **Boolean**: Must be 'true' or 'false' (case-insensitive)
 
-### Error Handling
+### Complex Types
+- **DateTime**: Must be in format "YYYY-MM-DD HH:MM" (24-hour format)
+- **Enum**: Must match one of the pipe-separated allowed values
+- **URL**: Must start with http://, https://, git://, or ssh://
+- **Array**: No validation on individual items
+- **Password**: No validation, but value is masked in output
 
-The framework provides clear error messages for validation failures:
+### Error Messages
+
+The framework provides clear error messages when validation fails:
+
+```
+Error: Parameter "--count" must be an integer
+Error: Parameter "--rate" must be a float
+Error: Parameter "--debug" must be "true" or "false"
+Error: Parameter "--date" must be in format YYYY-MM-DD HH:MM
+Error: Parameter "--url" must be a valid URL starting with http://, https://, git://, or ssh://
+Error: Parameter "--level" must be one of: debug|info|warn|error
+```
+
+### Required Parameters
+
+Parameters can be marked as required:
+```pascal
+// Required parameter
+AddIntegerParameter('-c', '--count', 'Count parameter', True);
+
+// Optional parameter with default
+AddStringParameter('-n', '--name', 'Name parameter', False, 'default');
+```
+
+If a required parameter is missing, the command will not execute and an error message will be displayed:
+```
+Error: Required parameter "--count" not provided
+```
+
+### Default Values
+
+Optional parameters can have default values:
+```pascal
+// String with default
+AddStringParameter('-n', '--name', 'Name parameter', False, 'World');
+
+// Float with default
+AddFloatParameter('-r', '--rate', 'Rate parameter', False, '1.0');
+
+// Enum with default
+AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error', False, 'info');
+```
+
+The default value will be used when:
+- The parameter is not provided on the command line
+- The parameter is optional (Required = False)
+- A default value is specified
+
+### Getting Parameter Values
+
+To retrieve parameter values in your command's Execute method:
 
 ```pascal
-try
-  // Your command execution code
-except
-  on E: EInvalidParameterValueException do
-    WriteLn('Invalid parameter value: ', E.Message);
-  on E: ERequiredParameterMissingException do
-    WriteLn('Missing required parameter: ', E.Message);
+function TMyCommand.Execute: Integer;
+var
+  Name: string;
+  Count: Integer;
+  Rate: Double;
+  Level: string;
+begin
+  // Get parameter values with error checking
+  if GetParameterValue('--name', Name) then
+    WriteLn('Name: ', Name);
+    
+  if GetParameterValue('--count', Count) then
+    WriteLn('Count: ', Count);
+    
+  if GetParameterValue('--rate', Rate) then
+    WriteLn('Rate: ', Rate:0:2);
+    
+  if GetParameterValue('--level', Level) then
+    WriteLn('Level: ', Level);
+    
+  Result := 0;
 end;
 ```
 
 ### Best Practices
 
-1. **Use Descriptive Names**
+1. **Always Check Return Value**: The `GetParameterValue` function returns `False` if the parameter wasn't provided and has no default value.
+
+2. **Use Strong Typing**: The framework will automatically convert parameter values to the correct type:
    ```pascal
-   // Good
-   Cmd.AddStringParameter('-n', '--name', 'User name');
-   
-   // Not as clear
-   Cmd.AddStringParameter('-x', '--x', 'Name');
+   var
+     Count: Integer;
+     Rate: Double;
+     IsEnabled: Boolean;
    ```
 
-2. **Provide Helpful Descriptions**
+3. **Provide Clear Descriptions**: Parameter descriptions appear in help text:
    ```pascal
-   // Good
-   Cmd.AddIntegerParameter('-c', '--count', 'Number of items to process (1-100)');
-   
-   // Too vague
-   Cmd.AddIntegerParameter('-c', '--count', 'Count');
+   AddStringParameter('-n', '--name', 'Your name (required for personalized greeting)');
    ```
 
-3. **Use Appropriate Types**
-   ```pascal
-   // Good
-   Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
-   
-   // Not as good
-   Cmd.AddStringParameter('-u', '--url', 'Repository URL');
-   ```
-
-4. **Set Sensible Defaults**
-   ```pascal
-   // Good
-   Cmd.AddIntegerParameter('-l', '--limit', 'Result limit', False, '10');
-   
-   // May surprise users
-   Cmd.AddIntegerParameter('-l', '--limit', 'Result limit', False, '999999');
-   ```
-
-5. **Group Related Parameters**
-   ```pascal
-   // Input/Output parameters
-   Cmd.AddPathParameter('-i', '--input', 'Input file');
-   Cmd.AddPathParameter('-o', '--output', 'Output file');
-   
-   // Configuration parameters
-   Cmd.AddEnumParameter('-l', '--log-level', 'Log level', 'debug|info|warn');
-   Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
-   ```
+4. **Use Appropriate Types**: Choose the most appropriate parameter type:
+   - Use `AddFlag` for simple on/off features
+   - Use `AddBooleanParameter` for explicit true/false values
+   - Use `AddEnumParameter` for fixed sets of values
+   - Use `AddPasswordParameter` for sensitive data
 
 ## Command-Line Usage
 
@@ -745,3 +810,118 @@ The framework supports various parameter formats:
 
 This manual has walked you through building and extending CLI applications using the Free Pascal CLI Framework. By following these guidelines and best practices, you can create robust and user-friendly command-line tools.
 Happy Coding!
+
+## Cheat Sheet
+
+Essential commands for building CLI applications:
+
+### Create Application
+```pascal
+// Create new CLI application
+App := CreateCLIApplication('AppName', '1.0.0');
+```
+
+### Create Command
+```pascal
+// Create a command with name and description
+Cmd := TBaseCommand.Create('command-name', 'Command description');
+```
+
+### Add Parameters
+```pascal
+// String parameter
+Cmd.AddStringParameter('-n', '--name', 'Description', False, 'default');
+
+// Integer parameter
+Cmd.AddIntegerParameter('-c', '--count', 'Description', True);  // Required
+
+// Float parameter
+Cmd.AddFloatParameter('-r', '--rate', 'Description', False, '1.0');
+
+// Boolean flag (presence means true)
+Cmd.AddFlag('-v', '--verbose', 'Description');
+
+// Boolean parameter (explicit true/false)
+Cmd.AddBooleanParameter('-d', '--debug', 'Description', False, 'false');
+
+// Path parameter
+Cmd.AddPathParameter('-p', '--path', 'Description', False, GetCurrentDir);
+
+// Enum parameter
+Cmd.AddEnumParameter('-l', '--level', 'Description', 'debug|info|warn|error');
+
+// DateTime parameter (format: YYYY-MM-DD HH:MM)
+Cmd.AddDateTimeParameter('-d', '--date', 'Description');
+
+// Array parameter (comma-separated values)
+Cmd.AddArrayParameter('-t', '--tags', 'Description', False, 'tag1,tag2');
+
+// Password parameter (masked in output)
+Cmd.AddPasswordParameter('-k', '--key', 'Description', True);
+
+// URL parameter (validates URL format)
+Cmd.AddUrlParameter('-u', '--url', 'Description', True);
+```
+
+### Get Parameter Values
+```pascal
+var
+  StrValue: string;
+  IntValue: Integer;
+  FloatValue: Double;
+  BoolValue: Boolean;
+begin
+  // Returns True if parameter exists or has default value
+  if GetParameterValue('--param-name', StrValue) then
+    // Use StrValue...
+
+  // Framework automatically converts to correct type
+  GetParameterValue('--count', IntValue);
+  GetParameterValue('--rate', FloatValue);
+  GetParameterValue('--verbose', BoolValue);
+end;
+```
+
+### Add Subcommands
+```pascal
+// Create main command
+MainCmd := TBaseCommand.Create('git', 'Git operations');
+
+// Create and add subcommand
+SubCmd := TBaseCommand.Create('clone', 'Clone repository');
+MainCmd.AddSubCommand(SubCmd);
+```
+
+### Register and Run
+```pascal
+// Register command
+App.RegisterCommand(Cmd);
+
+// Run application
+ExitCode := App.Execute;
+```
+
+### Progress Indicators
+```pascal
+// Spinner (for unknown duration)
+Spinner := CreateSpinner(ssDots);
+Spinner.Start;
+try
+  // Work here...
+finally
+  Spinner.Stop;
+end;
+
+// Progress bar (for known steps)
+Progress := CreateProgressBar(TotalSteps);
+Progress.Start;
+try
+  for i := 1 to TotalSteps do
+  begin
+    // Work here...
+    Progress.Update(i);
+  end;
+finally
+  Progress.Stop;
+end;
+```
