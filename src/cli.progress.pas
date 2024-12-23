@@ -1,6 +1,6 @@
 unit CLI.Progress;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit provides progress indicator functionality for CLI applications.
   It includes two types of progress indicators:
@@ -196,7 +196,6 @@ procedure TProgressBar.Update(const Progress: Integer);
 var
   Percentage: Integer;
   FilledWidth: Integer;
-  i: Integer;
   ProgressText: string;
 begin
   if not FActive then Exit;

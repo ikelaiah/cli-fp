@@ -149,24 +149,22 @@ begin
 
     // Create and configure the 'init' command
     InitCmd := TInitCommand.Create('init', 'Initialize a repository');
-    InitCmd.AddParameter(CreateParameter(
+    InitCmd.AddPathParameter(
       '-p',                        // Short form
-      '--path',                    // Long form
+      '--path',                    // Long flag
       'Path to initialize repository', // Description
       False,                       // Not required
-      ptString,                    // Parameter type
-      GetCurrentDir               // Default value
-    ));
+      GetCurrentDir                // Default value
+    );
 
     // Create and configure the 'clone' command
     CloneCmd := TCloneCommand.Create('clone', 'Clone a repository');
-    CloneCmd.AddParameter(CreateParameter(
+    CloneCmd.AddUrlParameter(
       '-u',
       '--url',
       'Repository URL to clone',
-      True,     // Required parameter
-      ptString
-    ));
+      True     // Required parameter
+    );
 
     // Build command hierarchy: repo -> (init, clone)
     RepoCmd.AddSubCommand(InitCmd);

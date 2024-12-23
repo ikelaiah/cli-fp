@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.1.0] - 2024-12-24
+
+### Added
+- Parameter validation for URL type (must start with http://, https://, git://, or ssh://)
+- Parameter validation for DateTime type (must be in format "YYYY-MM-DD HH:MM")
+- Parameter validation for Enum type (must match allowed values)
+- Parameter validation for Integer and Float types
+- Password parameter type with masked output
+- Comprehensive test suite for parameter validation
+
+### Updated
+- Expanded parameter validation documentation in README
+- Added parameter type reference to user manual
+- Improved validation error messages with examples
+- Added test coverage for edge cases and error scenarios
+- Updated technical documentation with validation details
+- Updated API reference with new parameter types
+
+### Fixed
+- Parameter validation edge cases and error handling
+- Type conversion issues for numeric parameters
+- Test failures in parameter validation suite
+
+
 ## [1.0.2] - 2024-12-21
 
 ### Updated

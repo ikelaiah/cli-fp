@@ -16,27 +16,26 @@ uses
   Classes, SysUtils;
 
 type
-  { Base exception class for all CLI-related errors
-    Use this as the base class for catching any CLI framework error
+  { Base exception class for all CLI framework exceptions
     @member Create Creates exception with message
     @member CreateFmt Creates exception with formatted message }
   ECLIException = class(Exception)
   public
-    constructor Create(const Msg: string); override;
-    constructor CreateFmt(const Msg: string; const Args: array of const); override;
+    constructor Create(const Msg: string);
+    constructor CreateFmt(const Msg: string; const Args: array of const);
   end;
 
-  { Raised when a command cannot be found
+  { Raised when a command is not found
     Examples:
-    - Unknown command name
-    - Unknown subcommand
-    - Command not registered with application
+    - Invalid command name
+    - Missing subcommand
+    - Unknown command alias
     @member Create Creates exception with message
     @member CreateFmt Creates exception with formatted message }
   ECommandNotFoundException = class(ECLIException)
   public
-    constructor Create(const Msg: string); override;
-    constructor CreateFmt(const Msg: string; const Args: array of const); override;
+    constructor Create(const Msg: string);
+    constructor CreateFmt(const Msg: string; const Args: array of const);
   end;
 
   { Raised when a parameter is invalid
@@ -48,8 +47,8 @@ type
     @member CreateFmt Creates exception with formatted message }
   EInvalidParameterException = class(ECLIException)
   public
-    constructor Create(const Msg: string); override;
-    constructor CreateFmt(const Msg: string; const Args: array of const); override;
+    constructor Create(const Msg: string);
+    constructor CreateFmt(const Msg: string; const Args: array of const);
   end;
 
   { Raised when a required parameter is not provided
@@ -61,8 +60,8 @@ type
     @member CreateFmt Creates exception with formatted message }
   ERequiredParameterMissingException = class(ECLIException)
   public
-    constructor Create(const Msg: string); override;
-    constructor CreateFmt(const Msg: string; const Args: array of const); override;
+    constructor Create(const Msg: string);
+    constructor CreateFmt(const Msg: string; const Args: array of const);
   end;
 
   { Raised when a parameter value is invalid
@@ -74,8 +73,8 @@ type
     @member CreateFmt Creates exception with formatted message }
   EInvalidParameterValueException = class(ECLIException)
   public
-    constructor Create(const Msg: string); override;
-    constructor CreateFmt(const Msg: string; const Args: array of const); override;
+    constructor Create(const Msg: string);
+    constructor CreateFmt(const Msg: string; const Args: array of const);
   end;
 
   { Raised when command execution fails
@@ -87,8 +86,8 @@ type
     @member CreateFmt Creates exception with formatted message }
   ECommandExecutionException = class(ECLIException)
   public
-    constructor Create(const Msg: string); override;
-    constructor CreateFmt(const Msg: string; const Args: array of const); override;
+    constructor Create(const Msg: string);
+    constructor CreateFmt(const Msg: string; const Args: array of const);
   end;
 
 implementation

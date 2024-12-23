@@ -14,6 +14,11 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
+  - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
+    - [Basic Types](#basic-types)
+    - [Boolean and Flags](#boolean-and-flags)
+    - [Complex Types](#complex-types)
+    - [Validation Rules](#validation-rules)
   - [📖 Screenshots](#-screenshots)
   - [📖 System Requirements](#-system-requirements)
     - [Tested Environments](#tested-environments)
@@ -68,7 +73,7 @@ No complex build system needed! Just:
 # Clone the repository
 git clone https://github.com/yourusername/cli-fp.git
 
-# Copy the source files to your project's directory
+# Or copy the source files to your project's directory
 ```
 
 2. **Use in Your Project**
@@ -91,67 +96,130 @@ uses
 ```pascal
 program MyApp;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 uses
-  SysUtils, CLI.Interfaces, CLI.Application, CLI.Command;
+  SysUtils,
+  CLI.Interfaces,
+  CLI.Application,
+  CLI.Command;
 
 type
+  // Define a new command
   TGreetCommand = class(TBaseCommand)
   public
-    function Execute: Integer; override;
+    function Execute: integer; override;
   end;
 
-function TGreetCommand.Execute: Integer;
-begin
-  WriteLn('Hello, CLI World!');
-  Result := 0;
-end;
+  function TGreetCommand.Execute: integer;
+  var
+    Name: string;
+  begin
+    // Get parameter value using helper method
+    if GetParameterValue('--name', Name) then
+      WriteLn('Hello, ', Name, '!')
+    else
+      WriteLn('Hello, World!');
+    Result := 0;
+  end;
 
+{ Main program }
 var
   App: ICLIApplication;
   Cmd: TGreetCommand;
+
 begin
   App := CreateCLIApplication('MyApp', '1.0.0');
+  
+  // Create and configure command
   Cmd := TGreetCommand.Create('greet', 'Say hello');
+  Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+  
+  // Register command
   App.RegisterCommand(Cmd);
+  
+  // Execute application
   ExitCode := App.Execute;
 end.
 ```
 
 **Output:**
-
 ```
-$ ./MyApp.exe
-MyApp version 1.0.0
+$ ./myapp greet --name "John"
+Hello, John!
 
-Usage:
-  MyApp.exe <command> [options]
+$ ./myapp greet
+Hello, World!
 
-Commands:
-  greet          Say hello
+$ ./myapp greet --help
+Usage: myapp greet [options]
 
-Global Options:
-  -h, --help           Show this help message
-  --help-complete      Show complete reference for all commands
-  -v, --version        Show version information
+Say hello
 
-Examples:
-  Get help for commands:
-    MyApp.exe <command> --help
-
-  Available command help:
-    MyApp.exe greet --help
+Options:
+  -n, --name           Name to greet
+      Default: World
+  -h, --help          Show this help message
 ```
 
+## 🎯 Parameter Types and Validation
+
+The framework provides comprehensive type-safe parameter handling with built-in validation:
+
+### Basic Types
+
+```pascal
+// String parameter
+Cmd.AddStringParameter('-n', '--name', 'Name to greet');
+
+// Integer parameter (required)
+Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);
+
+// Float parameter with default
+Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
 ```
-$ ./MyApp.exe greet
-Hello, CLI World!
-``` 
 
-That's it! No makefiles, no complex configuration, no external dependencies. 
+### Boolean and Flags
 
-Just pure Object Pascal code.
+```pascal
+// Flag (true when present)
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+
+// Boolean parameter (true/false)
+Cmd.AddBooleanParameter('-d', '--debug', 'Enable debug mode', False, 'false');
+```
+
+### Complex Types
+
+```pascal
+// DateTime (YYYY-MM-DD HH:MM)
+Cmd.AddDateTimeParameter('-d', '--date', 'Start date');
+
+// Enum with allowed values
+Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+
+// URL with protocol validation
+Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
+
+// Array (comma-separated)
+Cmd.AddArrayParameter('-t', '--tags', 'Tag list');
+
+// Password (masked in output)
+Cmd.AddPasswordParameter('-k', '--api-key', 'API Key');
+```
+
+### Validation Rules
+
+Each parameter type has built-in validation:
+- `String`: No validation
+- `Integer`: Must be a valid integer number
+- `Float`: Must be a valid floating-point number
+- `Boolean`: Must be 'true' or 'false' (case-insensitive)
+- `DateTime`: Must be in format "YYYY-MM-DD HH:MM" (24-hour)
+- `Enum`: Must match one of the pipe-separated allowed values
+- `URL`: Must start with http://, https://, git://, or ssh://
+- `Array`: No validation on individual items
+- `Password`: No validation, but value is masked in output
 
 ## 📖 Screenshots
 
@@ -189,8 +257,7 @@ Just pure Object Pascal code.
 
 ## 📖 Documentation
 
-- [Beginners Guide](docs/beginners-guide.md): A guide for beginners to get started with the framework
-- [User Manual](docs/user-manual.md): Complete guide for using the framework
+- [User Manual](docs/user-manual.md): Complete guide for using the framework, *including a cheat sheet*
 - [API Reference](docs/api-reference.md): Detailed API reference for the framework
 - [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
 - [Examples](examples/): Working example applications

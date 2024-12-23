@@ -30,6 +30,7 @@ lib/
 *.lrt
 *.lps
 *.lpi.bak
+*.pas.bak
 
 # Debug files
 debug/

@@ -1,6 +1,6 @@
 unit CLI.Command;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit implements the base command functionality.
   It provides the foundation for creating CLI commands with parameters
@@ -64,6 +64,116 @@ type
       @param Parameter The parameter to add }
     procedure AddParameter(const Parameter: ICommandParameter);
     
+    { Adds a parameter to the command with direct values
+      @param ShortFlag Short form flag (e.g., '-n')
+      @param LongFlag Long form flag (e.g., '--name')
+      @param Description Parameter description for help
+      @param Required Whether parameter is required
+      @param ParamType Parameter data type
+      @param DefaultValue Default value if not provided
+      @param AllowedValues Pipe-separated list of allowed values (e.g., 'debug|info|warn|error') }
+    procedure AddParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '';
+      const AllowedValues: string = '');
+    
+    { Helper: Adds a string parameter
+      @param ShortFlag Short form flag (e.g., '-n')
+      @param LongFlag Long form flag (e.g., '--name')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddStringParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds an integer parameter
+      @param ShortFlag Short form flag (e.g., '-n')
+      @param LongFlag Long form flag (e.g., '--count')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddIntegerParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds a boolean flag parameter
+      @param ShortFlag Short form flag (e.g., '-v')
+      @param LongFlag Long form flag (e.g., '--verbose')
+      @param Description Parameter description
+      @param DefaultValue Default value if not provided }
+    procedure AddFlag(const ShortFlag, LongFlag, Description: string;
+      const DefaultValue: string = 'true');
+    
+    { Helper: Adds a boolean parameter that requires explicit true/false value  
+      @param ShortFlag Short form flag (e.g., '-c')
+      @param LongFlag Long form flag (e.g., '--colorful')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean; const DefaultValue: string);
+    
+    { Helper: Adds a float parameter
+      @param ShortFlag Short form flag (e.g., '-r')
+      @param LongFlag Long form flag (e.g., '--rate')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddFloatParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds a file or directory path parameter
+      @param ShortFlag Short form flag (e.g., '-i')
+      @param LongFlag Long form flag (e.g., '--input')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddPathParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds an enumerated value parameter
+      @param ShortFlag Short form flag (e.g., '-l')
+      @param LongFlag Long form flag (e.g., '--log-level')
+      @param Description Parameter description
+      @param AllowedValues Pipe-separated list of allowed values (e.g., 'debug|info|warn|error')
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddEnumParameter(const ShortFlag, LongFlag, Description, AllowedValues: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds a date/time parameter
+      @param ShortFlag Short form flag (e.g., '-d')
+      @param LongFlag Long form flag (e.g., '--date')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided (format: YYYY-MM-DD HH:MM:SS) }
+    procedure AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds an array parameter for comma-separated values
+      @param ShortFlag Short form flag (e.g., '-t')
+      @param LongFlag Long form flag (e.g., '--tags')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided (comma-separated) }
+    procedure AddArrayParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
+    { Helper: Adds a password parameter (value will be masked in help/logs)
+      @param ShortFlag Short form flag (e.g., '-k')
+      @param LongFlag Long form flag (e.g., '--api-key')
+      @param Description Parameter description
+      @param Required Whether parameter is required }
+    procedure AddPasswordParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False);
+    
+    { Helper: Adds a URL parameter with format validation
+      @param ShortFlag Short form flag (e.g., '-u')
+      @param LongFlag Long form flag (e.g., '--url')
+      @param Description Parameter description
+      @param Required Whether parameter is required
+      @param DefaultValue Default value if not provided }
+    procedure AddUrlParameter(const ShortFlag, LongFlag, Description: string;
+      Required: Boolean = False; const DefaultValue: string = '');
+    
     { Adds a subcommand to this command
       @param Command The subcommand to add }
     procedure AddSubCommand(const Command: ICommand);
@@ -87,6 +197,8 @@ type
     
     { Array of subcommands }
     property SubCommands: specialize TArray<ICommand> read GetSubCommands;
+       
+
   end;
 
 implementation
@@ -147,6 +259,105 @@ procedure TBaseCommand.AddParameter(const Parameter: ICommandParameter);
 begin
   SetLength(FParameters, Length(FParameters) + 1);
   FParameters[High(FParameters)] := Parameter;
+end;
+
+{ AddParameter: Adds a parameter to the command with direct values
+  @param ShortFlag Short form flag (e.g., '-n')
+  @param LongFlag Long form flag (e.g., '--name')
+  @param Description Parameter description for help
+  @param Required Whether parameter is required
+  @param ParamType Parameter data type
+  @param DefaultValue Default value if not provided
+  @param AllowedValues Pipe-separated list of allowed values (e.g., 'debug|info|warn|error') }
+procedure TBaseCommand.AddParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '';
+  const AllowedValues: string = '');
+var
+  Param: ICommandParameter;
+begin
+  Param := TCommandParameter.Create(ShortFlag, LongFlag, Description, Required,
+    ParamType, DefaultValue, AllowedValues);
+  AddParameter(Param);
+end;
+
+{ AddStringParameter: Helper to add a string parameter }
+procedure TBaseCommand.AddStringParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptString, DefaultValue);
+end;
+
+{ AddIntegerParameter: Helper to add an integer parameter }
+procedure TBaseCommand.AddIntegerParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptInteger, DefaultValue);
+end;
+
+{ AddFlag: Helper to add a boolean flag parameter }
+procedure TBaseCommand.AddFlag(const ShortFlag, LongFlag, Description: string;
+  const DefaultValue: string = 'true');
+begin
+  AddParameter(ShortFlag, LongFlag, Description, False, ptBoolean, DefaultValue);
+end;
+
+{ Adds a boolean parameter that requires explicit true/false value }
+procedure TBaseCommand.AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean; const DefaultValue: string);
+begin
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptBoolean, DefaultValue);
+end;
+
+{ AddFloatParameter: Helper to add a float parameter }
+procedure TBaseCommand.AddFloatParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptFloat, DefaultValue);
+end;
+
+{ AddPathParameter: Helper to add a file/directory path parameter }
+procedure TBaseCommand.AddPathParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptPath, DefaultValue);
+end;
+
+{ AddEnumParameter: Helper to add an enumerated value parameter }
+procedure TBaseCommand.AddEnumParameter(const ShortFlag, LongFlag, Description, AllowedValues: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+var
+  FullDescription: string;
+begin
+  FullDescription := Format('%s (allowed: %s)', [Description, AllowedValues]);
+  AddParameter(ShortFlag, LongFlag, FullDescription, Required, ptEnum, DefaultValue, AllowedValues);
+end;
+
+{ AddDateTimeParameter: Helper to add a date/time parameter }
+procedure TBaseCommand.AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description + ' (format: YYYY-MM-DD HH:MM:SS)', Required, ptDateTime, DefaultValue);
+end;
+
+{ AddArrayParameter: Helper to add an array parameter }
+procedure TBaseCommand.AddArrayParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description + ' (comma-separated)', Required, ptArray, DefaultValue);
+end;
+
+{ AddPasswordParameter: Helper to add a password parameter }
+procedure TBaseCommand.AddPasswordParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False);
+begin
+  AddParameter(ShortFlag, LongFlag, Description + ' (value will be masked)', Required, ptPassword, '');
+end;
+
+{ AddUrlParameter: Helper to add a URL parameter }
+procedure TBaseCommand.AddUrlParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+begin
+  AddParameter(ShortFlag, LongFlag, Description + ' (must be a valid URL)', Required, ptUrl, DefaultValue);
 end;
 
 { AddSubCommand: Adds a subcommand to this command
@@ -275,5 +486,7 @@ begin
     end;
   end;
 end;
+
+
 
 end.

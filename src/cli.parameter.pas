@@ -1,6 +1,6 @@
 unit CLI.Parameter;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit implements command parameter functionality.
   It provides the foundation for handling command-line parameters
@@ -27,6 +27,7 @@ type
     FRequired: Boolean;      // Whether parameter is required
     FParamType: TParameterType;  // Parameter data type
     FDefaultValue: string;   // Default value if not provided
+    FAllowedValues: string;  // Pipe-separated list of allowed values for enum type
     
     { Gets short form flag
       @returns String containing short form flag }
@@ -51,6 +52,10 @@ type
     { Gets default value
       @returns String containing default value (empty if none) }
     function GetDefaultValue: string;
+    
+    { Gets allowed values
+      @returns String containing pipe-separated list of allowed values }
+    function GetAllowedValues: string;
   public
     { Creates new parameter instance
       @param AShortFlag Short form flag (e.g., '-n')
@@ -58,9 +63,11 @@ type
       @param ADescription Parameter description for help
       @param ARequired Whether parameter is required
       @param AParamType Parameter data type
-      @param ADefaultValue Default value if not provided }
+      @param ADefaultValue Default value if not provided
+      @param AAllowedValues Pipe-separated list of allowed values for enum type }
     constructor Create(const AShortFlag, ALongFlag, ADescription: string;
-      ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '');
+      ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '';
+      const AAllowedValues: string = '');
       
     { Short form flag (e.g., '-n') }
     property ShortFlag: string read GetShortFlag;
@@ -79,6 +86,9 @@ type
     
     { Default value if not provided }
     property DefaultValue: string read GetDefaultValue;
+    
+    { Pipe-separated list of allowed values for enum type }
+    property AllowedValues: string read GetAllowedValues;
   end;
 
 { Helper function to create parameter instances
@@ -88,9 +98,11 @@ type
   @param Required Whether parameter is required
   @param ParamType Parameter data type
   @param DefaultValue Default value if not provided
+  @param AllowedValues Pipe-separated list of allowed values for enum type
   @returns ICommandParameter interface to new parameter instance }
 function CreateParameter(const ShortFlag, LongFlag, Description: string;
-  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = ''): ICommandParameter;
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '';
+  const AllowedValues: string = ''): ICommandParameter;
 
 implementation
 
@@ -100,9 +112,11 @@ implementation
   @param ADescription Parameter description for help
   @param ARequired Whether parameter is required
   @param AParamType Parameter data type
-  @param ADefaultValue Default value if not provided }
+  @param ADefaultValue Default value if not provided
+  @param AAllowedValues Pipe-separated list of allowed values for enum type }
 constructor TCommandParameter.Create(const AShortFlag, ALongFlag, ADescription: string;
-  ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string);
+  ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '';
+  const AAllowedValues: string = '');
 begin
   inherited Create;
   FShortFlag := AShortFlag;
@@ -111,6 +125,7 @@ begin
   FRequired := ARequired;
   FParamType := AParamType;
   FDefaultValue := ADefaultValue;
+  FAllowedValues := AAllowedValues;
 end;
 
 { GetShortFlag: Returns short form flag
@@ -155,6 +170,13 @@ begin
   Result := FDefaultValue;
 end;
 
+{ GetAllowedValues: Returns allowed values
+  @returns String containing pipe-separated list of allowed values }
+function TCommandParameter.GetAllowedValues: string;
+begin
+  Result := FAllowedValues;
+end;
+
 { CreateParameter: Helper function to create parameter instances
   @param ShortFlag Short form flag (e.g., '-n')
   @param LongFlag Long form flag (e.g., '--name')
@@ -162,12 +184,14 @@ end;
   @param Required Whether parameter is required
   @param ParamType Parameter data type
   @param DefaultValue Default value if not provided
+  @param AllowedValues Pipe-separated list of allowed values for enum type
   @returns ICommandParameter interface to new parameter instance }
 function CreateParameter(const ShortFlag, LongFlag, Description: string;
-  Required: Boolean; ParamType: TParameterType; const DefaultValue: string): ICommandParameter;
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '';
+  const AllowedValues: string = ''): ICommandParameter;
 begin
   Result := TCommandParameter.Create(ShortFlag, LongFlag, Description,
-    Required, ParamType, DefaultValue);
+    Required, ParamType, DefaultValue, AllowedValues);
 end;
 
 end. 

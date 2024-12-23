@@ -20,61 +20,6 @@
 
 The Free Pascal CLI Framework provides a comprehensive set of units for building command-line applications. Each unit serves a specific purpose and can be used independently or in combination with others.
 
-## Quick Start
-
-### 1. Installation
-
-Add the framework to your project:
-```pascal
-uses
-  CLI.Interfaces,
-  CLI.Application,
-  CLI.Command,
-  CLI.Parameter,
-  CLI.Progress,  // Optional: For progress indicators
-  CLI.Console;   // Optional: For colored output
-```
-
-### 2. Create a Simple Command
-
-```pascal
-type
-  THelloCommand = class(TBaseCommand)
-  public
-    function Execute: Integer; override;
-  end;
-
-function THelloCommand.Execute: Integer;
-begin
-  TConsole.WriteLn('Hello, World!', ccGreen);
-  Result := 0;
-end;
-```
-
-### 3. Create and Run Application
-
-```pascal
-var
-  App: ICLIApplication;
-  Cmd: THelloCommand;
-begin
-  App := CreateCLIApplication('MyApp', '1.0.0');
-  Cmd := THelloCommand.Create('hello', 'Display greeting');
-  App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
-end.
-```
-
-### 4. Run Your App
-
-```bash
-# Show help
-myapp --help
-
-# Run command
-myapp hello
-```
-
 ## Units
 
 ### CLI.Interfaces
@@ -91,7 +36,12 @@ TParameterType = (
   ptInteger,  // Integer value (e.g., --count 42)
   ptFloat,    // Float value (e.g., --rate 3.14)
   ptBoolean,  // Boolean value (e.g., --verbose true/false)
-  ptFlag      // Flag parameter, no value needed (e.g., --force)
+  ptPath,     // File/directory path (e.g., --input /path/to/file)
+  ptEnum,     // Enumerated value (e.g., --log-level debug|info|warn|error)
+  ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00")
+  ptArray,    // Comma-separated list (e.g., --tags tag1,tag2,tag3)
+  ptPassword, // Sensitive value, masked in help/logs (e.g., --api-key ***)
+  ptUrl       // URL value with format validation (e.g., --repo https://github.com/user/repo)
 );
 ```
 
@@ -111,6 +61,135 @@ ICommand = interface
   property Description: string read GetDescription;
   property Parameters: TArray<ICommandParameter> read GetParameters;
   property SubCommands: TArray<ICommand> read GetSubCommands;
+end;
+```
+
+### Parameter Helper Methods
+
+The `TBaseCommand` class provides helper methods for adding parameters:
+
+```pascal
+// String parameter
+procedure AddStringParameter(const ShortFlag, LongFlag, Description: string; 
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Integer parameter
+procedure AddIntegerParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Float parameter
+procedure AddFloatParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Boolean flag (defaults to true when present)
+procedure AddFlag(const ShortFlag, LongFlag, Description: string);
+
+// Boolean parameter (explicit true/false)
+procedure AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = 'false');
+
+// URL parameter
+procedure AddUrlParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Enum parameter
+procedure AddEnumParameter(const ShortFlag, LongFlag, Description: string;
+  const AllowedValues: string; Required: Boolean = False; const DefaultValue: string = '');
+
+// DateTime parameter
+procedure AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Array parameter (comma-separated values)
+procedure AddArrayParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Password parameter (masked in output)
+procedure AddPasswordParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Path parameter
+procedure AddPathParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+```
+
+Each helper method:
+- Creates a parameter of the appropriate type
+- Handles default values appropriately
+- Adds the parameter to the command's parameter list
+- Validates values according to the parameter type
+
+Example usage:
+```pascal
+type
+  TTestCommand = class(TBaseCommand)
+  public
+    function Execute: Integer; override;
+  end;
+
+function TTestCommand.Execute: Integer;
+var
+  Name: string;
+  Count: Integer;
+  Rate: Double;
+  Level: string;
+begin
+  // Get parameter values using helper methods
+  if GetParameterValue('--name', Name) then
+    WriteLn('Name: ', Name);
+    
+  if GetParameterValue('--count', Count) then
+    WriteLn('Count: ', Count);
+    
+  if GetParameterValue('--rate', Rate) then
+    WriteLn('Rate: ', Rate:0:2);
+    
+  if GetParameterValue('--level', Level) then
+    WriteLn('Level: ', Level);
+
+  if GetParameterValue('--verbose', Verbose) then
+    WriteLn('Verbose: ', Verbose);
+    
+  if GetParameterValue('--date', DateStr) then
+    WriteLn('Date: ', DateStr);
+    
+  if GetParameterValue('--url', Url) then
+    WriteLn('URL: ', Url);
+    
+  if GetParameterValue('--tags', Tags) then
+    WriteLn('Tags: ', Tags);
+    
+  if GetParameterValue('--api-key', ApiKey) then
+    WriteLn('API Key: ', ApiKey);
+
+  Result := 0;
+end;
+
+var
+  App: ICLIApplication;
+  Cmd: TTestCommand;
+begin
+  App := CreateCLIApplication('TestApp', '1.0.0');
+  
+  // Create command and add parameters
+  Cmd := TTestCommand.Create('test', 'Test parameters');
+  
+  // Add various parameters
+  Cmd.AddStringParameter('-n', '--name', 'Your name');
+  Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);  // Required
+  Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
+  Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+  Cmd.AddDateTimeParameter('-d', '--date', 'Start date');  // Format: YYYY-MM-DD HH:MM
+  Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+  Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
+  Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
+  Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+  
+  // Register command
+  App.RegisterCommand(Cmd);
+  
+  // Execute application
+  ExitCode := App.Execute;
 end;
 ```
 
@@ -249,7 +328,7 @@ TSpinnerStyle = (
   ssLine,    // -\|/
   ssCircle,  // ◐◓◑◒
   ssSquare,  // ◰◳◲◱
-  ssArrow,   // ←↖↑↗→↘↓↙
+  ssArrow,   // ←↖↑→↘↓↙
   ssBounce,  // ⠁⠂⠄⠂
   ssBar      // ▏▎▍▌▋▊▉█▊▋▌▍▎▏
 );
@@ -372,10 +451,9 @@ function TGreetCommand.Execute: Integer;
 var
   Name: string;
 begin
-  if GetParameterValue('--name', Name) then
-    TConsole.WriteLn('Hello, ' + Name + '!', ccGreen)
-  else
-    TConsole.WriteLn('Hello, World!', ccGreen);
+  GetParameterValue('--name', Name);
+  TConsole.WriteLn('Hello, ' + Name + '!', ccDefault);
+
   Result := 0;
 end;
 
@@ -387,13 +465,7 @@ begin
   App := CreateCLIApplication('MyApp', '1.0.0');
   
   Cmd := TGreetCommand.Create('greet', 'Greet a person');
-  Cmd.AddParameter(CreateParameter(
-    '-n',
-    '--name',
-    'Name to greet',
-    False,
-    ptString
-  ));
+  Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
   
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
@@ -450,31 +522,12 @@ begin
   Cmd := TCopyCommand.Create('copy', 'Copy a file');
   
   // Add required parameters
-  Cmd.AddParameter(CreateParameter(
-    '-s',
-    '--source',
-    'Source file path',
-    True,     // Required
-    ptString
-  ));
+  Cmd.AddStringParameter('-s', '--source', 'Source file path', True);
   
-  Cmd.AddParameter(CreateParameter(
-    '-d',
-    '--dest',
-    'Destination path',
-    True,     // Required
-    ptString
-  ));
+  Cmd.AddStringParameter('-d', '--dest', 'Destination path', True);
   
   // Add optional flag
-  Cmd.AddParameter(CreateParameter(
-    '-f',
-    '--force',
-    'Overwrite if exists',
-    False,    // Optional
-    ptBoolean,
-    'false'   // Default value
-  ));
+  Cmd.AddFlag('-f', '--force', 'Overwrite if exists');
   
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
@@ -492,21 +545,17 @@ type
 
 function TTestCommand.Execute: Integer;
 var
-  VerboseStr: string;
   IsForced, IsVerbose: Boolean;
 begin
-  // Check if force flag is present (ptFlag)
-  IsForced := GetParameterValue('--force', VerboseStr); // VerboseStr not used for flags
+  // Get flag value (true when present)
+  GetParameterValue('--force', IsForced);
   if IsForced then
-    TConsole.WriteLn('Force flag is present', ccGreen)
+    TConsole.WriteLn('Force flag is enabled', ccGreen)
   else
-    TConsole.WriteLn('Force flag is not present', ccYellow);
+    TConsole.WriteLn('Force flag is disabled', ccYellow);
 
-  // Get boolean value (ptBoolean)
-  IsVerbose := False; // Default value
-  if GetParameterValue('--verbose', VerboseStr) then
-    IsVerbose := StrToBoolDef(VerboseStr, False);
-  
+  // Get boolean value (explicit true/false)
+  GetParameterValue('--verbose', IsVerbose);
   if IsVerbose then
     TConsole.WriteLn('Verbose mode is ON', ccGreen)
   else
@@ -524,24 +573,11 @@ begin
   
   Cmd := TTestCommand.Create('test', 'Test parameters');
   
-  // Flag parameter (just presence)
-  Cmd.AddParameter(CreateParameter(
-    '-f',
-    '--force',
-    'Force operation',
-    False,    // Optional
-    ptFlag    // Just checks presence
-  ));
+  // Flag (defaults to true when present)
+  Cmd.AddFlag('-f', '--force', 'Force operation');
   
-  // Boolean parameter (true/false value)
-  Cmd.AddParameter(CreateParameter(
-    '-v',
-    '--verbose',
-    'Verbose mode (true/false)',
-    False,     // Optional
-    ptBoolean, // Requires true/false value
-    'false'    // Default value
-  ));
+  // Boolean (requires explicit true/false value)
+  Cmd.AddBooleanParameter('-v', '--verbose', 'Verbose mode', False, 'false');
   
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
@@ -550,400 +586,152 @@ end;
 
 Command-line usage:
 ```bash
-# Flag parameter (ptFlag)
-myapp test --force         # Flag is present
-myapp test                 # Flag is not present
+# Flag usage (AddFlag)
+myapp test --force  # Flag is present (true)
+myapp test         # Flag is not present (false)
 
-# Boolean parameter (ptBoolean)
-myapp test --verbose=true  # Boolean is true
-myapp test --verbose=false # Boolean is false
-myapp test                 # Uses default value
+# Boolean usage (AddBooleanParameter)
+myapp test --verbose=true   # Explicitly set to true
+myapp test --verbose=false  # Explicitly set to false
+myapp test                  # Uses default value (false)
 ```
 
 ### Advanced Examples
 
-#### 1. Long-Running Operation with Progress
+#### 1. Progress Indicator Example
 
 ```pascal
-{
-  Long Running Operation Demo
-
-  This example demonstrates how to create a command-line application that shows progress
-  indicators for long-running operations. It showcases several key features of the CLI framework:
-
-  1. Progress indicators (spinner and progress bar)
-  2. Command parameters (verbose flag)
-  3. Colored console output
-  4. Basic command structure
-
-  How to run:
-  Option 1 - Basic usage with progress bar only:
-  
-  $ LongRunningOpDemo.exe process
-  Finding files...
-  . 
-  [====================] 100% All files processed successfully!
-  
-
-  Option 2 - Verbose mode shows detailed progress:
-  
-  $ LongRunningOpDemo.exe process -v true
-  Finding files...
-  .
-  Processing: file1.txt
-  [=======             ]  33% Processing: file2.txt
-  [=============       ]  67% Processing: file3.txt
-  [====================] 100% All files processed successfully!
-  
-}
-program LongRunningOpDemo;
-
-{ Compiler directives:
-  - $mode objfpc: Use Object Pascal mode for modern OOP features
-  - $H+: Use long strings (AnsiString) instead of short strings
-  - $J-: Disable writeable typed constants for safety }
-{$mode objfpc}{$H+}{$J-}
-
-{ Import required units from the CLI framework }
-uses
-  SysUtils,
-  Classes,
-  CLI.Interfaces,    // Core interfaces
-  CLI.Application,   // Application creation
-  CLI.Command,       // Command base class
-  CLI.Parameter,     // Parameter handling
-  CLI.Progress,      // Progress indicators
-  CLI.Console;       // Colored output
-
 type
-  { Define a command that processes files with progress indication }
   TProcessCommand = class(TBaseCommand)
   private
-    { Simulates processing a single file }
     procedure ProcessFile(const FileName: string);
   public
-    { Main execution method for the command }
-    function Execute: integer; override;
+    function Execute: Integer; override;
   end;
 
-  function TProcessCommand.Execute: integer;
-  var
-    Files: TStringList;
-    Progress: IProgressIndicator;    // Progress bar interface
-    Spinner: IProgressIndicator;     // Spinner interface for file search
-    i, FileCount: integer;
-    VerboseStr: string;             // Raw parameter value
-    Verbose: boolean;               // Parsed verbose flag
-  begin
-    Files := TStringList.Create;
-    try
-      // Simulate finding files
-      FileCount := 5;  // We know we'll add 5 files
-      TConsole.WriteLn('Finding files...', ccCyan);
-      Spinner := CreateSpinner(TSpinnerStyle.ssDots);
-      Spinner.Start;
-      try
-        // Add files with spinner animation
-        for i := 1 to FileCount do
-        begin
-          Spinner.Update(0);
-          Sleep(300);  // Simulate searching
-          Files.Add(Format('file%d.txt', [i]));
-        end;
-      finally
-        Spinner.Stop;
-      end;
-      // Step 2: Check if verbose output is requested
-      Verbose := False; // Default value
-      if GetParameterValue('--verbose', VerboseStr) then
-        Verbose := StrToBoolDef(VerboseStr, False);
+function TProcessCommand.Execute: Integer;
+var
+  Count: Integer;
+  Verbose: Boolean;
+  Progress: IProgressIndicator;
+  i: Integer;
+begin
+  GetParameterValue('--count', Count);
+  GetParameterValue('--verbose', Verbose);
 
-      // Step 3: Process files with a progress bar
-      Progress := CreateProgressBar(Files.Count, 20);  // 20 chars wide
-      Progress.Start;
-      try
-        for i := 0 to Files.Count - 1 do
-        begin
-          if Verbose then
-            TConsole.WriteLn(' Processing: ' + Files[i], ccCyan);
-
-          ProcessFile(Files[i]);
-          Progress.Update(i + 1);    // Update progress (1-based)
-          Sleep(500); // Simulate work
-        end;
-
-        TConsole.WriteLn(' All files processed successfully!', ccGreen);
-        Result := 0;
-      finally
-        Progress.Stop;
-      end;
-    finally
-      Files.Free;
+  Progress := CreateProgressBar('Processing files', Count);
+  try
+    Progress.Start;
+    
+    for i := 0 to Count - 1 do
+    begin
+      if Verbose then
+        TConsole.WriteLn(Format('Processing file %d/%d...', [i + 1, Count]), ccCyan);
+        
+      ProcessFile('file' + IntToStr(i + 1));
+      Progress.Update(i + 1);
+      Sleep(500); // Simulate work
     end;
-  end;
 
-  procedure TProcessCommand.ProcessFile(const FileName: string);
-  begin
-    // Simulate file processing
-    Sleep(100);
+    TConsole.WriteLn('All files processed successfully!', ccGreen);
+    Result := 0;
+  finally
+    Progress.Stop;
   end;
+end;
 
-  { Main program setup }
+procedure TProcessCommand.ProcessFile(const FileName: string);
+begin
+  // Simulate file processing
+  Sleep(100);
+end;
+
+{ Main program }
 var
   App: ICLIApplication;
   Cmd: TProcessCommand;
 begin
-  // Create the application with name and version
   App := CreateCLIApplication('MyApp', '1.0.0');
-
-  // Create and configure the process command
+  
+  // Create command and add parameters - simple and straightforward
   Cmd := TProcessCommand.Create('process', 'Process files');
-  Cmd.AddParameter(CreateParameter('-v',           // Short flag
-    '--verbose',    // Long flag
-    'Show detailed progress',  // Description
-    False,          // Not required
-    ptBoolean,      // Boolean parameter type
-    'false'         // Default value
-    ));
-
-  // Register command and run the application
+  Cmd.AddIntegerParameter('-c', '--count', 'Number of files to process', False, '5');
+  Cmd.AddFlag('-v', '--verbose', 'Show detailed progress');
+  
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
-end.
-```
+end;
 
 #### 2. Error Handling Example
 
 ```pascal
-{
-  Error Handling Demo
-
-  This example demonstrates how to create a command-line application that handles errors
-  gracefully. It showcases several key features of the CLI framework:
-
-  1. Error handling (stop-on-error flag)
-  2. Command parameters (path and stop-on-error flag)
-  3. Colored console output
-  4. Basic command structure
-
-  How to run (stop on error):
-
-  $ ErrorHandlingDemo.exe validate -p z:\fake_path -s true
-  Validating z:\fake_path\file1.txt... OK
-  Validating z:\fake_path\file2.txt... OK
-  Validating z:\fake_path\file3.txt... OK
-  Validating z:\fake_path\file4.txt... OK
-  Validating z:\fake_path\file5.txt... OK
-  Validating z:\fake_path\file6.txt... OK
-  Validating z:\fake_path\file7.txt... OK
-  Validating z:\fake_path\file8.txt... OK
-  Validating z:\fake_path\file9.txt... ERROR: Demo validation failed for: z:\fake_path\file9.txt
-  Stopping due to error (--stop-on-error)
-
-  How to run (don't stop on error):
-
-  $ ErrorHandlingDemo.exe validate -p z:\fake_path -s false
-  Validating z:\fake_path\file1.txt... OK
-  Validating z:\fake_path\file2.txt... OK
-  Validating z:\fake_path\file3.txt... OK
-  Validating z:\fake_path\file4.txt... OK
-  Validating z:\fake_path\file5.txt... OK
-  Validating z:\fake_path\file6.txt... OK
-  Validating z:\fake_path\file7.txt... OK
-  Validating z:\fake_path\file8.txt... OK
-  Validating z:\fake_path\file9.txt... ERROR: Demo validation failed for: z:\fake_path\file9.txt
-  Validating z:\fake_path\file10.txt... OK
-  Validation complete with 1 errors
-}
-program ErrorHandlingDemo;
-
-{ Compiler directives:
-  - $mode objfpc: Use Object Pascal mode for modern OOP features
-  - $H+: Use long strings (AnsiString) instead of short strings
-  - $J-: Disable writeable typed constants for safety }
-{$mode objfpc}{$H+}{$J-}
-
-{ Import required units from the CLI framework }
-uses
-  SysUtils,
-  Classes,
-  CLI.Interfaces,    // Core interfaces
-  CLI.Application,   // Application creation
-  CLI.Command,       // Command base class
-  CLI.Parameter,     // Parameter handling
-  CLI.Progress,      // Progress indicators
-  CLI.Console;       // Colored output
-
 type
-  { TValidateCommand - Command class that validates files
-    This demonstrates error handling patterns and parameter usage.
-    The command takes a path and validates files in it, with options
-    to stop on first error. }
   TValidateCommand = class(TBaseCommand)
   private
-    { Simulates validating a single file
-      @param Path The file path to validate
-      @return True if validation passed, False if failed }
-    function ValidateFile(const Path: string): Boolean;
+    procedure ValidateFile(const FilePath: string);
   public
-    { Main execution method that runs the validation process
-      @return 0 for success, 1 for any errors }
     function Execute: Integer; override;
   end;
 
 function TValidateCommand.Execute: Integer;
 var
-  Path: string;           // Path parameter from command line
-  StopOnErrorStr: string; // Raw string value of stop-on-error flag
-  StopOnError: Boolean;   // Parsed boolean value of stop-on-error flag
-  Files: TStringList;     // List to hold files to validate
-  ErrorCount: Integer;    // Tracks number of validation failures
-  i: Integer;            // Loop counter
+  Path: string;
+  StopOnError: Boolean;
+  ErrorCount: Integer;
+  i: Integer;
 begin
-  Result := 0;
+  GetParameterValue('--path', Path);
+  GetParameterValue('--stop-on-error', StopOnError);
   ErrorCount := 0;
 
-  // Get the required path parameter
-  // GetParameterValue is a helper method from TBaseCommand
-  if not GetParameterValue('--path', Path) then
+  for i := 1 to 10 do
   begin
-    TConsole.WriteLn('Error: Path is required', ccRed);
-    Exit(1);
-  end;
-
-  // Get stop-on-error flag and convert to boolean
-  // This demonstrates handling optional boolean parameters
-  StopOnError := False; // Default value
-  if GetParameterValue('--stop-on-error', StopOnErrorStr) then
-    StopOnError := StrToBoolDef(StopOnErrorStr, False);
-
-  // Create file list and use try-finally for cleanup
-  Files := TStringList.Create;
-  try
+    Write(Format('Validating %s\file%d.txt... ', [Path, i]));
     try
-      // In a real app, you would scan the directory here
-      // This is just a simulation with hardcoded files
-      Files.Add(Path + '\file1.txt');
-      Files.Add(Path + '\file2.txt');
-      Files.Add(Path + '\file3.txt');
-      Files.Add(Path + '\file4.txt');
-      Files.Add(Path + '\file5.txt');
-      Files.Add(Path + '\file6.txt');
-      Files.Add(Path + '\file7.txt');
-      Files.Add(Path + '\file8.txt');
-      Files.Add(Path + '\file9.txt');
-      Files.Add(Path + '\file10.txt');
-
-      // Process each file with error handling
-      for i := 0 to Files.Count - 1 do
-      begin
-        // Show current file being processed
-        TConsole.Write('Validating ' + Files[i] + '... ', ccCyan);
-
-        try
-          // Attempt to validate the file
-          if ValidateFile(Files[i]) then
-            TConsole.WriteLn('OK', ccGreen)
-          else
-          begin
-            // Handle validation failure
-            TConsole.WriteLn('FAILED', ccRed);
-            Inc(ErrorCount);
-
-            // Check if we should stop on first error
-            if StopOnError then
-            begin
-              TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
-              Exit(1);
-            end;
-          end;
-        except
-          // Handle any unexpected exceptions during validation
-          on E: Exception do
-          begin
-            TConsole.WriteLn('ERROR: ' + E.Message, ccRed);
-            Inc(ErrorCount);
-
-            if StopOnError then
-            begin
-              TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
-              Exit(1);
-            end;
-          end;
-        end;
-      end;
-
-      // Show final summary with color-coded output
-      if ErrorCount > 0 then
-      begin
-        TConsole.WriteLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow);
-        Result := 1;
-      end
-      else
-        TConsole.WriteLn('All files validated successfully', ccGreen);
-
+      ValidateFile(Path + '\file' + IntToStr(i) + '.txt');
+      TConsole.WriteLn('OK', ccGreen);
     except
-      // Handle any unexpected errors in the main process
       on E: Exception do
       begin
-        TConsole.WriteLn('Fatal error: ' + E.Message, ccRed);
-        Result := 1;
+        Inc(ErrorCount);
+        TConsole.WriteLn('ERROR: ' + E.Message, ccRed);
+        if StopOnError then
+        begin
+          TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
+          Exit(1);
+        end;
       end;
     end;
-  finally
-    // Always clean up resources
-    Files.Free;
   end;
+
+  if ErrorCount > 0 then
+    TConsole.WriteLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow)
+  else
+    TConsole.WriteLn('All files validated successfully!', ccGreen);
+
+  Result := ErrorCount;
 end;
 
-function TValidateCommand.ValidateFile(const Path: string): Boolean;
+procedure TValidateCommand.ValidateFile(const FilePath: string);
 begin
-  // Demo: Simulate validation with random failures
-  // In a real application, you would:
-  // 1. Check if file exists
-  // 2. Verify read permissions
-  // 3. Validate file contents
-  // 4. etc.
-  
-  Sleep(100);  // Simulate some work
-  Result := Random(10) > 4;  // 50% chance of failure
-  
-  if not Result then
-    raise Exception.CreateFmt('Demo validation failed for: %s', [Path]);
+  // Demo validation - fail on file9.txt
+  if FilePath.Contains('file9.txt') then
+    raise Exception.Create('Demo validation failed for: ' + FilePath);
 end;
 
-// Main program setup
+{ Main program }
 var
   App: ICLIApplication;
   Cmd: TValidateCommand;
 begin
-  // Create the main application with name and version
   App := CreateCLIApplication('MyApp', '1.0.0');
-
-  // Create the validate command
+  
+  // Create command and add parameters - simple and straightforward
   Cmd := TValidateCommand.Create('validate', 'Validate files');
-
-  // Add required path parameter
-  Cmd.AddParameter(CreateParameter(
-    '-p',            // Short form
-    '--path',        // Long form
-    'Path to validate', // Description
-    True,            // Required parameter
-    ptString         // Parameter type: string
-  ));
-
-  // Add optional stop-on-error flag
-  Cmd.AddParameter(CreateParameter(
-    '-s',                          // Short form
-    '--stop-on-error',            // Long form
-    'Stop processing on first error', // Description
-    False,                        // Optional parameter
-    ptBoolean,                    // Parameter type: boolean
-    'false'                       // Default value
-  ));
-
-  // Register command and run the application
+  Cmd.AddPathParameter('-p', '--path', 'Path to validate', True);
+  Cmd.AddFlag('-s', '--stop-on-error', 'Stop processing on first error');
+  
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
-end.
+end;
 ``` 

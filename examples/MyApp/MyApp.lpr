@@ -1,43 +1,53 @@
 program MyApp;
 
-{$mode objfpc}  // Use Object Pascal mode
-{$H+}           // Use AnsiStrings instead of ShortStrings
-{$J-}           // Disable writeable typed constants
+{$mode objfpc}{$H+}{$J-}
 
 uses
-  SysUtils,           // Basic system utilities
-  CLI.Interfaces,     // Interfaces for CLI framework
-  CLI.Application,    // Main CLI application functionality
-  CLI.Command;        // Base command implementations
+  SysUtils,
+  CLI.Interfaces,
+  CLI.Application,
+  CLI.Command;
 
 type
-  { TGreetCommand - A simple command that displays a greeting }
-  TGreetCommand = class(TBaseCommand)  // Inherit from TBaseCommand
+  // Define a new command (class)
+  TGreetCommand = class(TBaseCommand)
   public
-    function Execute: Integer; override;  // Override the Execute method
+    function Execute: integer; override;
   end;
 
-{ Implementation of the TGreetCommand.Execute method
-  Returns: 0 for successful execution }
-function TGreetCommand.Execute: Integer;
-begin
-  WriteLn('Hello, CLI World!');  // Display greeting message
-  Result := 0;                   // Return success code
-end;
+  // Define the command's Execute behaviour
+  function TGreetCommand.Execute: integer;
+  var
+    UserName: string;
+    PrintCount: string;
+    i: integer;
+  begin
+    // Get parameter values using helper methods
+    GetParameterValue('--name', UserName);
+    GetParameterValue('--count', PrintCount);
 
+    for i := 1 to StrToIntDef(PrintCount, 1) do
+      WriteLn('Hello, ', UserName, '!');
+
+    Result := 0;
+  end;
+
+{ Main program setup }
 var
-  App: ICLIApplication;  // Interface reference to our CLI application
-  Cmd: TGreetCommand;    // Instance of our greeting command
+  App: ICLIApplication;
+  Cmd: TGreetCommand;
+
 begin
-  // Create a new CLI application with name and version
   App := CreateCLIApplication('MyApp', '1.0.0');
-  
-  // Create a new command instance with name and description
   Cmd := TGreetCommand.Create('greet', 'Say hello');
-  
-  // Register the command with the application
+
+  // Add parameters using new helper methods
+  Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+  Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
+
+  // Register the command to the application
   App.RegisterCommand(Cmd);
-  
-  // Execute the application and store the exit code
+
+  // Execute the application
   ExitCode := App.Execute;
 end.

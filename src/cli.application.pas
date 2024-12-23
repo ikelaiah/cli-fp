@@ -1,6 +1,6 @@
 unit CLI.Application;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This unit implements the core CLI application functionality.
   It handles command registration, parameter parsing, help system,
@@ -77,6 +77,12 @@ type
     { Gets list of valid parameter flags for current command
       @returns TStringList containing all valid flags }
     function GetValidParameterFlags: TStringList;
+    
+    { Validates a parameter value based on its type
+      @param Param The parameter to validate
+      @param Value The value to validate
+      @returns True if validation passes, False if any check fails }
+    function ValidateParameterValue(const Param: ICommandParameter; const Value: string): Boolean;
   public
     { Creates a new CLI application instance
       @param AName Application name
@@ -104,6 +110,13 @@ type
     
     { List of registered commands }
     property Commands: TCommandList read GetCommands;
+    
+    { For testing purposes }
+    property ParsedParams: TStringList read FParsedParams;
+    property CurrentCommand: ICommand read FCurrentCommand write FCurrentCommand;
+    
+    { For testing validation }
+    function TestValidateCommand: Boolean;
   end;
 
 { Helper function to create a new CLI application instance
@@ -433,21 +446,23 @@ begin
       end;
     end;
 
-    // Validate required parameters
+    // Validate required parameters and their values
     for Param in FCurrentCommand.Parameters do
     begin
-      if Param.Required then
+      // Check both long and short flags
+      HasValue := GetParameterValue(Param, Value);
+      
+      if Param.Required and not HasValue then
       begin
-        // Check both long and short flags
-        HasValue := (FParsedParams.Values[Param.LongFlag] <> '') or
-                   (FParsedParams.Values[Param.ShortFlag] <> '');
-                   
-        if not HasValue and (Param.DefaultValue = '') then
-        begin
-          TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
-          ShowCommandHelp(FCurrentCommand);
-          Exit(False);
-        end;
+        TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
+        ShowCommandHelp(FCurrentCommand);
+        Exit(False);
+      end;
+      
+      if HasValue and not ValidateParameterValue(Param, Value) then
+      begin
+        ShowCommandHelp(FCurrentCommand);
+        Exit(False);
       end;
     end;
   finally
@@ -725,6 +740,99 @@ end;
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
 begin
   Result := TCLIApplication.Create(Name, Version);
+end;
+
+{ Validates a parameter value based on its type
+  @param Param The parameter to validate
+  @param Value The value to validate
+  @returns True if validation passes, False if any check fails }
+function TCLIApplication.ValidateParameterValue(const Param: ICommandParameter; const Value: string): Boolean;
+var
+  IntValue: Integer;
+  FloatValue: Double;
+  AllowedValues: TStringList;
+  i: Integer;
+  DateTimeValue: TDateTime;
+begin
+  Result := True;
+  
+  case Param.ParamType of
+    ptInteger:
+      if not TryStrToInt(Value, IntValue) then
+      begin
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be an integer', [Param.LongFlag]), ccRed);
+        Result := False;
+      end;
+      
+    ptFloat:
+      if not TryStrToFloat(Value, FloatValue) then
+      begin
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be a float', [Param.LongFlag]), ccRed);
+        Result := False;
+      end;
+      
+    ptBoolean:
+      if not (SameText(Value, 'true') or SameText(Value, 'false')) then
+      begin
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag]), ccRed);
+        Result := False;
+      end;
+      
+    ptUrl:
+      if not (StartsStr('http://', Value) or StartsStr('https://', Value) or
+             StartsStr('git://', Value) or StartsStr('ssh://', Value)) then
+      begin
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://',
+          [Param.LongFlag]), ccRed);
+        Result := False;
+      end;
+
+    ptEnum:
+      begin
+        if Param.AllowedValues = '' then
+          Exit;
+          
+        AllowedValues := TStringList.Create;
+        try
+          AllowedValues.Delimiter := '|';
+          AllowedValues.DelimitedText := Param.AllowedValues;
+          
+          Result := False;
+          for i := 0 to AllowedValues.Count - 1 do
+            if SameText(Value, AllowedValues[i]) then
+            begin
+              Result := True;
+              Break;
+            end;
+            
+          if not Result then
+            TConsole.WriteLn(Format('Error: Parameter "%s" must be one of: %s',
+              [Param.LongFlag, Param.AllowedValues]), ccRed);
+        finally
+          AllowedValues.Free;
+        end;
+      end;
+    
+    ptDateTime:
+      begin
+        FormatSettings.DateSeparator := '-';
+        FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+        FormatSettings.LongTimeFormat := 'HH:nn';
+        
+        if not TryStrToDateTime(Value, DateTimeValue) then
+        begin
+          TConsole.WriteLn(Format('Error: Parameter "%s" must be in format YYYY-MM-DD HH:MM',
+            [Param.LongFlag]), ccRed);
+          Result := False;
+        end;
+      end;
+  end;
+end;
+
+{ TestValidateCommand: Public wrapper for ValidateCommand for testing }
+function TCLIApplication.TestValidateCommand: Boolean;
+begin
+  Result := ValidateCommand;
 end;
 
 end.
