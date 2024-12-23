@@ -228,7 +228,7 @@ Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error', Fals
 
 // Date/time values
 Cmd.AddDateTimeParameter('-d', '--date', 'Start date');
-// Output: -d, --date           Start date (format: YYYY-MM-DD HH:MM:SS)
+// Output: -d, --date           Start date (format: YYYY-MM-DD HH:MM)
 // Validates: Must match the date/time format
 
 // Array (comma-separated values)

@@ -70,9 +70,11 @@ type
       @param Description Parameter description for help
       @param Required Whether parameter is required
       @param ParamType Parameter data type
-      @param DefaultValue Default value if not provided }
+      @param DefaultValue Default value if not provided
+      @param AllowedValues Pipe-separated list of allowed values (e.g., 'debug|info|warn|error') }
     procedure AddParameter(const ShortFlag, LongFlag, Description: string;
-      Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '');
+      Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '';
+      const AllowedValues: string = '');
     
     { Helper: Adds a string parameter
       @param ShortFlag Short form flag (e.g., '-n')
@@ -265,13 +267,16 @@ end;
   @param Description Parameter description for help
   @param Required Whether parameter is required
   @param ParamType Parameter data type
-  @param DefaultValue Default value if not provided }
+  @param DefaultValue Default value if not provided
+  @param AllowedValues Pipe-separated list of allowed values (e.g., 'debug|info|warn|error') }
 procedure TBaseCommand.AddParameter(const ShortFlag, LongFlag, Description: string;
-  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '');
+  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = '';
+  const AllowedValues: string = '');
 var
   Param: ICommandParameter;
 begin
-  Param := TCommandParameter.Create(ShortFlag, LongFlag, Description, Required, ParamType, DefaultValue);
+  Param := TCommandParameter.Create(ShortFlag, LongFlag, Description, Required,
+    ParamType, DefaultValue, AllowedValues);
   AddParameter(Param);
 end;
 
@@ -300,11 +305,6 @@ end;
 procedure TBaseCommand.AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean; const DefaultValue: string);
 begin
-  if (DefaultValue <> 'true') and (DefaultValue <> 'false') then
-    raise EInvalidParameterValueException.CreateFmt(
-      'Invalid default value for boolean parameter %s: %s. Must be "true" or "false".',
-      [LongFlag, DefaultValue]);
-      
   AddParameter(ShortFlag, LongFlag, Description, Required, ptBoolean, DefaultValue);
 end;
 
@@ -329,7 +329,7 @@ var
   FullDescription: string;
 begin
   FullDescription := Format('%s (allowed: %s)', [Description, AllowedValues]);
-  AddParameter(ShortFlag, LongFlag, FullDescription, Required, ptEnum, DefaultValue);
+  AddParameter(ShortFlag, LongFlag, FullDescription, Required, ptEnum, DefaultValue, AllowedValues);
 end;
 
 { AddDateTimeParameter: Helper to add a date/time parameter }

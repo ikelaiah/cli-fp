@@ -292,16 +292,26 @@ begin
     Cmd.AddIntegerParameter('-i', '--integer', 'Integer parameter');
     Cmd.AddFloatParameter('-f', '--float', 'Float parameter');
     Cmd.AddFlag('-b', '--bool', 'Boolean flag');
+    Cmd.AddBooleanParameter('-x', '--explicit-bool', 'Boolean parameter', False, 'false');
     Cmd.AddUrlParameter('-u', '--url', 'URL parameter');
     Cmd.AddPathParameter('-p', '--path', 'Path parameter');
+    Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+    Cmd.AddDateTimeParameter('-d', '--date', 'Date parameter');
+    Cmd.AddArrayParameter('-t', '--tags', 'Tag list');
+    Cmd.AddPasswordParameter('-k', '--key', 'API key');
     
-    AssertEquals('Should have 6 parameters', 6, Length(Cmd.Parameters));
+    AssertEquals('Should have 11 parameters', 11, Length(Cmd.Parameters));
     AssertEquals('String parameter type should match', Ord(ptString), Ord(Cmd.Parameters[0].ParamType));
     AssertEquals('Integer parameter type should match', Ord(ptInteger), Ord(Cmd.Parameters[1].ParamType));
     AssertEquals('Float parameter type should match', Ord(ptFloat), Ord(Cmd.Parameters[2].ParamType));
-    AssertEquals('Boolean parameter type should match', Ord(ptBoolean), Ord(Cmd.Parameters[3].ParamType));
-    AssertEquals('URL parameter type should match', Ord(ptUrl), Ord(Cmd.Parameters[4].ParamType));
-    AssertEquals('Path parameter type should match', Ord(ptPath), Ord(Cmd.Parameters[5].ParamType));
+    AssertEquals('Boolean flag type should match', Ord(ptBoolean), Ord(Cmd.Parameters[3].ParamType));
+    AssertEquals('Boolean parameter type should match', Ord(ptBoolean), Ord(Cmd.Parameters[4].ParamType));
+    AssertEquals('URL parameter type should match', Ord(ptUrl), Ord(Cmd.Parameters[5].ParamType));
+    AssertEquals('Path parameter type should match', Ord(ptPath), Ord(Cmd.Parameters[6].ParamType));
+    AssertEquals('Enum parameter type should match', Ord(ptEnum), Ord(Cmd.Parameters[7].ParamType));
+    AssertEquals('DateTime parameter type should match', Ord(ptDateTime), Ord(Cmd.Parameters[8].ParamType));
+    AssertEquals('Array parameter type should match', Ord(ptArray), Ord(Cmd.Parameters[9].ParamType));
+    AssertEquals('Password parameter type should match', Ord(ptPassword), Ord(Cmd.Parameters[10].ParamType));
   finally
     Cmd.Free;
   end;
@@ -319,33 +329,73 @@ begin
     Cmd.AddIntegerParameter('-i', '--integer', 'Integer parameter');
     Cmd.AddFloatParameter('-f', '--float', 'Float parameter');
     Cmd.AddFlag('-b', '--bool', 'Boolean flag');
+    Cmd.AddBooleanParameter('-x', '--explicit-bool', 'Boolean parameter', False, 'false');
     Cmd.AddUrlParameter('-u', '--url', 'URL parameter');
+    Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+    Cmd.AddDateTimeParameter('-d', '--date', 'Date parameter');
+    Cmd.AddArrayParameter('-t', '--tags', 'Tag list');
     App.RegisterCommand(Cmd);
     App.CurrentCommand := Cmd;
     
     // Test integer validation
     App.ParsedParams.Values['--integer'] := 'not-a-number';
     AssertFalse('Should fail validation with invalid integer', App.TestValidateCommand);
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--integer'] := '42';
     AssertTrue('Should pass validation with valid integer', App.TestValidateCommand);
     
     // Test float validation
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--float'] := 'not-a-float';
     AssertFalse('Should fail validation with invalid float', App.TestValidateCommand);
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--float'] := '3.14';
     AssertTrue('Should pass validation with valid float', App.TestValidateCommand);
     
-    // Test boolean validation
+    // Test boolean flag validation
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--bool'] := 'not-a-bool';
     AssertFalse('Should fail validation with invalid boolean', App.TestValidateCommand);
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--bool'] := 'true';
     AssertTrue('Should pass validation with valid boolean', App.TestValidateCommand);
     
+    // Test explicit boolean validation
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--explicit-bool'] := 'not-a-bool';
+    AssertFalse('Should fail validation with invalid boolean', App.TestValidateCommand);
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--explicit-bool'] := 'true';
+    AssertTrue('Should pass validation with valid boolean', App.TestValidateCommand);
+    
     // Test URL validation
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--url'] := 'not-a-url';
     AssertFalse('Should fail validation with invalid URL', App.TestValidateCommand);
+    App.ParsedParams.Clear;
     App.ParsedParams.Values['--url'] := 'https://example.com';
     AssertTrue('Should pass validation with valid URL', App.TestValidateCommand);
+    
+    // Test enum validation
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--level'] := 'invalid-level';
+    AssertFalse('Should fail validation with invalid enum value', App.TestValidateCommand);
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--level'] := 'debug';
+    AssertTrue('Should pass validation with valid enum value', App.TestValidateCommand);
+    
+    // Test datetime validation
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--date'] := 'not-a-date';
+    AssertFalse('Should fail validation with invalid datetime', App.TestValidateCommand);
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--date'] := '2024-01-01 12:00';
+    AssertTrue('Should pass validation with valid datetime', App.TestValidateCommand);
+    
+    // Test array validation
+    App.ParsedParams.Clear;
+    App.ParsedParams.Values['--tags'] := 'tag1,tag2,tag3';
+    AssertTrue('Should pass validation with valid array', App.TestValidateCommand);
   finally
     App.Free;
   end;
@@ -436,9 +486,9 @@ begin
     App.CurrentCommand := Cmd;
     Cmd.SetParsedParams(App.ParsedParams);
     
-    // Test flag without value (should use default 'false')
+    // Test flag without value (should use default 'true')
     AssertTrue('Should get default value', Cmd.TestGetParameterValue('--verbose', Value));
-    AssertEquals('Default value should be false', 'false', Value);
+    AssertEquals('Default value should be true', 'true', Value);
     
     // Test flag with explicit value
     App.ParsedParams.Values['--verbose'] := 'true';

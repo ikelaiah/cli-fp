@@ -16,7 +16,7 @@ type
     ptBoolean,  // Boolean value (e.g., --verbose) or flag (e.g., --force)
     ptPath,     // File/directory path (e.g., --input /path/to/file)
     ptEnum,     // Enumerated value (e.g., --log-level debug|info|warn|error)
-    ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00:00")
+    ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00")
     ptArray,    // Comma-separated list (e.g., --tags tag1,tag2,tag3)
     ptPassword, // Sensitive value, masked in help/logs (e.g., --api-key ***)
     ptUrl       // URL value with format validation (e.g., --repo https://github.com/user/repo)
@@ -84,6 +84,9 @@ type
     { Returns default value if parameter is optional }
     function GetDefaultValue: string;
     
+    { Returns allowed values for the parameter }
+    function GetAllowedValues: string;
+    
     { Short form flag (e.g., '-n') }
     property ShortFlag: string read GetShortFlag;
     
@@ -101,6 +104,9 @@ type
     
     { Default value for optional parameters }
     property DefaultValue: string read GetDefaultValue;
+    
+    { Allowed values for the parameter }
+    property AllowedValues: string read GetAllowedValues;
   end;
 
   { Progress indicator interface - For showing progress during long operations }

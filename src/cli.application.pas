@@ -747,55 +747,82 @@ end;
   @param Value The value to validate
   @returns True if validation passes, False if any check fails }
 function TCLIApplication.ValidateParameterValue(const Param: ICommandParameter; const Value: string): Boolean;
-
-  function IsValidUrl(const URL: string): Boolean;
-  begin
-    Result := (Pos('http://', LowerCase(URL)) = 1) or
-              (Pos('https://', LowerCase(URL)) = 1) or
-              (Pos('git://', LowerCase(URL)) = 1) or
-              (Pos('ssh://', LowerCase(URL)) = 1);
-  end;
-
+var
+  IntValue: Integer;
+  FloatValue: Double;
+  AllowedValues: TStringList;
+  i: Integer;
+  DateTimeValue: TDateTime;
 begin
   Result := True;
+  
   case Param.ParamType of
     ptInteger:
+      if not TryStrToInt(Value, IntValue) then
       begin
-        try
-          StrToInt(Value);
-        except
-          on E: EConvertError do
-          begin
-            TConsole.WriteLn(Format('Error: Parameter "%s" must be an integer', [Param.LongFlag]), ccRed);
-            Result := False;
-          end;
-        end;
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be an integer', [Param.LongFlag]), ccRed);
+        Result := False;
       end;
+      
     ptFloat:
+      if not TryStrToFloat(Value, FloatValue) then
       begin
-        try
-          StrToFloat(Value);
-        except
-          on E: EConvertError do
-          begin
-            TConsole.WriteLn(Format('Error: Parameter "%s" must be a float', [Param.LongFlag]), ccRed);
-            Result := False;
-          end;
-        end;
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be a float', [Param.LongFlag]), ccRed);
+        Result := False;
       end;
+      
     ptBoolean:
+      if not (SameText(Value, 'true') or SameText(Value, 'false')) then
       begin
-        if not (SameText(Value, 'true') or SameText(Value, 'false')) then
-        begin
-          TConsole.WriteLn(Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag]), ccRed);
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag]), ccRed);
+        Result := False;
+      end;
+      
+    ptUrl:
+      if not (StartsStr('http://', Value) or StartsStr('https://', Value) or
+             StartsStr('git://', Value) or StartsStr('ssh://', Value)) then
+      begin
+        TConsole.WriteLn(Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://',
+          [Param.LongFlag]), ccRed);
+        Result := False;
+      end;
+
+    ptEnum:
+      begin
+        if Param.AllowedValues = '' then
+          Exit;
+          
+        AllowedValues := TStringList.Create;
+        try
+          AllowedValues.Delimiter := '|';
+          AllowedValues.DelimitedText := Param.AllowedValues;
+          
           Result := False;
+          for i := 0 to AllowedValues.Count - 1 do
+            if SameText(Value, AllowedValues[i]) then
+            begin
+              Result := True;
+              Break;
+            end;
+            
+          if not Result then
+            TConsole.WriteLn(Format('Error: Parameter "%s" must be one of: %s',
+              [Param.LongFlag, Param.AllowedValues]), ccRed);
+        finally
+          AllowedValues.Free;
         end;
       end;
-    ptUrl:
+    
+    ptDateTime:
       begin
-        if not IsValidUrl(Value) then
+        FormatSettings.DateSeparator := '-';
+        FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+        FormatSettings.LongTimeFormat := 'HH:nn';
+        
+        if not TryStrToDateTime(Value, DateTimeValue) then
         begin
-          TConsole.WriteLn(Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://', [Param.LongFlag]), ccRed);
+          TConsole.WriteLn(Format('Error: Parameter "%s" must be in format YYYY-MM-DD HH:MM',
+            [Param.LongFlag]), ccRed);
           Result := False;
         end;
       end;
