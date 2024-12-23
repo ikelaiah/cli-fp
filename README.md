@@ -118,15 +118,9 @@ type
   function TGreetCommand.Execute: integer;
   var
     UserName: string;
-    PrintCount: string;
-    i: integer;
   begin
     // Get parameter values using helper methods
     GetParameterValue('--name', UserName);
-    GetParameterValue('--count', PrintCount);
-
-    for i := 1 to StrToIntDef(PrintCount, 1) do
-      WriteLn('Hello, ', UserName, '!');
 
     Result := 0;
   end;
@@ -143,7 +137,6 @@ begin
 
   // Add parameters using new helper methods
   Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
-  Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
 
   // Register the command to the application
   App.RegisterCommand(Cmd);
@@ -156,9 +149,7 @@ end.
 **Output:**
 
 ```
-$ ./MyApp.exe greet --name "John" --count 3
-Hello, John!
-Hello, John!
+$ ./MyApp.exe greet --name "John"
 Hello, John!
 
 $ ./MyApp.exe greet

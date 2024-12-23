@@ -35,7 +35,7 @@ TParameterType = (
   ptString,   // String value (e.g., --name "John Doe")
   ptInteger,  // Integer value (e.g., --count 42)
   ptFloat,    // Float value (e.g., --rate 3.14)
-  ptBoolean,  // Boolean value (e.g., --verbose) or flag (e.g., --force)
+  ptBoolean,  // Boolean value (e.g., --verbose true/false)
   ptPath,     // File/directory path (e.g., --input /path/to/file)
   ptEnum,     // Enumerated value (e.g., --log-level debug|info|warn|error)
   ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00")
@@ -62,6 +62,78 @@ ICommand = interface
   property Parameters: TArray<ICommandParameter> read GetParameters;
   property SubCommands: TArray<ICommand> read GetSubCommands;
 end;
+```
+
+### Parameter Helper Methods
+
+The `TBaseCommand` class provides helper methods for adding parameters:
+
+```pascal
+// String parameter
+procedure AddStringParameter(const ShortFlag, LongFlag, Description: string; 
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Integer parameter
+procedure AddIntegerParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Float parameter
+procedure AddFloatParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Boolean flag (defaults to true when present)
+procedure AddFlag(const ShortFlag, LongFlag, Description: string);
+
+// Boolean parameter (explicit true/false)
+procedure AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = 'false');
+
+// URL parameter
+procedure AddUrlParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Enum parameter
+procedure AddEnumParameter(const ShortFlag, LongFlag, Description: string;
+  const AllowedValues: string; Required: Boolean = False; const DefaultValue: string = '');
+
+// DateTime parameter
+procedure AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Array parameter (comma-separated values)
+procedure AddArrayParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Password parameter (masked in output)
+procedure AddPasswordParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+
+// Path parameter
+procedure AddPathParameter(const ShortFlag, LongFlag, Description: string;
+  Required: Boolean = False; const DefaultValue: string = '');
+```
+
+Each helper method:
+- Creates a parameter of the appropriate type
+- Handles default values appropriately
+- Adds the parameter to the command's parameter list
+- Validates values according to the parameter type
+
+Example usage:
+```pascal
+Cmd := TTestCommand.Create('test', 'Test parameters');
+  
+// Add various parameters
+Cmd.AddStringParameter('-n', '--name', 'Your name');
+Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);  // Required
+Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+Cmd.AddDateTimeParameter('-d', '--date', 'Start date');  // Format: YYYY-MM-DD HH:MM
+Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
+Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
+Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
+Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
+
 ```
 
 ##### `ICommandParameter`

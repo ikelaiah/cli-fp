@@ -419,3 +419,61 @@ except
   end;
 end;
 ```
+
+# Parameter Validation
+
+## Implementation Details
+
+The framework implements parameter validation in `TCLIApplication.ValidateParameterValue`. Each parameter type has specific validation rules:
+
+### Basic Types
+- `ptString`: No validation
+- `ptInteger`: Uses `TryStrToInt`
+- `ptFloat`: Uses `TryStrToFloat`
+- `ptBoolean`: Must be 'true' or 'false' (case-insensitive)
+
+### Complex Types
+- `ptDateTime`: Uses `TryStrToDateTime` with specific format settings:
+  ```pascal
+  FormatSettings.DateSeparator := '-';
+  FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  FormatSettings.LongTimeFormat := 'HH:nn';  // 24-hour format
+  ```
+  
+- `ptEnum`: Validates against pipe-separated allowed values:
+  ```pascal
+  AllowedValues.Delimiter := '|';
+  AllowedValues.DelimitedText := Param.AllowedValues;
+  ```
+
+- `ptUrl`: Validates URL protocol:
+  ```pascal
+  StartsStr('http://', Value) or
+  StartsStr('https://', Value) or
+  StartsStr('git://', Value) or
+  StartsStr('ssh://', Value)
+  ```
+
+## Error Messages
+
+The framework provides clear error messages for validation failures:
+```pascal
+Format('Error: Parameter "%s" must be an integer', [Param.LongFlag])
+Format('Error: Parameter "%s" must be a float', [Param.LongFlag])
+Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag])
+Format('Error: Parameter "%s" must be in format YYYY-MM-DD HH:MM', [Param.LongFlag])
+Format('Error: Parameter "%s" must be one of: %s', [Param.LongFlag, Param.AllowedValues])
+Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://', [Param.LongFlag])
+```
+
+## Validation Flow
+
+1. Command parameters are parsed from command line
+2. Each parameter is validated based on its type
+3. If any validation fails:
+   - Error message is displayed
+   - Command is not executed
+   - Returns error code 1
+4. If all validations pass:
+   - Command's Execute method is called
+   - Returns command's result code

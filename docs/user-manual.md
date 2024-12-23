@@ -22,22 +22,16 @@ The Free Pascal CLI Framework is a modern, feature-rich library for building com
       - [Using Spinners](#using-spinners)
       - [Progress Bars](#progress-bars)
       - [Choosing Between Spinner and Progress Bar](#choosing-between-spinner-and-progress-bar)
-  - [Parameter Types Reference](#parameter-types-reference)
-    - [1. Basic Types](#1-basic-types)
+  - [Parameter Types and Validation](#parameter-types-and-validation)
+    - [Basic Types](#basic-types)
       - [String Parameters](#string-parameters)
       - [Integer Parameters](#integer-parameters)
       - [Float Parameters](#float-parameters)
-    - [2. Boolean and Flags](#2-boolean-and-flags)
-      - [Boolean Parameters](#boolean-parameters)
-      - [Flag Parameters](#flag-parameters)
-    - [3. Path and URL Types](#3-path-and-url-types)
-      - [Path Parameters](#path-parameters)
-      - [URL Parameters](#url-parameters)
-    - [4. Complex Types](#4-complex-types)
+      - [Boolean Parameters and Flags](#boolean-parameters-and-flags)
+      - [Date and Time Parameters](#date-and-time-parameters)
       - [Enumerated Values](#enumerated-values)
-      - [DateTime Parameters](#datetime-parameters)
+      - [URL Parameters](#url-parameters)
       - [Array Parameters](#array-parameters)
-      - [Password Parameters](#password-parameters)
     - [Parameter Validation](#parameter-validation)
     - [Error Handling](#error-handling)
     - [Best Practices](#best-practices)
@@ -480,136 +474,74 @@ Use a **Progress Bar** when:
 - You want to show specific completion percentage
 - The user needs to know how much longer to wait
 
-## Parameter Types Reference
+## Parameter Types and Validation
 
 The framework provides a rich set of parameter types with built-in validation:
 
-### 1. Basic Types
+### Basic Types
 
 #### String Parameters
 ```pascal
-// Optional string with default
-Cmd.AddStringParameter('-n', '--name', 'Your name', False, 'World');
-
-// Required string
-Cmd.AddStringParameter('-p', '--path', 'File path', True);
+// Any text value
+AddStringParameter('-n', '--name', 'Name parameter');
 ```
 
 #### Integer Parameters
 ```pascal
-// Optional integer with default
-Cmd.AddIntegerParameter('-c', '--count', 'Number of items', False, '10');
-
-// Required integer
-Cmd.AddIntegerParameter('-l', '--limit', 'Result limit', True);
+// Must be a valid integer
+AddIntegerParameter('-c', '--count', 'Count parameter', True);  // Required
 ```
 
 #### Float Parameters
 ```pascal
-// Optional float with default
-Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
-
-// Required float
-Cmd.AddFloatParameter('-t', '--threshold', 'Error threshold', True);
+// Must be a valid floating-point number
+AddFloatParameter('-r', '--rate', 'Rate parameter');
 ```
 
-### 2. Boolean and Flags
-
-#### Boolean Parameters
+#### Boolean Parameters and Flags
 ```pascal
-// Boolean with explicit value
-Cmd.AddParameter('-d', '--debug', 'Debug mode', False, ptBoolean, 'false');
-// Usage: --debug=true or --debug=false
+// Flag: Presence indicates true
+AddFlag('-v', '--verbose', 'Enable verbose mode');
+
+// Boolean: Must be 'true' or 'false'
+AddBooleanParameter('-d', '--debug', 'Debug mode', False, 'false');
 ```
 
-#### Flag Parameters
+#### Date and Time Parameters
 ```pascal
-// Simple presence flag (defaults to true when present)
-Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
-// Usage: Just add --verbose to enable
+// Must be in format "YYYY-MM-DD HH:MM" (24-hour format)
+AddDateTimeParameter('-d', '--date', 'Date parameter');
 ```
 
-### 3. Path and URL Types
-
-#### Path Parameters
+#### Enumerated Values
 ```pascal
-// File or directory path
-Cmd.AddPathParameter('-i', '--input', 'Input directory', True);
-Cmd.AddPathParameter('-o', '--output', 'Output file', False, './output.txt');
+// Must match one of the pipe-separated values
+AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
 ```
 
 #### URL Parameters
 ```pascal
-// URL with protocol validation
-Cmd.AddUrlParameter('-u', '--url', 'Repository URL', True);
-// Validates: Must start with http://, https://, git://, or ssh://
-```
-
-### 4. Complex Types
-
-#### Enumerated Values
-```pascal
-// Enum with allowed values
-Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error', False, 'info');
-// Validates: Value must be one of the specified options
-```
-
-#### DateTime Parameters
-```pascal
-// Date/time values
-Cmd.AddDateTimeParameter('-s', '--start', 'Start date/time');
-// Format: YYYY-MM-DD HH:MM:SS
+// Must start with http://, https://, git://, or ssh://
+AddUrlParameter('-u', '--url', 'Repository URL');
 ```
 
 #### Array Parameters
 ```pascal
-// Comma-separated lists
-Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
-// Usage: --tags=web,api,test
-```
-
-#### Password Parameters
-```pascal
-// Sensitive values (masked in output)
-Cmd.AddPasswordParameter('-k', '--api-key', 'API Key', True);
-// Value will be masked in help text and logs
+// Comma-separated values
+AddArrayParameter('-t', '--tags', 'Tag list');
 ```
 
 ### Parameter Validation
 
-The framework automatically validates parameters based on their type:
+All parameters are validated before the command's Execute method is called. If validation fails, an error message is displayed and the command is not executed.
 
-1. **Required Parameters**
-   ```pascal
-   Cmd.AddStringParameter('-n', '--name', 'Name', True);  // Must be provided
-   ```
-
-2. **Type Validation**
-   ```pascal
-   // Integer validation
-   Cmd.AddIntegerParameter('-c', '--count', 'Count');
-   // Will fail if value is not a valid integer
-
-   // Float validation
-   Cmd.AddFloatParameter('-r', '--rate', 'Rate');
-   // Will fail if value is not a valid float
-
-   // URL validation
-   Cmd.AddUrlParameter('-u', '--url', 'URL');
-   // Will fail if URL doesn't start with valid protocol
-   ```
-
-3. **Enum Validation**
-   ```pascal
-   Cmd.AddEnumParameter('-m', '--mode', 'Mode', 'fast|normal|safe');
-   // Will fail if value is not one of the allowed options
-   ```
-
-4. **DateTime Validation**
-   ```pascal
-   Cmd.AddDateTimeParameter('-d', '--date', 'Date');
-   // Will fail if not in YYYY-MM-DD HH:MM:SS format
-   ```
+Example error messages:
+- Integer: "Parameter '--count' must be an integer"
+- Float: "Parameter '--rate' must be a float"
+- Boolean: "Parameter '--debug' must be 'true' or 'false'"
+- DateTime: "Parameter '--date' must be in format YYYY-MM-DD HH:MM"
+- URL: "Parameter '--url' must be a valid URL starting with http://, https://, git://, or ssh://"
+- Enum: "Parameter '--level' must be one of: debug|info|warn|error"
 
 ### Error Handling
 
