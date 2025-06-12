@@ -290,11 +290,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
-
-## 📞 Contact
-
-Your Name - [ikelaiah](https://github.com/ikelaiah)
-
-Project Link: [https://github.com/ikelaiah/cli-fp](https://github.com/ikelaiah/cli-fp) 
+ 
 
 
