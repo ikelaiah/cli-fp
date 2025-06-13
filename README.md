@@ -30,7 +30,6 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [🤝 Contributing](#-contributing)
   - [📝 License](#-license)
   - [🙏 Acknowledgments](#-acknowledgments)
-  - [📞 Contact](#-contact)
 
 
 ## ✨ Features

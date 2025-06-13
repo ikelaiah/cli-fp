@@ -312,13 +312,11 @@ begin
     App := CreateCLIApplication('MyApp', '1.0.0');
     
     Cmd := TGreetCommand.Create('greet', 'Greet a person');
-    Cmd.AddParameter(
-      '-n',
-      '--name',
-      'Name to greet',
-      False,
-      ptString
-    ));
+    // Add a string parameter for the name. It's optional.
+    // If not provided and no default is set here, 'Hello, World!' will be printed by the Execute logic.
+    Cmd.AddStringParameter('-n', '--name', 'Name to greet', False);
+    // The above is a shorthand for:
+    // Cmd.AddParameter('-n', '--name', 'Name to greet', False, ptString, '');
     
     App.RegisterCommand(Cmd);
     ExitCode := App.Execute;
@@ -403,24 +401,17 @@ begin
     RepoCmd := TBaseCommand.Create('repo', 'Repository management');
     
     CloneCmd := TCloneCommand.Create('clone', 'Clone a repository');
-    CloneCmd.AddParameter(
-      '-u',
-      '--url',
-      'Repository URL to clone',
-      True,     // Mark as required
-      ptString
-    ));
+    // Add a required string parameter for the URL.
+    CloneCmd.AddStringParameter('-u', '--url', 'Repository URL to clone', True);
+    // The above is a shorthand for:
+    // CloneCmd.AddParameter('-u', '--url', 'Repository URL to clone', True, ptString, '');
     RepoCmd.AddSubCommand(CloneCmd);
     
     InitCmd := TInitCommand.Create('init', 'Initialize a repository');
-    InitCmd.AddParameter(
-      '-p',
-      '--path',
-      'Path to initialize repository',
-      False,    // Optional
-      ptString,
-      GetCurrentDir  // Default to current directory
-    ));
+    // Add an optional path parameter, defaulting to the current directory.
+    InitCmd.AddPathParameter('-p', '--path', 'Path to initialize repository', False, GetCurrentDir);
+    // The above is a shorthand for:
+    // InitCmd.AddParameter('-p', '--path', 'Path to initialize repository', False, ptPath, GetCurrentDir);
     RepoCmd.AddSubCommand(InitCmd);
     
     App.RegisterCommand(RepoCmd);
