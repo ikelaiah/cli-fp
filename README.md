@@ -73,7 +73,7 @@ No complex build system needed! Just:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/cli-fp.git
+git clone https://github.com/ikelaiah/cli-fp.git
 
 # Or copy the source files to your project's directory
 ```
@@ -234,27 +234,31 @@ Each parameter type has built-in validation:
 ## 📖 System Requirements
 
 ### Tested Environments
-- **Operating System**: Windows 11
+
+- **Operating System**: Windows 11, Ubuntu 24.04
 - **Compiler**: Free Pascal (FPC) 3.2.2
-- **IDE**: Lazarus 3.6
+- **IDE**: Lazarus 3.6, Lazarus 4.0
 
 ### Theoretical Compatibility
+
 - **Operating Systems**:
   - Windows (7, 8, 10, 11)
   - Linux (Any distribution with FPC support)
   - macOS (with FPC support)
   - FreeBSD
 - **Compiler**: Free Pascal 3.2.2 or higher
-- **IDE**: Any IDE that supports Free Pascal
+- **IDE & Editor**: Any IDE that supports Free Pascal
   - Lazarus 3.6 or higher
-  - VS Code with OmniPascal
+  - VS Code with Pascal extensions
   - Other text editors
 
 ### Dependencies
+
 - No external dependencies required
 - Uses only standard Free Pascal RTL units
 
 ### Build Requirements
+
 - Free Pascal Compiler (FPC) 3.2.2+
 - Lazarus 3.6+
 - Basic development tools (git, terminal, etc)
@@ -265,10 +269,12 @@ Each parameter type has built-in validation:
 - [API Reference](docs/api-reference.md): Detailed API reference for the framework
 - [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
 - [Examples](examples/): Working example applications
+- [Changelog](CHANGELOG.md): Version history and updates
 
 ## 🎯 Use Cases
 
 Perfect for building:
+
 - Version Control Systems
 - Build Tools
 - Package Managers
@@ -294,6 +300,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
-
-
-
+- Thanks to the Free Pascal community for their support and contributions
