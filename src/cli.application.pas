@@ -322,16 +322,16 @@ var
 begin
   FParsedParams.Clear;
   i := FParamStartIndex; // Start after program name and command name(s)
-  
+
   if FDebugMode then
     TConsole.WriteLn('Parsing command line...', ccCyan);
-    
+
   while i <= ParamCount do
   begin
     Param := ParamStr(i);
     if FDebugMode then
       TConsole.WriteLn('Processing argument ' + IntToStr(i) + ': ' + Param, ccCyan);
-    
+
     // Handle --param=value format
     if StartsStr('--', Param) then
     begin
@@ -346,6 +346,7 @@ begin
         Value := ParamStr(i + 1);
         Inc(i);
       end;
+      // Store flag with empty string if no value is provided
       FParsedParams.Values[Param] := Value;
       if FDebugMode then
         TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
@@ -360,14 +361,15 @@ begin
       end
       else
         Value := '';
+      // Store flag with empty string if no value is provided
       FParsedParams.Values[Param] := Value;
       if FDebugMode then
         TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
     end;
-    
+
     Inc(i);
   end;
-  
+
   if FDebugMode then
   begin
     TConsole.WriteLn('Parsed parameters:', ccCyan);
@@ -477,7 +479,52 @@ end;
   Note: Checks both long and short forms of the parameter }
 function TCLIApplication.GetParameterValue(const Param: ICommandParameter; 
   out Value: string): Boolean;
+var
+  idx: Integer;
+  paramVal: string;
 begin
+  // Special handling for boolean flags (ptBoolean)
+  if Param.ParamType = ptBoolean then
+  begin
+    idx := FParsedParams.IndexOfName(Param.LongFlag);
+    if idx = -1 then
+      idx := FParsedParams.IndexOfName(Param.ShortFlag);
+    if idx <> -1 then
+    begin
+      paramVal := FParsedParams.ValueFromIndex[idx];
+      if (paramVal = '') then
+      begin
+        Value := 'true'; // flag present, no value
+        Result := True;
+        Exit;
+      end
+      else if SameText(paramVal, 'true') or SameText(paramVal, 'false') then
+      begin
+        Value := paramVal;
+        Result := True;
+        Exit;
+      end
+      else
+      begin
+        Value := paramVal;
+        Result := True;
+        Exit;
+      end;
+    end
+    else if Param.DefaultValue <> '' then
+    begin
+      Value := Param.DefaultValue;
+      Result := False; // Not present on command line
+      Exit;
+    end
+    else
+    begin
+      Value := 'false';
+      Result := False;
+      Exit;
+    end;
+  end;
+
   Result := FParsedParams.Values[Param.LongFlag] <> '';
   if Result then
     Value := FParsedParams.Values[Param.LongFlag]

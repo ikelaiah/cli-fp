@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.2-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -73,7 +73,7 @@ No complex build system needed! Just:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/cli-fp.git
+git clone https://github.com/ikelaiah/cli-fp.git
 
 # Or copy the source files to your project's directory
 ```
@@ -184,12 +184,14 @@ Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
 ### Boolean and Flags
 
 ```pascal
-// Flag (true when present)
-Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+// Flag (true when present, false by default)
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output'); // Standard CLI behavior
 
-// Boolean parameter (true/false)
+// Boolean parameter (explicit true/false)
 Cmd.AddBooleanParameter('-d', '--debug', 'Enable debug mode', False, 'false');
 ```
+
+> **Note:** By default, flags created with `AddFlag` are `false` unless present on the command line. If you specify a default value of `'true'`, the flag will be `true` even if not present, which is nonstandard for CLI flags and not recommended unless you have a specific use case.
 
 ### Complex Types
 
@@ -232,27 +234,31 @@ Each parameter type has built-in validation:
 ## 📖 System Requirements
 
 ### Tested Environments
-- **Operating System**: Windows 11
+
+- **Operating System**: Windows 11, Ubuntu 24.04
 - **Compiler**: Free Pascal (FPC) 3.2.2
-- **IDE**: Lazarus 3.6
+- **IDE**: Lazarus 3.6, Lazarus 4.0
 
 ### Theoretical Compatibility
+
 - **Operating Systems**:
   - Windows (7, 8, 10, 11)
   - Linux (Any distribution with FPC support)
   - macOS (with FPC support)
   - FreeBSD
 - **Compiler**: Free Pascal 3.2.2 or higher
-- **IDE**: Any IDE that supports Free Pascal
+- **IDE & Editor**: Any IDE that supports Free Pascal
   - Lazarus 3.6 or higher
-  - VS Code with OmniPascal
+  - VS Code with Pascal extensions
   - Other text editors
 
 ### Dependencies
+
 - No external dependencies required
 - Uses only standard Free Pascal RTL units
 
 ### Build Requirements
+
 - Free Pascal Compiler (FPC) 3.2.2+
 - Lazarus 3.6+
 - Basic development tools (git, terminal, etc)
@@ -263,10 +269,12 @@ Each parameter type has built-in validation:
 - [API Reference](docs/api-reference.md): Detailed API reference for the framework
 - [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
 - [Examples](examples/): Working example applications
+- [Changelog](CHANGELOG.md): Version history and updates
 
 ## 🎯 Use Cases
 
 Perfect for building:
+
 - Version Control Systems
 - Build Tools
 - Package Managers
@@ -292,6 +300,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
- 
-
-
+- Thanks to the Free Pascal community for their support and contributions

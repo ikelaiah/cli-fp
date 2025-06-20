@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-06-20
+
+### Improved
+- Boolean flag handling now strictly follows standard CLI conventions: flags are always `false` by default and only become `true` if present on the command line.
+- Documentation and examples updated to clarify boolean flag default behavior and best practices.
+- Internal logic for `GetParameterValue` and parameter parsing unified for robust and predictable flag/parameter handling.
+
+### Fixed
+- Edge case where boolean flags with default `'true'` would always be true, even if not present, is now clearly documented as nonstandard.
+- Test and example output now matches standard CLI expectations for boolean flags and parameters.
+
+### Updated
+- README, API Reference, Technical Docs, and User Manual to clarify boolean flag behavior and best practices.
 
 ## [1.1.1] - 2025-06-20
 
@@ -90,4 +103,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0 
+[1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0

@@ -382,26 +382,63 @@ end;
 function TBaseCommand.GetParameterValue(const Flag: string; out Value: string): Boolean;
 var
   Param: ICommandParameter;
+  idx: Integer;
+  paramVal: string;
 begin
   Result := False;
   if not Assigned(FParsedParams) then
     Exit;
 
-  // First try to get the value directly from parsed parameters
-  Value := FParsedParams.Values[Flag];
-  if Value <> '' then
-    Exit(True);
-    
-  // If not found, try to find the parameter and check both its flags
+  // Find the parameter object for type info
   for Param in FParameters do
   begin
     if (Param.LongFlag = Flag) or (Param.ShortFlag = Flag) then
     begin
+      // Special handling for boolean flags
+      if Param.ParamType = ptBoolean then
+      begin
+        idx := FParsedParams.IndexOfName(Param.LongFlag);
+        if idx = -1 then
+          idx := FParsedParams.IndexOfName(Param.ShortFlag);
+        if idx <> -1 then
+        begin
+          paramVal := FParsedParams.ValueFromIndex[idx];
+          if (paramVal = '') then
+          begin
+            Value := 'true'; // flag present, no value
+            Result := True;
+            Exit;
+          end
+          else if SameText(paramVal, 'true') or SameText(paramVal, 'false') then
+          begin
+            Value := paramVal;
+            Result := True;
+            Exit;
+          end
+          else
+          begin
+            Value := paramVal;
+            Result := True;
+            Exit;
+          end;
+        end
+        else if Param.DefaultValue <> '' then
+        begin
+          Value := Param.DefaultValue;
+          Result := False;
+          Exit;
+        end
+        else
+        begin
+          Value := 'false';
+          Result := False;
+          Exit;
+        end;
+      end;
       // Check both long and short flags in parsed parameters
       Value := FParsedParams.Values[Param.LongFlag];
       if Value = '' then
         Value := FParsedParams.Values[Param.ShortFlag];
-        
       if Value <> '' then
         Exit(True)
       else if Param.DefaultValue <> '' then
