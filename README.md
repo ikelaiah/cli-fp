@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.2-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -184,12 +184,14 @@ Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
 ### Boolean and Flags
 
 ```pascal
-// Flag (true when present)
-Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
+// Flag (true when present, false by default)
+Cmd.AddFlag('-v', '--verbose', 'Enable verbose output'); // Standard CLI behavior
 
-// Boolean parameter (true/false)
+// Boolean parameter (explicit true/false)
 Cmd.AddBooleanParameter('-d', '--debug', 'Enable debug mode', False, 'false');
 ```
+
+> **Note:** By default, flags created with `AddFlag` are `false` unless present on the command line. If you specify a default value of `'true'`, the flag will be `true` even if not present, which is nonstandard for CLI flags and not recommended unless you have a specific use case.
 
 ### Complex Types
 
@@ -292,6 +294,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
- 
+
 
 

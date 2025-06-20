@@ -573,7 +573,7 @@ begin
   
   Cmd := TTestCommand.Create('test', 'Test parameters');
   
-  // Flag (defaults to true when present)
+  // Flag (true when present, false by default)
   Cmd.AddFlag('-f', '--force', 'Force operation');
   
   // Boolean (requires explicit true/false value)
@@ -734,4 +734,4 @@ begin
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
 end;
-``` 
+```

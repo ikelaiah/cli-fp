@@ -426,6 +426,8 @@ end;
 
 The framework implements parameter validation in `TCLIApplication.ValidateParameterValue`. Each parameter type has specific validation rules:
 
+> **Note:** Boolean flags (added with `AddFlag`) are always `false` by default and only become `true` if present on the command line. If you set a default value of `'true'`, the flag will be `true` even if not present, which is not standard CLI behavior and not recommended unless you have a specific use case.
+
 ### Basic Types
 - `ptString`: No validation
 - `ptInteger`: Uses `TryStrToInt`

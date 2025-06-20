@@ -631,12 +631,14 @@ AddFloatParameter('-r', '--rate', 'Rate parameter');
 
 #### Boolean Parameters and Flags
 ```pascal
-// Flag: Presence indicates true
+// Flag: Presence indicates true, false by default
 AddFlag('-v', '--verbose', 'Enable verbose mode');
 
 // Boolean: Must be 'true' or 'false'
 AddBooleanParameter('-d', '--debug', 'Debug mode', False, 'false');
 ```
+
+> **Note:** Flags created with `AddFlag` are always `false` by default and only become `true` if present on the command line. If you set a default value of `'true'`, the flag will be `true` even if not present, which is not standard CLI behavior and not recommended unless you have a specific use case.
 
 #### Date and Time Parameters
 ```pascal
@@ -804,7 +806,13 @@ myapp <command> [options]
 The framework supports various parameter formats:
 - Long format: `--param=value` or `--param value`
 - Short format: `-p value`
-- Boolean flags: `--flag` or `-f`
+- Boolean flags: `--flag` or `-f` (false by default, true when present)
+
+Example:
+```bash
+myapp test --flag        # --flag is true
+myapp test               # --flag is false
+```
 
 ## Troubleshooting
 
