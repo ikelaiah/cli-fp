@@ -588,7 +588,7 @@ Command-line usage:
 ```bash
 # Flag usage (AddFlag)
 myapp test --force  # Flag is present (true)
-myapp test         # Flag is not present (false)
+myapp test          # Flag is not present (false)
 
 # Boolean usage (AddBooleanParameter)
 myapp test --verbose=true   # Explicitly set to true
