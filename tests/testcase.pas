@@ -486,9 +486,9 @@ begin
     App.CurrentCommand := Cmd;
     Cmd.SetParsedParams(App.ParsedParams);
     
-    // Test flag without value (should use default 'true')
+    // Test flag without value (should use default 'false')
     AssertTrue('Should get default value', Cmd.TestGetParameterValue('--verbose', Value));
-    AssertEquals('Default value should be true', 'true', Value);
+    AssertEquals('Default value should be true', 'false', Value);
     
     // Test flag with explicit value
     App.ParsedParams.Values['--verbose'] := 'true';

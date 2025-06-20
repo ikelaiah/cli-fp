@@ -100,7 +100,7 @@ type
       @param Description Parameter description
       @param DefaultValue Default value if not provided }
     procedure AddFlag(const ShortFlag, LongFlag, Description: string;
-      const DefaultValue: string = 'true');
+      const DefaultValue: string = 'false');
     
     { Helper: Adds a boolean parameter that requires explicit true/false value  
       @param ShortFlag Short form flag (e.g., '-c')
@@ -296,7 +296,7 @@ end;
 
 { AddFlag: Helper to add a boolean flag parameter }
 procedure TBaseCommand.AddFlag(const ShortFlag, LongFlag, Description: string;
-  const DefaultValue: string = 'true');
+  const DefaultValue: string = 'false');
 begin
   AddParameter(ShortFlag, LongFlag, Description, False, ptBoolean, DefaultValue);
 end;

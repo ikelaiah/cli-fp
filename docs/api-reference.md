@@ -81,7 +81,7 @@ procedure AddIntegerParameter(const ShortFlag, LongFlag, Description: string;
 procedure AddFloatParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean = False; const DefaultValue: string = '');
 
-// Boolean flag (defaults to true when present)
+// Boolean flag (defaults to false, becomes true when flag is present)
 procedure AddFlag(const ShortFlag, LongFlag, Description: string);
 
 // Boolean parameter (explicit true/false)
@@ -588,7 +588,7 @@ Command-line usage:
 ```bash
 # Flag usage (AddFlag)
 myapp test --force  # Flag is present (true)
-myapp test         # Flag is not present (false)
+myapp test          # Flag is not present (false)
 
 # Boolean usage (AddBooleanParameter)
 myapp test --verbose=true   # Explicitly set to true
