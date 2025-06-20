@@ -81,7 +81,7 @@ procedure AddIntegerParameter(const ShortFlag, LongFlag, Description: string;
 procedure AddFloatParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean = False; const DefaultValue: string = '');
 
-// Boolean flag (defaults to true when present)
+// Boolean flag (defaults to false, becomes true when flag is present)
 procedure AddFlag(const ShortFlag, LongFlag, Description: string);
 
 // Boolean parameter (explicit true/false)

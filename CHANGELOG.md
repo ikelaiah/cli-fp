@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.1.1] - 2025-06-20
+
+### Fixed
+- Changed default value of boolean flags from 'true' to 'false' to follow standard CLI conventions
+- Fixed boolean flag handling in `GetParameterValue` to properly detect flag presence
+
+### Tests
+- Added test cases to verify correct boolean flag behavior
+- Improved test output messages for invalid flag values
+
+### Updated
+- Documentation to reflect new boolean flag default behavior
+- API reference with examples of boolean flag usage
+- TestFlags example to demonstrate proper boolean flag handling
+
 ## [1.1.0] - 2024-12-24
 
 ### Added
