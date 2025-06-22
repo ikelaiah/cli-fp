@@ -14,10 +14,10 @@
     </CompilerOptions>
     <Description Value="# CLI Framework for Free Pascal 🚀
 
-A robust and fast Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands, rich interactions, and comprehensive help systems - all with type-safe, object-oriented design."/>
+A robust and fast Free Pascal framework for building professional CLI applications. Create powerful command-line tools with hierarchical commands and comprehensive help systems - all with type-safe, object-oriented design."/>
     <License Value="MIT License
 
-Copyright (c) 2024 CLI Framework for Free Pascal, ikelaiah
+Copyright (c) 2025 CLI Framework for Free Pascal, ikelaiah
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the &quot;Software&quot;), to deal
@@ -36,7 +36,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. "/>
-    <Version Major="1"/>
+    <Version Major="1" Minor="1" Release="2"/>
     <Files>
       <Item>
         <Filename Value="..\..\src\cli.application.pas"/>
