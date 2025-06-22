@@ -34,7 +34,6 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [📝 License](#-license)
   - [🙏 Acknowledgments](#-acknowledgments)
 
-
 ## ✨ Features
 
 - 🎯 **Command & Subcommand Support**: Organize complex CLIs with hierarchical commands
@@ -164,6 +163,10 @@ Options:
   -h, --help          Show this help message
 ```
 
+**Lazarus users:**
+A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
+To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
+
 ## 🎯 Parameter Types and Validation
 
 The framework provides comprehensive type-safe parameter handling with built-in validation:
@@ -215,6 +218,7 @@ Cmd.AddPasswordParameter('-k', '--api-key', 'API Key');
 ### Validation Rules
 
 Each parameter type has built-in validation:
+
 - `String`: No validation
 - `Integer`: Must be a valid integer number
 - `Float`: Must be a valid floating-point number
