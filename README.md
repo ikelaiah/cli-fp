@@ -70,6 +70,8 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
 
 No complex build system needed! Just:
 
+> **Note:** All example builds output their executables and units to the `example-bin/` folder in the repository root for easy access and cleanup.
+
 ```bash
 # Clone the repository
 git clone https://github.com/ikelaiah/cli-fp.git

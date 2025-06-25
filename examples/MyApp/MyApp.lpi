@@ -15,19 +15,38 @@
       <ResourceType Value="res"/>
     </General>
     <BuildModes>
-      <Item Name="Default" Default="True"/>
-      <Item Name="Debug">
+      <Item Name="Default">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="MyApp"/>
+            <Filename Value="..\..\example-bin\MyApp"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="..\..\src"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
+        </CompilerOptions>
+      </Item>
+      <Item Name="Debug" Default="True">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="..\..\example-bin\MyApp"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="..\..\src"/>
+            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
           <Parsing>
             <SyntaxOptions>
               <IncludeAssertionCode Value="True"/>
@@ -50,9 +69,6 @@
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
           </Linking>
-          <Other>
-            <CustomOptions Value="-FcUTF8"/>
-          </Other>
         </CompilerOptions>
       </Item>
       <Item Name="Release">
@@ -60,13 +76,16 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="MyApp"/>
+            <Filename Value="..\..\example-bin\MyApp"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="..\..\src"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
             <Optimizations>
@@ -80,9 +99,6 @@
             </Debugging>
             <LinkSmart Value="True"/>
           </Linking>
-          <Other>
-            <CustomOptions Value="-FcUTF8"/>
-          </Other>
         </CompilerOptions>
       </Item>
     </BuildModes>
@@ -104,12 +120,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="MyApp"/>
+      <Filename Value="..\..\example-bin\MyApp"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="..\..\src"/>
-      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Other>
       <CustomOptions Value="-FcUTF8"/>
