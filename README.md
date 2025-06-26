@@ -71,6 +71,12 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
 No complex build system needed! Just:
 
 > **Note:** All example builds output their executables and units to the `example-bin/` folder in the repository root for easy access and cleanup.
+>
+> **Tip:** To build or clean all example projects at once, use the provided scripts:
+>
+> - On **Linux/macOS**: `./compile-all-examples.sh` and `./clean-all-examples.sh`
+> - On **Windows**: `./compile-all-examples.ps1` and `./clean-all-examples.ps1`
+
 
 ```bash
 # Clone the repository
