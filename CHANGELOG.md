@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-06-26
+
+### Added
+- User-friendly scripts for building and cleaning all example projects at once:
+  - `compile-all-examples.sh` and `clean-all-examples.sh` (Linux/macOS)
+  - `compile-all-examples.ps1` and `clean-all-examples.ps1` (Windows)
+- Emoji/status output in all scripts for a more pleasant user experience.
+
+### Improved
+- All example project outputs are now standardized to the `example-bin/` folder for easier access and cleanup.
+- Updated `README.md` to document the new scripts and output location for examples.
+
 ## [1.1.2] - 2025-06-20
 
 ### Improved

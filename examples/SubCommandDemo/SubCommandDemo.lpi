@@ -8,7 +8,6 @@
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
-        <UseDefaultCompilerOptions Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="SubCommandDemo"/>
@@ -16,19 +15,38 @@
       <ResourceType Value="res"/>
     </General>
     <BuildModes>
-      <Item Name="Default" Default="True"/>
-      <Item Name="Debug">
+      <Item Name="Default">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="SubCommandDemo"/>
+            <Filename Value="..\..\example-bin\SubCommandDemo"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="..\..\src"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
+        </CompilerOptions>
+      </Item>
+      <Item Name="Debug" Default="True">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="..\..\example-bin\SubCommandDemo"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="..\..\src"/>
+            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
           <Parsing>
             <SyntaxOptions>
               <IncludeAssertionCode Value="True"/>
@@ -58,13 +76,16 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="SubCommandDemo"/>
+            <Filename Value="..\..\example-bin\SubCommandDemo"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="..\..\src"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
             <Optimizations>
@@ -99,11 +120,16 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="SubCommandDemo"/>
+      <Filename Value="..\..\example-bin\SubCommandDemo"/>
     </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\..\src"/>
+      <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Other>
+      <CustomOptions Value="-FcUTF8"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>
