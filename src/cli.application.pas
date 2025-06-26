@@ -740,7 +740,10 @@ begin
       TConsole.WriteLn('');
       TConsole.WriteLn(Indent + 'SUBCOMMANDS:', ccCyan);
       for Cmd in Command.SubCommands do
+      begin
         ShowCompleteHelp(Indent + '  ', Cmd);
+        TConsole.WriteLn(''); // Add a blank line after each subcommand for clarity
+      end;
     end;
   end;
   
