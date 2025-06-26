@@ -200,7 +200,14 @@ begin
     ShowHelp;
     Exit;
   end;
-  
+
+  // Show general help if -h or --help is the only argument
+  if (ParamCount = 1) and ((ParamStr(1) = '-h') or (ParamStr(1) = '--help')) then
+  begin
+    ShowHelp;
+    Exit;
+  end;
+
   // Handle global help flag
   if (ParamStr(1) = '--help-complete') then
   begin
