@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.2-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.3-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
