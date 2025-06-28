@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.3-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.4-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -33,6 +33,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [🤝 Contributing](#-contributing)
   - [📝 License](#-license)
   - [🙏 Acknowledgments](#-acknowledgments)
+  - [🧩 Bash Completion Script (`--completion-file`)](#-bash-completion-script---completion-file)
 
 ## ✨ Features
 
@@ -48,6 +49,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - Short and long flags (`-h`, `--help`)
   - Automatic help generation
   - Colored output support
+  - **Advanced Bash Completion**: Generate a Bash completion script for your CLI with `--completion-file` (see below for safe usage)
 - **Robust Error Handling**
   - Clear error messages for unknown commands and subcommands
   - Validation of command-line flags and parameters
@@ -313,3 +315,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
 - Thanks to the Free Pascal community for their support and contributions
+
+## 🧩 Bash Completion Script (`--completion-file`)
+
+Generate a Bash completion script for your CLI with:
+
+```bash
+./yourcli --completion-file > myapp-completion.sh
+```
+
+- **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
+- **Subcommands:** Only `-h` and `--help` are offered as global flags.
+- **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
+
+> This matches the CLI's actual argument parsing and ensures completions are always valid. See the user manual for full details and safe usage instructions.

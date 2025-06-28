@@ -83,6 +83,9 @@ type
       @param Value The value to validate
       @returns True if validation passes, False if any check fails }
     function ValidateParameterValue(const Param: ICommandParameter; const Value: string): Boolean;
+    
+    { Outputs a Bash completion script for the application }
+    procedure OutputBashCompletionScript;
   public
     { Creates a new CLI application instance
       @param AName Application name
@@ -208,10 +211,29 @@ begin
     Exit;
   end;
 
-  // Handle global help flag
-  if (ParamStr(1) = '--help-complete') then
+  // Show complete help if --help-complete is the only argument
+  if (ParamCount = 1) and (ParamStr(1) = '--help-complete') then
   begin
     ShowCompleteHelp;
+    Exit;
+  end;
+
+  // Handle global completion file flag
+  if (ParamStr(1) = '--completion-file') then
+  begin
+    // Check if user is writing directly to .bashrc or .bash_profile (as argument)
+    if (ParamCount > 1) and (
+      (Pos('.bashrc', LowerCase(ParamStr(2))) > 0) or
+      (Pos('.bash_profile', LowerCase(ParamStr(2))) > 0)
+    ) then
+    begin
+      TConsole.WriteLn('⚠️  Warning: Do NOT write completion scripts directly to .bashrc or .bash_profile! Source them instead to avoid polluting your shell config.', ccYellow);
+      TConsole.WriteLn('Example:');
+      TConsole.WriteLn('  ./'+ExtractFileName(ParamStr(0))+' --completion-file > myapp-completion.sh');
+      TConsole.WriteLn('  echo "source $(pwd)/myapp-completion.sh" >> ~/.bashrc');
+      TConsole.WriteLn('');
+    end;
+    OutputBashCompletionScript;
     Exit;
   end;
   
@@ -890,6 +912,116 @@ end;
 function TCLIApplication.TestValidateCommand: Boolean;
 begin
   Result := ValidateCommand;
+end;
+
+{ OutputBashCompletionScript: Outputs a Bash completion script for the application }
+procedure TCLIApplication.OutputBashCompletionScript;
+  procedure OutputBashTree(const Cmd: ICommand; const Path: string);
+  var
+    Sub: ICommand;
+    Param: ICommandParameter;
+    SubNames, ParamFlags: string;
+  begin
+    // Output subcommands for this path
+    SubNames := '';
+    for Sub in Cmd.SubCommands do
+    begin
+      if SubNames <> '' then SubNames := SubNames + ' ';
+      SubNames := SubNames + Sub.Name;
+    end;
+    // Output parameters for this path
+    ParamFlags := '';
+    for Param in Cmd.Parameters do
+    begin
+      if ParamFlags <> '' then ParamFlags := ParamFlags + ' ';
+      ParamFlags := ParamFlags + Param.LongFlag;
+      if Param.ShortFlag <> '' then
+        ParamFlags := ParamFlags + ' ' + Param.ShortFlag;
+    end;
+    // Only add -h and --help as global flags for non-root nodes
+    if ParamFlags <> '' then
+      ParamFlags := ParamFlags + ' ';
+    ParamFlags := ParamFlags + '--help -h';
+    // Output Bash associative arrays for this path (no leading spaces)
+    TConsole.WriteLn('tree["' + Path + '|subcommands"]="' + SubNames + '"');
+    TConsole.WriteLn('tree["' + Path + '|params"]="' + ParamFlags + '"');
+    // Recurse for subcommands
+    for Sub in Cmd.SubCommands do
+      OutputBashTree(Sub, Path + ' ' + Sub.Name);
+  end;
+var
+  Cmd: ICommand;
+  BashFunc, AppName, RootSubNames, RootParamFlags: string;
+begin
+  AppName := ExtractFileName(ParamStr(0));
+  BashFunc := '_' + LowerCase(FName) + '_completions';
+
+  TConsole.WriteLn('#!/bin/bash');
+  TConsole.WriteLn('declare -A tree');
+
+  // Output the root (empty path) entry for top-level completions
+  RootSubNames := '';
+  RootParamFlags := '';
+  for Cmd in FCommands do
+  begin
+    if RootSubNames <> '' then RootSubNames := RootSubNames + ' ';
+    RootSubNames := RootSubNames + Cmd.Name;
+  end;
+  // Add global flags for root only
+  RootParamFlags := '--help --help-complete --version --completion-file -h';
+  // Use a special root key for Bash associative array (no leading spaces)
+  TConsole.WriteLn('tree["__root__|subcommands"]="' + RootSubNames + '"');
+  TConsole.WriteLn('tree["__root__|params"]="' + RootParamFlags + '"');
+
+  // Output the command tree
+  for Cmd in FCommands do
+    OutputBashTree(Cmd, Cmd.Name);
+
+  TConsole.WriteLn('');
+  TConsole.WriteLn(BashFunc+'()');
+  TConsole.WriteLn('{');
+  TConsole.WriteLn('  local cur words cword path subcmds params i');
+  TConsole.WriteLn('  # DEBUG: Print function call and COMP_WORDS');
+  TConsole.WriteLn('  # Uncomment for debugging:');
+  TConsole.WriteLn('  # echo "[DEBUG] Called: $FUNCNAME, COMP_WORDS=(\"${COMP_WORDS[@]}\") COMP_CWORD=$COMP_CWORD" >&2');
+  TConsole.WriteLn('  cur="${COMP_WORDS[COMP_CWORD]}"');
+  TConsole.WriteLn('  words=("${COMP_WORDS[@]}")');
+  TConsole.WriteLn('  cword=$COMP_CWORD');
+  TConsole.WriteLn('  # Determine path and index');
+  TConsole.WriteLn('  if [[ $cword -eq 1 ]]; then');
+  TConsole.WriteLn('    path="__root__"');
+  TConsole.WriteLn('    i=1');
+  TConsole.WriteLn('  else');
+  TConsole.WriteLn('    path="${words[1]}"');
+  TConsole.WriteLn('    i=2');
+  TConsole.WriteLn('    while [[ $i -le $cword ]]; do');
+  TConsole.WriteLn('      subcmds="${tree[$path|subcommands]}"');
+  TConsole.WriteLn('      found=0');
+  TConsole.WriteLn('      for sub in $subcmds; do');
+  TConsole.WriteLn('        if [[ "${words[$i]}" == "$sub" ]]; then');
+  TConsole.WriteLn('          path="$path $sub"');
+  TConsole.WriteLn('          found=1');
+  TConsole.WriteLn('          break');
+  TConsole.WriteLn('        fi');
+  TConsole.WriteLn('      done');
+  TConsole.WriteLn('      if [[ $found -eq 0 ]]; then break; fi');
+  TConsole.WriteLn('      ((i++))');
+  TConsole.WriteLn('    done');
+  TConsole.WriteLn('  fi');
+  TConsole.WriteLn('  subcmds="${tree[$path|subcommands]}"');
+  TConsole.WriteLn('  params="${tree[$path|params]}"');
+  TConsole.WriteLn('  # DEBUG: Print path, subcmds, params, i, cword');
+  TConsole.WriteLn('  # Uncomment for debugging:');
+  TConsole.WriteLn('  # echo "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword cur=[$cur]" >&2');
+  TConsole.WriteLn('  if [[ -n "$subcmds" && $i -eq $cword ]]; then');
+  TConsole.WriteLn('    COMPREPLY=( $(compgen -W "$subcmds $params" -- "$cur") )');
+  TConsole.WriteLn('  else');
+  TConsole.WriteLn('    COMPREPLY=( $(compgen -W "$params" -- "$cur") )');
+  TConsole.WriteLn('  fi');
+  TConsole.WriteLn('  return 0');
+  TConsole.WriteLn('}');
+  TConsole.WriteLn('complete -F '+BashFunc+' '+AppName);
+  TConsole.WriteLn('complete -F '+BashFunc+' ./'+AppName);
 end;
 
 end.

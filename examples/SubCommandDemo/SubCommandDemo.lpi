@@ -15,7 +15,8 @@
       <ResourceType Value="res"/>
     </General>
     <BuildModes>
-      <Item Name="Default">
+      <Item Name="Default" Default="True"/>
+      <Item Name="Debug">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -27,26 +28,6 @@
             <OtherUnitFiles Value="..\..\src"/>
             <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
-          <Other>
-            <CustomOptions Value="-FcUTF8"/>
-          </Other>
-        </CompilerOptions>
-      </Item>
-      <Item Name="Debug" Default="True">
-        <CompilerOptions>
-          <Version Value="11"/>
-          <PathDelim Value="\"/>
-          <Target>
-            <Filename Value="..\..\example-bin\SubCommandDemo"/>
-          </Target>
-          <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\..\src"/>
-            <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
-          </SearchPaths>
-          <Other>
-            <CustomOptions Value="-FcUTF8"/>
-          </Other>
           <Parsing>
             <SyntaxOptions>
               <IncludeAssertionCode Value="True"/>
@@ -69,6 +50,9 @@
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
           </Linking>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
         </CompilerOptions>
       </Item>
       <Item Name="Release">
@@ -83,9 +67,6 @@
             <OtherUnitFiles Value="..\..\src"/>
             <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
-          <Other>
-            <CustomOptions Value="-FcUTF8"/>
-          </Other>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
             <Optimizations>
@@ -99,6 +80,9 @@
             </Debugging>
             <LinkSmart Value="True"/>
           </Linking>
+          <Other>
+            <CustomOptions Value="-FcUTF8"/>
+          </Other>
         </CompilerOptions>
       </Item>
     </BuildModes>
@@ -127,6 +111,11 @@
       <OtherUnitFiles Value="..\..\src"/>
       <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
     <Other>
       <CustomOptions Value="-FcUTF8"/>
     </Other>

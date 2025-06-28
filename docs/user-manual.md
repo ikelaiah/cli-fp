@@ -1046,3 +1046,55 @@ finally
   Progress.Stop;
 end;
 ```
+
+## Bash Completion
+
+The CLI framework provides an advanced Bash completion system. You can generate a completion script using the `--completion-file` global flag:
+
+```bash
+./yourcli --completion-file > myapp-completion.sh
+```
+
+**Safe Usage:**
+- Do NOT write the completion script directly to your `.bashrc` or `.bash_profile`.
+- Instead, source the generated script from your shell config:
+
+```bash
+echo 'source $(pwd)/myapp-completion.sh' >> ~/.bashrc
+```
+
+> The CLI can only warn you if you pass `.bashrc` (or similar) as a direct argument. If you use shell redirection (`> ~/.bashrc`), the CLI cannot detect this, so please follow the safe usage instructions above.
+
+### Features of the Generated Script
+
+- Tab-completion for all commands, subcommands, and parameters
+- **Context-aware:** Only valid subcommands and parameters for the current command path are suggested
+- **Global flags:**
+  - At the root level, completions include all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`).
+  - At all subcommand levels, only `-h` and `--help` are offered as global flags (matching the CLI's actual behavior).
+- Stays up-to-date with your CLI's structure
+- No external dependencies required
+
+### How It Works
+
+- The script uses a Bash associative array to represent the full command/subcommand/parameter tree.
+- Completions are context-sensitive: only valid subcommands and parameters for the current path are suggested.
+- Global flags are only included where they are actually accepted by the CLI.
+
+**Example:**
+If your CLI has a structure like:
+```
+mycli repo clone --url ...
+mycli repo init --path ...
+mycli repo remote add ...
+```
+Then, after typing `mycli repo` and pressing Tab, you will see only valid subcommands and `-h`/`--help`. Only at the root will you see all global flags. After `mycli repo clone -`, you will see only valid parameters for `clone` plus `-h`/`--help`.
+
+> This matches the behavior of popular tools like `git` and `docker`, and ensures a user-friendly and robust completion experience.
+
+#### Technical Rationale
+
+- The completion script generator outputs a Bash associative array for the command tree.
+- The root node includes all global flags; subcommands only include help flags.
+- This ensures completions are always valid and never suggest flags that would be rejected by the CLI parser.
+- The approach is robust, user-friendly, and matches modern CLI conventions.

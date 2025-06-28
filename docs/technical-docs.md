@@ -479,3 +479,14 @@ Format('Error: Parameter "%s" must be a valid URL starting with http://, https:/
 4. If all validations pass:
    - Command's Execute method is called
    - Returns command's result code
+
+## Bash Completion Script Generator
+
+The CLI framework includes an advanced Bash completion script generator, accessible via the `--completion-file` global flag. This generator outputs a Bash script that provides context-aware tab completion for your CLI.
+
+- At the root level, completions include all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`).
+- At all subcommand levels, only `-h` and `--help` are offered as global flags.
+- The script uses a Bash associative array to represent the command/subcommand/parameter tree.
+- Completions are always valid for the current command path; global flags are only available where accepted by the CLI.
+
+This design matches the behavior of popular tools like `git` and ensures a robust and user-friendly completion experience.

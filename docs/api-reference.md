@@ -661,6 +661,7 @@ begin
   App.RegisterCommand(Cmd);
   ExitCode := App.Execute;
 end;
+```
 
 #### 2. Error Handling Example
 
@@ -735,3 +736,13 @@ begin
   ExitCode := App.Execute;
 end;
 ```
+
+### OutputBashCompletionScript
+
+Outputs a Bash completion script for the application, reflecting the full command/subcommand/parameter tree.
+
+- Completions are context-aware: only valid subcommands and parameters for the current path are suggested.
+- **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
+- **Subcommands:** Only `-h` and `--help` are offered as global flags.
+
+See the user manual for usage and safe sourcing instructions.

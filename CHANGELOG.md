@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-06-28
+
+### Added
+- Global `--completion-file` option to output an advanced Bash completion script reflecting the full command/subcommand/flag tree.
+- Safety warning if user attempts to write completion script directly to `.bashrc` (with usage guidance for safe sourcing).
+- Documentation and usage examples for the new completion feature in the README.
+
+### Improved
+- Help system: `-h`/`--help` now show general help if no command is specified, matching modern CLI conventions.
+- Bash completion script generator now outputs a script that fully reflects the CLI structure, including all commands, subcommands, and flags.
+
+### Changed
+- Bash completion script (`--completion-file`) is now stricter and more accurate: only the root level offers all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`), while subcommands only offer `-h` and `--help` as global flags. Completions are always context-aware and match the CLI's actual argument parsing.
+
+### Testing & Documentation
+- Guidance on how to test and safely use the new completion feature, including manual and optional automated test strategies.
+- README updated to document safe usage of `--completion-file` and to discourage polluting shell config files.
+
 ## [1.1.3] - 2025-06-26
 
 ### Added
