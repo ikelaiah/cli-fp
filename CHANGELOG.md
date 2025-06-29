@@ -9,19 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Global `--completion-file` option to output an advanced Bash completion script reflecting the full command/subcommand/flag tree.
+- Global `--completion-file-pwsh` option to output a robust, context-aware PowerShell completion script for your CLI.
 - Safety warning if user attempts to write completion script directly to `.bashrc` (with usage guidance for safe sourcing).
-- Documentation and usage examples for the new completion feature in the README.
+- Documentation and usage examples for both Bash and PowerShell completion features in the README and user manual.
 
 ### Improved
 - Help system: `-h`/`--help` now show general help if no command is specified, matching modern CLI conventions.
-- Bash completion script generator now outputs a script that fully reflects the CLI structure, including all commands, subcommands, and flags.
+- Bash and PowerShell completion script generators now output scripts that fully reflect the CLI structure, including all commands, subcommands, and flags.
 
 ### Changed
 - Bash completion script (`--completion-file`) is now stricter and more accurate: only the root level offers all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`), while subcommands only offer `-h` and `--help` as global flags. Completions are always context-aware and match the CLI's actual argument parsing.
+- PowerShell completion script (`--completion-file-pwsh`) now provides completions for subcommands and flags at every level, never falls back to file completion, and matches the behavior of modern CLI frameworks.
 
 ### Testing & Documentation
-- Guidance on how to test and safely use the new completion feature, including manual and optional automated test strategies.
-- README updated to document safe usage of `--completion-file` and to discourage polluting shell config files.
+- Bash completion tested on Ubuntu 24.04; PowerShell completion tested on PowerShell 7.5.2.
+- Guidance on how to test and safely use the new completion features, including manual and optional automated test strategies.
+- README and user manual updated to document safe usage of completion scripts and to discourage polluting shell config files.
 
 ## [1.1.3] - 2025-06-26
 
@@ -135,7 +138,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0
 
-## [Unreleased]
-- Improved PowerShell tab completion: Now provides robust, context-aware completions for subcommands and flags at every level, matching modern CLI frameworks (see user manual for details).
-- PowerShell completion script generation logic updated in `cli.application.pas`.
-- Minor: README and user manual updated to reflect new completion behavior.
