@@ -181,6 +181,16 @@ end;
     - [Add Subcommands](#add-subcommands-1)
     - [Register and Run](#register-and-run-1)
     - [Progress Indicators](#progress-indicators-1)
+  - [Bash Completion](#bash-completion)
+    - [Features of the Generated Script](#features-of-the-generated-script)
+    - [How It Works](#how-it-works)
+      - [Technical Rationale](#technical-rationale)
+  - [PowerShell Tab Completion (v2025.06)](#powershell-tab-completion-v202506)
+    - [Overview](#overview-1)
+    - [How to Enable](#how-to-enable)
+    - [Usage](#usage)
+    - [Example](#example)
+    - [Notes](#notes)
 
 
 
@@ -1098,3 +1108,40 @@ Then, after typing `mycli repo` and pressing Tab, you will see only valid subcom
 - The root node includes all global flags; subcommands only include help flags.
 - This ensures completions are always valid and never suggest flags that would be rejected by the CLI parser.
 - The approach is robust, user-friendly, and matches modern CLI conventions.
+
+
+## PowerShell Tab Completion (v2025.06)
+
+### Overview
+The CLI now provides robust, context-aware PowerShell tab completion for all commands, subcommands, and flags. This matches the experience of modern CLI tools (e.g., Go's Cobra, git, etc.).
+
+### How to Enable
+1. Generate the completion script:
+   ```powershell
+   ./YourApp.exe --completion-file-pwsh > myapp-completion.ps1
+   ```
+2. Load it in your PowerShell session:
+   ```powershell
+   . ./myapp-completion.ps1
+   ```
+3. (Optional) Add the above line to your `$PROFILE` for automatic loading.
+
+### Usage
+- After typing the executable and a space, press Tab to see all subcommands and global flags (not files).
+- After typing a subcommand and a space, press Tab to see sub-subcommands and flags for that subcommand.
+- Completion is context-aware at every level.
+- If there are no further subcommands, only flags are shown.
+- If nothing matches, file completion is suppressed.
+
+### Example
+```
+PS> ./SubCommandDemo.exe <Tab>
+  foo      bar      --help   --version
+PS> ./SubCommandDemo.exe foo <Tab>
+  sub1     sub2     --flag1  --help
+```
+
+### Notes
+- Works in PowerShell 7.5+ (tested)
+- The completion script is dynamically generated from the CLI command tree.
+- Bash completion is also supported (see README).

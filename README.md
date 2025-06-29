@@ -33,7 +33,10 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [🤝 Contributing](#-contributing)
   - [📝 License](#-license)
   - [🙏 Acknowledgments](#-acknowledgments)
+  - [� Completion Script Testing](#-completion-script-testing)
+  - [🧩 How to Generate Completion Scripts](#-how-to-generate-completion-scripts)
   - [🧩 Bash Completion Script (`--completion-file`)](#-bash-completion-script---completion-file)
+  - [🧩 PowerShell Completion Script (`--completion-file-pwsh`)](#-powershell-completion-script---completion-file-pwsh)
 
 ## ✨ Features
 
@@ -316,6 +319,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with Free Pascal and Lazarus IDE
 - Thanks to the Free Pascal community for their support and contributions
 
+## 🧪 Completion Script Testing
+- **Bash completion** tested on Ubuntu 24.04 (works in standard bash shells)
+- **PowerShell completion** tested on PowerShell 7.5.2 (cross-platform)
+
+> **Tip:** To check your PowerShell version, run:
+> ```powershell
+> $PSVersionTable.PSVersion
+> ```
+
+## 🧩 How to Generate Completion Scripts
+
+- **Bash:**
+  ```bash
+  ./yourcli --completion-file > myapp-completion.sh
+  ```
+- **PowerShell:**
+  ```powershell
+  ./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
+  ```
+
 ## 🧩 Bash Completion Script (`--completion-file`)
 
 Generate a Bash completion script for your CLI with:
@@ -329,3 +352,17 @@ Generate a Bash completion script for your CLI with:
 - **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
 
 > This matches the CLI's actual argument parsing and ensures completions are always valid. See the user manual for full details and safe usage instructions.
+
+## 🧩 PowerShell Completion Script (`--completion-file-pwsh`)
+
+Generate a PowerShell completion script for your CLI with:
+
+```powershell
+./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
+```
+
+- **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
+- **No file fallback:** Only valid completions are shown (never files)
+- **Works in PowerShell 7.5+** (cross-platform)
+
+> See the user manual for setup and usage details.

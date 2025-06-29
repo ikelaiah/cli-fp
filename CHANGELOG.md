@@ -134,3 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - System requirements and compatibility information
 
 [1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0
+
+## [Unreleased]
+- Improved PowerShell tab completion: Now provides robust, context-aware completions for subcommands and flags at every level, matching modern CLI frameworks (see user manual for details).
+- PowerShell completion script generation logic updated in `cli.application.pas`.
+- Minor: README and user manual updated to reflect new completion behavior.
