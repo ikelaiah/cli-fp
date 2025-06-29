@@ -66,7 +66,7 @@ end;
 
 ### Parameter Helper Methods
 
-The `TBaseCommand` class provides helper methods for adding parameters:
+The `TBaseCommand` class provides helper methods for adding parameters. All helper methods are available on `TBaseCommand` and its descendants:
 
 ```pascal
 // String parameter
@@ -118,6 +118,19 @@ Each helper method:
 - Handles default values appropriately
 - Adds the parameter to the command's parameter list
 - Validates values according to the parameter type
+
+#### Getting Parameter Values
+
+`TBaseCommand` provides overloaded `GetParameterValue` methods for type safety:
+
+```pascal
+function GetParameterValue(const Flag: string; out Value: string): Boolean;
+function GetParameterValue(const Flag: string; out Value: Integer): Boolean;
+function GetParameterValue(const Flag: string; out Value: Double): Boolean;
+function GetParameterValue(const Flag: string; out Value: Boolean): Boolean;
+```
+- Returns `True` if the parameter was provided or has a default value.
+- Automatically converts to the correct type and raises an error if the value is invalid.
 
 Example usage:
 ```pascal
@@ -378,6 +391,8 @@ Creates a new progress bar indicator.
 ```pascal
 function CreateProgressBar(const Total: Integer; const Width: Integer = 10): IProgressIndicator;
 ```
+- `Total`: The total number of steps (required)
+- `Width`: The width of the progress bar in characters (optional)
 
 ### CLI.Console
 
@@ -737,12 +752,27 @@ begin
 end;
 ```
 
-### OutputBashCompletionScript
+### Completion Script Generation
 
-Outputs a Bash completion script for the application, reflecting the full command/subcommand/parameter tree.
+The framework can generate robust, context-aware completion scripts for both Bash and PowerShell:
 
-- Completions are context-aware: only valid subcommands and parameters for the current path are suggested.
+#### Bash Completion
+- Generate with:
+  ```bash
+  ./yourcli --completion-file > myapp-completion.sh
+  ```
 - **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
 - **Subcommands:** Only `-h` and `--help` are offered as global flags.
+- **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
+- **No file completion is ever offered.**
 
-See the user manual for usage and safe sourcing instructions.
+#### PowerShell Completion
+- Generate with:
+  ```powershell
+  ./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
+  ```
+- **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
+- **No file fallback:** Only valid completions are shown (never files)
+- **Works in PowerShell 7.5+** (cross-platform)
+
+See the user manual for setup, usage, and safe sourcing instructions.
