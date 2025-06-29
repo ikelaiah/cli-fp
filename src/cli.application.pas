@@ -86,6 +86,9 @@ type
     
     { Outputs a Bash completion script for the application }
     procedure OutputBashCompletionScript;
+    
+    { Outputs a PowerShell completion script for the application }
+    procedure OutputPowerShellCompletionScript;
   public
     { Creates a new CLI application instance
       @param AName Application name
@@ -218,6 +221,13 @@ begin
     Exit;
   end;
 
+  // Show version if -v or --version is the only argument
+  if (ParamCount = 1) and ((ParamStr(1) = '-v') or (ParamStr(1) = '--version')) then
+  begin
+    ShowVersion;
+    Exit;
+  end;
+
   // Handle global completion file flag
   if (ParamStr(1) = '--completion-file') then
   begin
@@ -234,6 +244,16 @@ begin
       TConsole.WriteLn('');
     end;
     OutputBashCompletionScript;
+    Exit;
+  end;
+  // Handle PowerShell completion file flag
+  if (ParamStr(1) = '--completion-file-pwsh') then
+  begin
+    TConsole.WriteLn('# Usage: ./' + ExtractFileName(ParamStr(0)) + ' --completion-file-pwsh > myapp-completion.ps1');
+    TConsole.WriteLn('# Then in PowerShell:');
+    TConsole.WriteLn('#   . ./myapp-completion.ps1');
+    TConsole.WriteLn('# To make it permanent, add the above line to your $PROFILE');
+    OutputPowerShellCompletionScript;
     Exit;
   end;
   
@@ -995,7 +1015,7 @@ begin
   TConsole.WriteLn('    path="${words[1]}"');
   TConsole.WriteLn('    i=2');
   TConsole.WriteLn('    while [[ $i -le $cword ]]; do');
-  TConsole.WriteLn('      subcmds="${tree[$path|subcommands]}"');
+  TConsole.WriteLn('      $subcmds="${tree[$path|subcommands]}"');
   TConsole.WriteLn('      found=0');
   TConsole.WriteLn('      for sub in $subcmds; do');
   TConsole.WriteLn('        if [[ "${words[$i]}" == "$sub" ]]; then');
@@ -1010,7 +1030,7 @@ begin
   TConsole.WriteLn('  fi');
   TConsole.WriteLn('  subcmds="${tree[$path|subcommands]}"');
   TConsole.WriteLn('  params="${tree[$path|params]}"');
-  TConsole.WriteLn('  # DEBUG: Print path, subcmds, params, i, cword');
+  TConsole.WriteLn('  # DEBUG: Print path, subcmds, params, i, cword, cur');
   TConsole.WriteLn('  # Uncomment for debugging:');
   TConsole.WriteLn('  # echo "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword cur=[$cur]" >&2');
   TConsole.WriteLn('  if [[ -n "$subcmds" && $i -eq $cword ]]; then');
@@ -1024,4 +1044,206 @@ begin
   TConsole.WriteLn('complete -F '+BashFunc+' ./'+AppName);
 end;
 
+{ OutputPowerShellCompletionScript: Outputs a PowerShell completion script for the application }
+procedure TCLIApplication.OutputPowerShellCompletionScript;
+  procedure OutputPSTree(const Cmd: ICommand; const Path: string);
+  var
+    Sub: ICommand;
+    Param: ICommandParameter;
+    SubNames, ParamFlags: string;
+  begin
+    // Output subcommands for this path
+    SubNames := '';
+    for Sub in Cmd.SubCommands do
+    begin
+      if SubNames <> '' then SubNames := SubNames + ' ';
+      SubNames := SubNames + Sub.Name;
+    end;
+    // Output parameters for this path
+    ParamFlags := '';
+    for Param in Cmd.Parameters do
+    begin
+      if ParamFlags <> '' then ParamFlags := ParamFlags + ' ';
+      ParamFlags := ParamFlags + Param.LongFlag;
+      if Param.ShortFlag <> '' then
+        ParamFlags := ParamFlags + ' ' + Param.ShortFlag;
+    end;
+    // Only add -h and --help as global flags for non-root nodes
+    if ParamFlags <> '' then
+      ParamFlags := ParamFlags + ' ';
+    ParamFlags := ParamFlags + '--help -h';
+    // Output PowerShell hashtable entries
+    TConsole.WriteLn('$tree["' + Path + '|subcommands"] = "' + SubNames + '"');
+    TConsole.WriteLn('$tree["' + Path + '|params"] = "' + ParamFlags + '"');
+    // Recurse for subcommands
+    for Sub in Cmd.SubCommands do
+      OutputPSTree(Sub, Path + ' ' + Sub.Name);
+  end;
+var
+  Cmd: ICommand;
+  AppName, RootSubNames, RootParamFlags: string;
+begin
+  AppName := ExtractFileName(ParamStr(0));
+  TConsole.WriteLn('# PowerShell argument completer for ' + AppName);
+  TConsole.WriteLn('$tree = @{}');
+
+  // Output the root (empty path) entry for top-level completions
+  RootSubNames := '';
+  RootParamFlags := '';
+  for Cmd in FCommands do
+  begin
+    if RootSubNames <> '' then RootSubNames := RootSubNames + ' ';
+    RootSubNames := RootSubNames + Cmd.Name;
+  end;
+  RootParamFlags := '--help --help-complete --version --completion-file -h';
+  TConsole.WriteLn('$tree["__root__|subcommands"] = "' + RootSubNames + '"');
+  TConsole.WriteLn('$tree["__root__|params"] = "' + RootParamFlags + '"');
+
+  // Output the command tree
+  for Cmd in FCommands do
+    OutputPSTree(Cmd, Cmd.Name);
+
+  TConsole.WriteLn('');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + AppName + '" -ScriptBlock {');
+  TConsole.WriteLn('  param($commandName, $wordToComplete, $cursorPosition, $commandAst, $fakeBoundParameters)');
+  TConsole.WriteLn('  # DEBUG: Print all $tree keys');
+  TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
+  TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
+  TConsole.WriteLn('  if ($null -ne $commandAst) {');
+  TConsole.WriteLn('    $line = $commandAst.ToString()');
+  TConsole.WriteLn('  } elseif ($args.Count -ge 3) {');
+  TConsole.WriteLn('    $line = $args[2]');
+  TConsole.WriteLn('  } else {');
+  TConsole.WriteLn('    $line = $wordToComplete');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  $words = $line -split " +"');
+  TConsole.WriteLn('  $cword = $words.Count - 1');
+  TConsole.WriteLn('  $path = "__root__"');
+  TConsole.WriteLn('  $i = 1');
+  TConsole.WriteLn('  if ($cword -ge 1) {');
+  TConsole.WriteLn('    $firstArg = $words[1]');
+  TConsole.WriteLn('    $rootSubcmds = $tree["__root__|subcommands"]');
+  TConsole.WriteLn('    if ($rootSubcmds -and ($rootSubcmds -split " " | Where-Object { $_ -eq $firstArg })) {');
+  TConsole.WriteLn('      $path = $firstArg');
+  TConsole.WriteLn('      $i = 2');
+  TConsole.WriteLn('      while ($i -le $cword) {');
+  TConsole.WriteLn('        $subcmds = $tree["$path|subcommands"]');
+  TConsole.WriteLn('        $found = $false');
+  TConsole.WriteLn('        foreach ($sub in $subcmds -split " ") {');
+  TConsole.WriteLn('          if ($words[$i] -eq $sub) {');
+  TConsole.WriteLn('            $path = "$path $sub"');
+  TConsole.WriteLn('            $found = $true');
+  TConsole.WriteLn('            break');
+  TConsole.WriteLn('          }');
+  TConsole.WriteLn('        }');
+  TConsole.WriteLn('        if (-not $found) { break }');
+  TConsole.WriteLn('        $i++');
+  TConsole.WriteLn('      }');
+  TConsole.WriteLn('    }');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  $subcmds = $tree["$path|subcommands"]');
+  TConsole.WriteLn('  $params = $tree["$path|params"]');
+  TConsole.WriteLn('  # DEBUG: Print key variables');
+  TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
+  TConsole.WriteLn('  # Detect if the cursor is after a space (i.e., starting a new word)');
+  TConsole.WriteLn('  $afterSpace = ($cursorPosition -gt 0 -and $line[$cursorPosition-1] -eq " ")');
+  TConsole.WriteLn('  if ($afterSpace) {');
+  TConsole.WriteLn('    $filter = ""');
+  TConsole.WriteLn('  } elseif ($words.Count -gt 0) {');
+  TConsole.WriteLn('    $filter = $words[-1]');
+  TConsole.WriteLn('    if ($words.Count -le 1 -or $filter -eq $commandName) { $filter = "" }');
+  TConsole.WriteLn('  } else {');
+  TConsole.WriteLn('    $filter = ""');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), set $filter to empty to show all completions');
+  TConsole.WriteLn('  if (($i - 1 -eq $cword)) { $filter = "" }');
+  TConsole.WriteLn('  # To test with a hardcoded completion list, uncomment the next line:');
+  TConsole.WriteLn('  # return ("foo", "bar", "baz") | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), show subcommands and params, or just params if no subcmds');
+  TConsole.WriteLn('  if ($i - 1 -eq $cword) {' );
+  TConsole.WriteLn('    $filter = ""');
+  TConsole.WriteLn('    if ($subcmds -ne "") {' );
+  TConsole.WriteLn('      ($subcmds + " " + $params) -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('    } elseif ($params -ne "") {' );
+  TConsole.WriteLn('      $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('    } else {' );
+  TConsole.WriteLn('      @()');
+  TConsole.WriteLn('    }');
+  TConsole.WriteLn('  } else {' );
+  TConsole.WriteLn('    $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('}');
+  // Register for .\\appname.exe as well (for local invocation)
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\\' + AppName + '" -ScriptBlock {');
+  TConsole.WriteLn('  param($commandName, $wordToComplete, $cursorPosition, $commandAst, $fakeBoundParameters)');
+  TConsole.WriteLn('  # DEBUG: Print all $tree keys');
+  TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
+  TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
+  TConsole.WriteLn('  if ($null -ne $commandAst) {');
+  TConsole.WriteLn('    $line = $commandAst.ToString()');
+  TConsole.WriteLn('  } elseif ($args.Count -ge 3) {');
+  TConsole.WriteLn('    $line = $args[2]');
+  TConsole.WriteLn('  } else {');
+  TConsole.WriteLn('    $line = $wordToComplete');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  $words = $line -split " +"');
+  TConsole.WriteLn('  $cword = $words.Count - 1');
+  TConsole.WriteLn('  $path = "__root__"');
+  TConsole.WriteLn('  $i = 1');
+  TConsole.WriteLn('  if ($cword -ge 1) {');
+  TConsole.WriteLn('    $firstArg = $words[1]');
+  TConsole.WriteLn('    $rootSubcmds = $tree["__root__|subcommands"]');
+  TConsole.WriteLn('    if ($rootSubcmds -and ($rootSubcmds -split " " | Where-Object { $_ -eq $firstArg })) {');
+  TConsole.WriteLn('      $path = $firstArg');
+  TConsole.WriteLn('      $i = 2');
+  TConsole.WriteLn('      while ($i -le $cword) {');
+  TConsole.WriteLn('        $subcmds = $tree["$path|subcommands"]');
+  TConsole.WriteLn('        $found = $false');
+  TConsole.WriteLn('        foreach ($sub in $subcmds -split " ") {');
+  TConsole.WriteLn('          if ($words[$i] -eq $sub) {');
+  TConsole.WriteLn('            $path = "$path $sub"');
+  TConsole.WriteLn('            $found = $true');
+  TConsole.WriteLn('            break');
+  TConsole.WriteLn('          }');
+  TConsole.WriteLn('        }');
+  TConsole.WriteLn('        if (-not $found) { break }');
+  TConsole.WriteLn('        $i++');
+  TConsole.WriteLn('      }');
+  TConsole.WriteLn('    }');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  $subcmds = $tree["$path|subcommands"]');
+  TConsole.WriteLn('  $params = $tree["$path|params"]');
+  TConsole.WriteLn('  # DEBUG: Print key variables');
+  TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
+  TConsole.WriteLn('  # Detect if the cursor is after a space (i.e., starting a new word)');
+  TConsole.WriteLn('  $afterSpace = ($cursorPosition -gt 0 -and $line[$cursorPosition-1] -eq " ")');
+  TConsole.WriteLn('  if ($afterSpace) {');
+  TConsole.WriteLn('    $filter = ""');
+  TConsole.WriteLn('  } elseif ($words.Count -gt 0) {');
+  TConsole.WriteLn('    $filter = $words[-1]');
+  TConsole.WriteLn('    if ($words.Count -le 1 -or $filter -eq $commandName) { $filter = "" }');
+  TConsole.WriteLn('  } else {');
+  TConsole.WriteLn('    $filter = ""');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), set $filter to empty to show all completions');
+  TConsole.WriteLn('  if (($i - 1 -eq $cword)) { $filter = "" }');
+  TConsole.WriteLn('  # To test with a hardcoded completion list, uncomment the next line:');
+  TConsole.WriteLn('  # return ("foo", "bar", "baz") | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), show subcommands and params, or just params if no subcmds');
+  TConsole.WriteLn('  if ($i - 1 -eq $cword) {' );
+  TConsole.WriteLn('    $filter = ""');
+  TConsole.WriteLn('    if ($subcmds -ne "") {' );
+  TConsole.WriteLn('      ($subcmds + " " + $params) -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('    } elseif ($params -ne "") {' );
+  TConsole.WriteLn('      $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('    } else {' );
+  TConsole.WriteLn('      @()');
+  TConsole.WriteLn('    }');
+  TConsole.WriteLn('  } else {' );
+  TConsole.WriteLn('    $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('  }');
+  TConsole.WriteLn('}');
+end;
+
+// To enable: add a CLI flag (e.g. --completion-file-pwsh) to call OutputPowerShellCompletionScript.
 end.
