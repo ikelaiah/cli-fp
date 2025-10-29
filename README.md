@@ -17,11 +17,6 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
-  - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
-    - [Basic Types](#basic-types)
-    - [Boolean and Flags](#boolean-and-flags)
-    - [Complex Types](#complex-types)
-    - [Validation Rules](#validation-rules)
   - [📖 Screenshots](#-screenshots)
   - [📖 System Requirements](#-system-requirements)
     - [Tested Environments](#tested-environments)
@@ -70,172 +65,39 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
 
 No complex build system needed! Just:
 
-> **Note:** All example builds output their executables and units to the `example-bin/` folder in the repository root for easy access and cleanup.
->
-> **Tip:** To build or clean all example projects at once, use the provided scripts:
->
-> - On **Linux/macOS**: `./compile-all-examples.sh` and `./clean-all-examples.sh`
-> - On **Windows**: `./compile-all-examples.ps1` and `./clean-all-examples.ps1`
-
-
 ```bash
 # Clone the repository
 git clone https://github.com/ikelaiah/cli-fp.git
 
-# Or copy the source files to your project's directory
+# Either copy the source files in src/ to your project's directory...
+fpc fpmake.pas
+./fpmake [...]
 ```
+
+Run `./fpmake --help` for usage instructions.
+
+You also can read [this](https://wiki.freepascal.org/FPMake).
+
+To build examples:
+
+```bash
+./fpmake --build-mode=examples [...]
+```
+
+To build the library only:
+
+```bash
+./fpmake --build-mode=units [...]
+```
+
+You can also open [this](packages/lazarus/cli_fp.lpk) in Lazarus as a Lazarus package.
 
 2. **Use in Your Project**
 
 - Add the source directory to your project's search path (Project -> Project Options ... -> Compiler Options -> Paths -> Other unit files)
-- Add the units to your uses clause:
-
-```pascal
-uses
-  CLI.Interfaces,    // Core interfaces
-  CLI.Application,   // Main application framework
-  CLI.Command,       // Base command implementation
-  CLI.Parameter,     // Parameter handling
-  CLI.Progress,      // Optional: Progress indicators
-  CLI.Console;       // Optional: Colored console output
-```
-
-3. **Create Your First CLI App**
-
-```pascal
-program MyApp;
-
-{$mode objfpc}{$H+}{$J-}
-
-uses
-  SysUtils,
-  CLI.Interfaces,
-  CLI.Application,
-  CLI.Command;
-
-type
-  // Define a new command
-  TGreetCommand = class(TBaseCommand)
-  public
-    function Execute: integer; override;
-  end;
-
-  function TGreetCommand.Execute: integer;
-  var
-    Name: string;
-  begin
-    // Get parameter value using helper method
-    if GetParameterValue('--name', Name) then
-      WriteLn('Hello, ', Name, '!')
-    else
-      WriteLn('Hello, World!');
-    Result := 0;
-  end;
-
-{ Main program }
-var
-  App: ICLIApplication;
-  Cmd: TGreetCommand;
-
-begin
-  App := CreateCLIApplication('MyApp', '1.0.0');
-  
-  // Create and configure command
-  Cmd := TGreetCommand.Create('greet', 'Say hello');
-  Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
-  
-  // Register command
-  App.RegisterCommand(Cmd);
-  
-  // Execute application
-  ExitCode := App.Execute;
-end.
-```
-
-**Output:**
-```
-$ ./myapp greet --name "John"
-Hello, John!
-
-$ ./myapp greet
-Hello, World!
-
-$ ./myapp greet --help
-Usage: myapp greet [options]
-
-Say hello
-
-Options:
-  -n, --name           Name to greet
-      Default: World
-  -h, --help          Show this help message
-```
-
-**Lazarus users:**
-A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
-To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
-
-## 🎯 Parameter Types and Validation
-
-The framework provides comprehensive type-safe parameter handling with built-in validation:
-
-### Basic Types
-
-```pascal
-// String parameter
-Cmd.AddStringParameter('-n', '--name', 'Name to greet');
-
-// Integer parameter (required)
-Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);
-
-// Float parameter with default
-Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
-```
-
-### Boolean and Flags
-
-```pascal
-// Flag (true when present, false by default)
-Cmd.AddFlag('-v', '--verbose', 'Enable verbose output'); // Standard CLI behavior
-
-// Boolean parameter (explicit true/false)
-Cmd.AddBooleanParameter('-d', '--debug', 'Enable debug mode', False, 'false');
-```
-
-> **Note:** By default, flags created with `AddFlag` are `false` unless present on the command line. If you specify a default value of `'true'`, the flag will be `true` even if not present, which is nonstandard for CLI flags and not recommended unless you have a specific use case.
-
-### Complex Types
-
-```pascal
-// DateTime (YYYY-MM-DD HH:MM)
-Cmd.AddDateTimeParameter('-d', '--date', 'Start date');
-
-// Enum with allowed values
-Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
-
-// URL with protocol validation
-Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
-
-// Array (comma-separated)
-Cmd.AddArrayParameter('-t', '--tags', 'Tag list');
-
-// Password (masked in output)
-Cmd.AddPasswordParameter('-k', '--api-key', 'API Key');
-```
-
-### Validation Rules
-
-Each parameter type has built-in validation:
-
-- `String`: No validation
-- `Integer`: Must be a valid integer number
-- `Float`: Must be a valid floating-point number
-- `Boolean`: Must be 'true' or 'false' (case-insensitive)
-- `DateTime`: Must be in format "YYYY-MM-DD HH:MM" (24-hour)
-- `Enum`: Must match one of the pipe-separated allowed values
-- `URL`: Must start with http://, https://, git://, or ssh://
-- `Array`: No validation on individual items
-- `Password`: No validation, but value is masked in output
+- Read the documentation in [docs](docs/)
+- Do what you want: include units, create stuff
+- Profit:)
 
 ## 📖 Screenshots
 
@@ -247,22 +109,10 @@ Each parameter type has built-in validation:
 
 ### Tested Environments
 
-- **Operating System**: Windows 11, Ubuntu 24.04
-- **Compiler**: Free Pascal (FPC) 3.2.2
-- **IDE**: Lazarus 3.6, Lazarus 4.0
+- **Operating System**: Windows 11, Ubuntu 24.04, Ubuntu 25.10, Arch
+- **Compiler**: Free Pascal (FPC) 3.2.2, 3.3.1 (trunk)
 
-### Theoretical Compatibility
-
-- **Operating Systems**:
-  - Windows (7, 8, 10, 11)
-  - Linux (Any distribution with FPC support)
-  - macOS (with FPC support)
-  - FreeBSD
-- **Compiler**: Free Pascal 3.2.2 or higher
-- **IDE & Editor**: Any IDE that supports Free Pascal
-  - Lazarus 3.6 or higher
-  - VS Code with Pascal extensions
-  - Other text editors
+Most features - if not all - should work on all supported platforms of Free Pascal.
 
 ### Dependencies
 
@@ -272,7 +122,7 @@ Each parameter type has built-in validation:
 ### Build Requirements
 
 - Free Pascal Compiler (FPC) 3.2.2+
-- Lazarus 3.6+
+- ~~Lazarus 3.6+~~
 - Basic development tools (git, terminal, etc)
 
 ## 📖 Documentation
@@ -303,6 +153,8 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📝 License
 
