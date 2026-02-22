@@ -35,7 +35,7 @@ classDiagram
         <<interface>>
         +Start()
         +Stop()
-        +Update(Progress: Integer)
+        +Update(Progress: Integer, Caption: string = '')
     }
     
     class TCLIApplication {
@@ -79,18 +79,20 @@ classDiagram
     
     class TProgressIndicator {
         #FActive: Boolean
+        #FLastRenderLength: Integer
         +Start()
         +Stop()
-        +Update(Progress: Integer)*
-        #ClearLine()
+        +Update(Progress: Integer, Caption: string = '')*
+        #RenderText(Text: string)
     }
     
     class TProgressBar {
         -FTotal: Integer
         -FWidth: Integer
         -FLastProgress: Integer
+        -FLastCaption: string
         +Create(Total: Integer, Width: Integer)
-        +Update(Progress: Integer)
+        +Update(Progress: Integer, Caption: string = '')
     }
     
     class TSpinner {
@@ -98,7 +100,7 @@ classDiagram
         -FFrame: Integer
         -FFrames: array of string
         +Create(Style: TSpinnerStyle)
-        +Update(Progress: Integer)
+        +Update(Progress: Integer, Caption: string = '')
     }
 
     class TConsole {
@@ -172,7 +174,7 @@ end;
 IProgressIndicator = interface
   procedure Start;
   procedure Stop;
-  procedure Update(const Progress: Integer); // 0-100 for percentage
+  procedure Update(const Progress: Integer; const ACaption: string = '');
 end;
 ```
 
@@ -298,7 +300,7 @@ type
     FFrames: array of string;
   public
     constructor Create(const AStyle: TSpinnerStyle);
-    procedure Update(const Progress: Integer); override;
+    procedure Update(const Progress: Integer; const ACaption: string = ''); override;
   end;
 ```
 
@@ -311,7 +313,7 @@ private
   FLastProgress: Integer;
 public
   constructor Create(const ATotal: Integer; const AWidth: Integer = 10);
-  procedure Update(const Progress: Integer); override;
+  procedure Update(const Progress: Integer; const ACaption: string = ''); override;
 end;
 ```
 
@@ -392,8 +394,8 @@ begin
   Progress := CreateProgressBar(100, 20); // total=100, width=20
   Progress.Start;
   try
-    // Update progress
-    Progress.Update(50); // 50%
+    // Update progress with optional inline status text
+    Progress.Update(50, 'Halfway done'); // 50%
   finally
     Progress.Stop;
   end;

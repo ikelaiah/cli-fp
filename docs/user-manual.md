@@ -440,7 +440,7 @@ end;
 
 ### 3. Progress Indicators
 
-The framework provides two types of progress indicators: spinners for indeterminate progress (when you don't know the total steps) and progress bars for determinate progress (when you know the total steps).
+The framework provides two types of progress indicators: spinners for indeterminate progress (when you don't know the total steps) and progress bars for determinate progress (when you know the total steps). Both support optional inline status text via `Update(Progress, Caption)`.
 
 #### Spinner Types
 
@@ -537,7 +537,7 @@ begin
     for i := 0 to Files.Count - 1 do
     begin
       // Update spinner (will animate)
-      Spinner.Update(0);  // The parameter is ignored for spinners
+      Spinner.Update(0, 'Loading...');  // Progress value is ignored for spinners
       
       // Do your work here
       ProcessFile(Files[i]);
@@ -580,7 +580,7 @@ begin
     for i := 0 to Files.Count - 1 do
     begin
       // Update progress (current step)
-      Progress.Update(i + 1);
+      Progress.Update(i + 1, Format('File %d/%d', [i + 1, Files.Count]));
       
       // Do your work here
       CopyFile(Files[i], DestPath + ExtractFileName(Files[i]));

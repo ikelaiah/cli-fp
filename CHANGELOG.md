@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.6] - 2026-02-21
+
+### Added
+
+- Progress indicator captions:
+  - New `Update(const Progress: Integer; const ACaption: string = '')` API for inline status text (single supported caption style)
+
+### Improved
+
+- Progress line rendering now tracks previous output length and clears trailing characters correctly when status text changes length.
+- Spinner and progress bar now render optional caption text in a single managed line, so callers do not need to manually blank stale text.
+
+### Updated
+
+- `examples/ProgressDemo/ProgressDemo.lpr` now demonstrates inline caption updates via `Update(..., ACaption)`.
+- README updated for version `1.1.6` and caption feature usage.
+
 ## [1.1.5] - 2025-12-29
 
 ### Added
