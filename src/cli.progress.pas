@@ -37,12 +37,14 @@ type
     - Call Stop to end the progress indication }
   TProgressIndicator = class(TInterfacedObject, IProgressIndicator)
   protected
-    FActive: Boolean;  // Tracks whether the indicator is currently active
-    
-    { Clears the current line in the console
-      Used internally to prepare for updating the progress display }
-    procedure ClearLine; virtual;
+    FActive: Boolean;           // Tracks whether the indicator is currently active
+    FLastRenderLength: Integer; // Last rendered line length for proper overwrite
+
+    function ComposeText(const BaseText, ACaption: string): string; virtual;
+    procedure RenderText(const Text: string); virtual;
   public
+    constructor Create; virtual;
+
     { Starts the progress indication
       After calling Start, the indicator will be displayed when Update is called }
     procedure Start; virtual;
@@ -52,8 +54,9 @@ type
     procedure Stop; virtual;
     
     { Updates the progress display
-      @param Progress For spinner, ignored. For progress bar, current progress value }
-    procedure Update(const Progress: Integer); virtual; abstract;
+      @param Progress For spinner, ignored. For progress bar, current progress value
+      @param ACaption Optional status text shown next to indicator output }
+    procedure Update(const Progress: Integer; const ACaption: string = ''); virtual; abstract;
   end;
 
   { TSpinner - Animated spinner progress indicator
@@ -73,11 +76,12 @@ type
   public
     { Creates a new spinner with specified style
       @param AStyle The visual style to use for the spinner }
-    constructor Create(const AStyle: TSpinnerStyle);
+    constructor Create(const AStyle: TSpinnerStyle); reintroduce;
     
     { Updates the spinner animation
-      @param Progress Ignored for spinner (used for interface compatibility) }
-    procedure Update(const Progress: Integer); override;
+      @param Progress Ignored for spinner (used for interface compatibility)
+      @param ACaption Optional status text shown next to the spinner frame }
+    procedure Update(const Progress: Integer; const ACaption: string = ''); override;
   end;
 
   { TProgressBar - Visual progress bar indicator
@@ -91,19 +95,20 @@ type
     - Call Stop when complete }
   TProgressBar = class(TProgressIndicator)
   private
-    FTotal: Integer;        // Total value for 100% progress
-    FWidth: Integer;        // Width of the progress bar in characters
-    FLastProgress: Integer; // Last displayed progress to avoid unnecessary updates
+    FTotal: Integer;         // Total value for 100% progress
+    FWidth: Integer;         // Width of the progress bar in characters
+    FLastProgress: Integer;  // Last displayed progress to avoid unnecessary updates
+    FLastCaption: string;    // Last caption to allow redraw when only text changes
   public
     { Creates a new progress bar
       @param ATotal Total value representing 100% progress
       @param AWidth Width of the progress bar in characters (default 10) }
-    constructor Create(const ATotal: Integer; const AWidth: Integer = 10);
+    constructor Create(const ATotal: Integer; const AWidth: Integer = 10); reintroduce;
     
     { Updates the progress bar display
       @param Progress Current progress value (0 to FTotal)
       Note: Updates only when progress percentage changes }
-    procedure Update(const Progress: Integer); override;
+    procedure Update(const Progress: Integer; const ACaption: string = ''); override;
   end;
 
 { Helper functions to create progress indicators }
@@ -123,25 +128,44 @@ implementation
 
 { TProgressIndicator }
 
-procedure TProgressIndicator.ClearLine;
-var
-  i: Integer;
+constructor TProgressIndicator.Create;
 begin
-  Write(#13);  // Carriage return
-  for i := 1 to 80 do  // Clear entire line
-    Write(' ');
-  Write(#13);  // Return to start
+  inherited Create;
+  FActive := False;
+  FLastRenderLength := 0;
+end;
+
+function TProgressIndicator.ComposeText(const BaseText, ACaption: string): string;
+begin
+  Result := BaseText;
+  if ACaption <> EmptyStr then
+    Result := Result + ' ' + ACaption;
+end;
+
+procedure TProgressIndicator.RenderText(const Text: string);
+var
+  CurrentLength: Integer;
+begin
+  CurrentLength := Length(Text);
+  Write(#13);
+  Write(Text);
+  if CurrentLength < FLastRenderLength then
+    Write(StringOfChar(' ', FLastRenderLength - CurrentLength));
+  FLastRenderLength := CurrentLength;
+  Flush(Output);
 end;
 
 procedure TProgressIndicator.Start;
 begin
   FActive := True;
+  FLastRenderLength := 0;
 end;
 
 procedure TProgressIndicator.Stop;
 begin
   FActive := False;
   WriteLn;  // Move to next line after stopping
+  FLastRenderLength := 0;
 end;
 
 { TSpinner }
@@ -171,14 +195,15 @@ begin
   end;
 end;
 
-procedure TSpinner.Update(const Progress: Integer);
+procedure TSpinner.Update(const Progress: Integer; const ACaption: string);
+var
+  DisplayText: string;
 begin
   if not FActive then Exit;
   
-  Write(#13);  // Return to start of line
-  Write(FFrames[FFrame]);  // Write current frame
+  DisplayText := ComposeText(FFrames[FFrame], ACaption);
+  RenderText(DisplayText);
   FFrame := (FFrame + 1) mod Length(FFrames);  // Move to next frame
-  Flush(Output);  // Ensure immediate display
   Sleep(100);  // Delay for animation
 end;
 
@@ -190,9 +215,10 @@ begin
   FTotal := ATotal;
   FWidth := AWidth;
   FLastProgress := -1;  // Initialize to invalid progress to force first update
+  FLastCaption := EmptyStr;
 end;
 
-procedure TProgressBar.Update(const Progress: Integer);
+procedure TProgressBar.Update(const Progress: Integer; const ACaption: string);
 var
   Percentage: Integer;
   FilledWidth: Integer;
@@ -203,11 +229,12 @@ begin
   // Calculate current percentage
   Percentage := Round((Progress / FTotal) * 100);
   
-  // Skip update if percentage hasn't changed
-  if Percentage = FLastProgress then
+  // Skip update only if neither percentage nor caption changed
+  if (Percentage = FLastProgress) and (ACaption = FLastCaption) then
     Exit;
     
   FLastProgress := Percentage;
+  FLastCaption := ACaption;
   
   // Calculate filled portion of bar
   FilledWidth := Round((Percentage / 100) * FWidth);
@@ -219,9 +246,8 @@ begin
     StringOfChar('=', FilledWidth) + StringOfChar(' ', FWidth - FilledWidth),
     Percentage
   ]);
-  
-  ClearLine;
-  Write(ProgressText);
+
+  RenderText(ComposeText(ProgressText, ACaption));
 end;
 
 { Helper functions }

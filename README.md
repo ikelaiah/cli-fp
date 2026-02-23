@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.5-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.6-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -42,7 +42,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
 
 - 🎯 **Command & Subcommand Support**: Organize complex CLIs with hierarchical commands
 - 🔍 **Smart Parameter Handling**: Automatic validation and type checking
-- 📊 **Progress Indicators**: Built-in spinners and progress bars
+- 📊 **Progress Indicators**: Built-in spinners and progress bars with optional status captions
 - 🎨 **Colored Output**: Rich console output with basic color support
 - 📚 **Comprehensive Help System**: Auto-generated help with examples
 - 🛡️ **Type-Safe**: Interface-based design with strong typing
@@ -179,6 +179,43 @@ Options:
 **Lazarus users:**
 A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
 To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
+
+### Progress Indicator Captions (v1.1.6)
+
+Progress indicators now support inline status text via:
+`Update(const Progress: Integer; const ACaption: string = '')`.
+
+```pascal
+var
+  Spinner: IProgressIndicator;
+  Progress: IProgressIndicator;
+  i: Integer;
+begin
+  Spinner := CreateSpinner(ssLine);
+  Spinner.Start;
+  try
+    for i := 1 to 3 do
+    begin
+      Spinner.Update(0, Format('Preparing step %d/3', [i]));
+      Sleep(200);
+    end;
+  finally
+    Spinner.Stop;
+  end;
+
+  Progress := CreateProgressBar(3, 20);
+  Progress.Start;
+  try
+    for i := 1 to 3 do
+    begin
+      Progress.Update(i, Format('Processed item %d/3', [i]));
+      Sleep(200);
+    end;
+  finally
+    Progress.Stop;
+  end;
+end;
+```
 
 ## 🎯 Parameter Types and Validation
 

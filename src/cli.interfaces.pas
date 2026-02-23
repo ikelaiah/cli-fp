@@ -118,9 +118,10 @@ type
     { Stops the progress indicator animation/display }
     procedure Stop;
     
-    { Updates the progress percentage
-      @param Progress Integer between 0-100 representing completion percentage }
-    procedure Update(const Progress: Integer);
+    { Updates indicator output.
+      @param Progress For spinner, ignored. For progress bar, current progress value.
+      @param ACaption Optional status text displayed next to the indicator. }
+    procedure Update(const Progress: Integer; const ACaption: string = '');
   end;
 
   { CLI application interface - Main application controller }

@@ -232,9 +232,10 @@ Interface for progress indicators.
 IProgressIndicator = interface
   procedure Start;
   procedure Stop;
-  procedure Update(const Progress: Integer);
+  procedure Update(const Progress: Integer; const ACaption: string = '');
 end;
 ```
+- `ACaption` is optional and renders inline status text next to the spinner/progress bar for that update.
 
 ##### `ICLIApplication`
 Main application interface.
@@ -354,7 +355,7 @@ TProgressIndicator = class(TInterfacedObject, IProgressIndicator)
 public
   procedure Start; virtual;
   procedure Stop; virtual;
-  procedure Update(const Progress: Integer); virtual; abstract;
+  procedure Update(const Progress: Integer; const ACaption: string = ''); virtual; abstract;
 end;
 ```
 
@@ -364,7 +365,7 @@ Animated spinner progress indicator.
 TSpinner = class(TProgressIndicator)
 public
   constructor Create(const AStyle: TSpinnerStyle);
-  procedure Update(const Progress: Integer); override;
+  procedure Update(const Progress: Integer; const ACaption: string = ''); override;
 end;
 ```
 
@@ -374,7 +375,7 @@ Visual progress bar indicator.
 TProgressBar = class(TProgressIndicator)
 public
   constructor Create(const ATotal: Integer; const AWidth: Integer = 10);
-  procedure Update(const Progress: Integer); override;
+  procedure Update(const Progress: Integer; const ACaption: string = ''); override;
 end;
 ```
 

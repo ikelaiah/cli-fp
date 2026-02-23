@@ -59,7 +59,7 @@ begin
     // Simulate preparation work
     for i := 1 to Count do
     begin
-      Spinner.Update(0);  // Update spinner (parameter ignored for spinners)
+      Spinner.Update(0, Format('Scanning file %d of %d', [i, Count]));
       Sleep(500);  // Simulate work (don't use in real code)
     end;
   finally
@@ -77,14 +77,11 @@ begin
     // Simulate processing files
     for i := 1 to Count do
     begin
-      // Update progress bar with current progress (i/Count)
-      ProgressBar.Update(i);
+      // Provide inline status text directly in Update
+      ProgressBar.Update(i, Format('Processed file %d of %d', [i, Count]));
       
       // Simulate work (don't use Sleep in real code)
       Sleep(500);
-      
-      // Show what we're doing (progress details)
-      TConsole.WriteLn(Format(' Processed file %d of %d', [i, Count]), ccWhite);
     end;
   finally
     // Always stop the progress bar in finally block
@@ -101,7 +98,7 @@ var
 begin
   try
     // Create main application with name and version
-    App := CreateCLIApplication('ProgressDemo', '1.0.0');
+    App := CreateCLIApplication('ProgressDemo', '1.1.6');
     (App as TCLIApplication).DebugMode := False; // Disable debug output for cleaner display
 
     // Create and configure process command
