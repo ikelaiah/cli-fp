@@ -994,7 +994,7 @@ begin
           Result := False;
         end;
       end;
-        ptString,   
+    ptString,   
     ptPath,     
     ptArray,    
     ptPassword: ; // no validation 
