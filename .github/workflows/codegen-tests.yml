@@ -1,0 +1,35 @@
+name: Codegen Tests
+
+on:
+  push:
+    paths:
+      - 'tools/cli-fp-gen/**'
+      - 'tests/codegen/**'
+      - 'tests/codegen-fixtures/**'
+      - 'tests/codegen-golden/**'
+      - 'src/**'
+      - '.github/workflows/codegen-tests.yml'
+  pull_request:
+    paths:
+      - 'tools/cli-fp-gen/**'
+      - 'tests/codegen/**'
+      - 'tests/codegen-fixtures/**'
+      - 'tests/codegen-golden/**'
+      - 'src/**'
+      - '.github/workflows/codegen-tests.yml'
+
+jobs:
+  codegen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Free Pascal
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fp-compiler fp-units-fcl python3
+      - name: Golden Output Test
+        run: bash tests/codegen/run_golden_test.sh
+      - name: Generator Ops Test
+        run: bash tests/codegen/run_ops_test.sh
+      - name: Compile Smoke Test
+        run: bash tests/codegen/run_compile_smoke.sh
