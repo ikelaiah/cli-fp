@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `cli-fp-gen` project scaffolding workflow is now documented from the main README, including a direct link to the dedicated generator guide.
+
+### Testing
+
+- Added a Windows PowerShell verification path for `cli-fp-gen` in `tests/codegen/run_all_tests.ps1`.
+- Code generator documentation now includes both the Bash test scripts and the PowerShell verification command.
+
 ## [1.1.6] - 2026-02-21
 
 ### Added

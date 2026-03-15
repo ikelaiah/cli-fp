@@ -101,6 +101,26 @@ fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\MyA
 
 Adjust the `..\..\src` path to point at the `cli-fp` framework `src/` directory.
 
+## Verification
+
+### Linux/macOS (Bash)
+
+The repository includes focused codegen checks under `tests/codegen/`:
+
+- `run_golden_test.sh`
+- `run_compile_smoke.sh`
+- `run_ops_test.sh`
+
+### Windows (PowerShell)
+
+Use the Windows-native verification script from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tests\codegen\run_all_tests.ps1
+```
+
+This script compiles `cli-fp-gen`, verifies golden output, compiles a generated app, and checks `init` / `generate` / `add command` / `remove command` behavior plus the path validation guard.
+
 ## Notes
 
 - Commands are defined in a flat list with `parent` paths (slash-delimited, e.g. `repo/remote`).

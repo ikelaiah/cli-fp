@@ -17,6 +17,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [📑 Table of Contents](#-table-of-contents)
   - [✨ Features](#-features)
   - [🚀 Quick Start](#-quick-start)
+  - [🧩 Project Generator](#-project-generator)
   - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
     - [Basic Types](#basic-types)
     - [Boolean and Flags](#boolean-and-flags)
@@ -180,6 +181,21 @@ Options:
 A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
 To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
 
+## 🧩 Project Generator
+
+This repository also includes `cli-fp-gen`, a scaffold generator for new `cli-fp` applications.
+
+Typical workflow:
+
+```powershell
+fpc -Futools\cli-fp-gen\src .\tools\cli-fp-gen\cli_fp_gen.lpr
+.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
+.\tools\cli-fp-gen\cli_fp_gen.exe add command greet --project .\build-temp\myapp --description "Say hello"
+.\tools\cli-fp-gen\cli_fp_gen.exe generate --project .\build-temp\myapp
+```
+
+Full generator documentation, project layout details, and `clifp.json` reference are in [docs/codegen.md](docs/codegen.md).
+
 ### Progress Indicator Captions (v1.1.6)
 
 Progress indicators now support inline status text via:
@@ -322,6 +338,7 @@ Each parameter type has built-in validation:
 - [User Manual](docs/user-manual.md): Complete guide for using the framework, *including a cheat sheet*
 - [API Reference](docs/api-reference.md): Detailed API reference for the framework
 - [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
+- [Code Generator](docs/codegen.md): `cli-fp-gen` usage, generated layout, and verification notes
 - [Examples](examples/): Working example applications
 - [Changelog](CHANGELOG.md): Version history and updates
 
