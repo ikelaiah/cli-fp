@@ -1,0 +1,8 @@
+{
+  "schemaVersion" : 1,
+  "generatedFiles" : [
+    "../outside/Escape.lpr",
+    "src/generated/Demo_CommandRegistry_Generated.pas",
+    "src/generated/.clifp-manifest.json"
+  ]
+}

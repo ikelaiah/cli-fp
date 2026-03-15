@@ -104,7 +104,8 @@ Adjust the `..\..\src` path to point at the `cli-fp` framework `src/` directory.
 ## Notes
 
 - Commands are defined in a flat list with `parent` paths (slash-delimited, e.g. `repo/remote`).
+- `app.programFile` must stay project-relative under `src/` and point to an `.lpr` file.
 - `remove command` deletes command entries from `clifp.json`; use `--cascade` to remove a command subtree.
 - Default command stubs automatically show help when they have subcommands at runtime.
 - This avoids stale stub behavior when a command later becomes a command group.
-- Parameter registrations are generated in the registry unit (not user stubs), so editing `clifp.json` and re-running `generate` updates parameters without overwriting user code.
+- Parameter registrations and command descriptions are generated in the registry unit (not user stubs), so editing `clifp.json` and re-running `generate` updates metadata without overwriting user code.

@@ -1,0 +1,8 @@
+{
+  "schemaVersion" : 1,
+  "generatedFiles" : [
+    "src/Pathguard.lpr",
+    "src/generated/Pathguard_CommandRegistry_Generated.pas",
+    "src/generated/.clifp-manifest.json"
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "app": {
+    "name": "golden-demo",
+    "version": "1.2.3",
+    "programFile": "src/GoldenDemo.lpr"
+  },
+  "commands": [
+    {
+      "name": "greet",
+      "description": "Say hello",
+      "parent": "",
+      "parameters": [
+        {
+          "kind": "string",
+          "short": "-n",
+          "long": "--name",
+          "description": "Name to greet",
+          "required": false,
+          "default": "World",
+          "allowedValues": ""
+        },
+        {
+          "kind": "flag",
+          "short": "-v",
+          "long": "--verbose",
+          "description": "Verbose output",
+          "required": false,
+          "default": "false",
+          "allowedValues": ""
+        },
+        {
+          "kind": "enum",
+          "short": "-m",
+          "long": "--mode",
+          "description": "Greeting mode",
+          "required": false,
+          "default": "normal",
+          "allowedValues": "normal|formal"
+        }
+      ]
+    },
+    {
+      "name": "repo",
+      "description": "Repo UPDATED",
+      "parent": "",
+      "parameters": []
+    },
+    {
+      "name": "clone",
+      "description": "Clone repo",
+      "parent": "repo",
+      "parameters": [
+        {
+          "kind": "url",
+          "short": "-u",
+          "long": "--url",
+          "description": "Repository URL",
+          "required": true,
+          "default": "",
+          "allowedValues": ""
+        },
+        {
+          "kind": "integer",
+          "short": "-d",
+          "long": "--depth",
+          "description": "Clone depth",
+          "required": false,
+          "default": "1",
+          "allowedValues": ""
+        }
+      ]
+    },
+    {
+      "name": "types",
+      "description": "Parameter type showcase",
+      "parent": "",
+      "parameters": [
+        {
+          "kind": "float",
+          "short": "-r",
+          "long": "--rate",
+          "description": "Rate",
+          "required": false,
+          "default": "1.0",
+          "allowedValues": ""
+        },
+        {
+          "kind": "boolean",
+          "short": "-c",
+          "long": "--color",
+          "description": "Use color",
+          "required": false,
+          "default": "false",
+          "allowedValues": ""
+        },
+        {
+          "kind": "path",
+          "short": "-p",
+          "long": "--path",
+          "description": "Target path",
+          "required": false,
+          "default": "",
+          "allowedValues": ""
+        },
+        {
+          "kind": "datetime",
+          "short": "-t",
+          "long": "--time",
+          "description": "Run time",
+          "required": false,
+          "default": "",
+          "allowedValues": ""
+        },
+        {
+          "kind": "array",
+          "short": "-a",
+          "long": "--items",
+          "description": "Items",
+          "required": false,
+          "default": "",
+          "allowedValues": ""
+        },
+        {
+          "kind": "password",
+          "short": "-k",
+          "long": "--api-key",
+          "description": "API key",
+          "required": false,
+          "default": "",
+          "allowedValues": ""
+        }
+      ]
+    }
+  ]
+}

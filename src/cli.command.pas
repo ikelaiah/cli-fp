@@ -56,6 +56,10 @@ type
       @param AName Command name as used in CLI
       @param ADescription Command description for help text }
     constructor Create(const AName, ADescription: string);
+
+    { Updates the command description after construction.
+      Used by generated registration code so spec metadata stays authoritative. }
+    procedure UpdateDescription(const ADescription: string);
     
     { Cleans up command resources }
     destructor Destroy; override;
@@ -214,6 +218,11 @@ begin
   SetLength(FParameters, 0);
   SetLength(FSubCommands, 0);
   FParsedParams := nil;  // Will be set by application
+end;
+
+procedure TBaseCommand.UpdateDescription(const ADescription: string);
+begin
+  FDescription := ADescription;
 end;
 
 { Destructor: Cleans up command resources }

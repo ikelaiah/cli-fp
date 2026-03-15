@@ -1,0 +1,8 @@
+{
+  "schemaVersion" : 1,
+  "generatedFiles" : [
+    "src/Dryrun.lpr",
+    "src/generated/Dryrun_CommandRegistry_Generated.pas",
+    "src/generated/.clifp-manifest.json"
+  ]
+}

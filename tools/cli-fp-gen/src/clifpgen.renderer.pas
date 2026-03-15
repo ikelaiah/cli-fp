@@ -34,6 +34,11 @@ begin
     Result := 'False';
 end;
 
+function PascalWriteLnLiteral(const S: string): string;
+begin
+  Result := 'WriteLn(' + PascalStringLiteral(S) + ');';
+end;
+
 function RenderParameterCall(const VarName: string; const Param: TParameterSpec): string;
 begin
   case Param.Kind of
@@ -140,7 +145,8 @@ begin
     Lines.Add('  App: ICLIApplication;');
     Lines.Add('begin');
     Lines.Add('  try');
-    Lines.Add('    App := CreateCLIApplication(''' + Spec.AppName + ''', ''' + Spec.AppVersion + ''');');
+    Lines.Add('    App := CreateCLIApplication(' + PascalStringLiteral(Spec.AppName) + ', ' +
+      PascalStringLiteral(Spec.AppVersion) + ');');
     Lines.Add('    RegisterGeneratedCommands(App);');
     Lines.Add('    ExitCode := App.Execute;');
     Lines.Add('  except');
@@ -222,6 +228,7 @@ begin
       Path := CommandFullPath(Cmd);
       VarName := MakeCommandVarName(Path);
       Lines.Add('  ' + VarName + ' := ' + MakeCommandClassName(Path) + '.Create;');
+      Lines.Add('  ' + VarName + '.UpdateDescription(' + PascalStringLiteral(Cmd.Description) + ');');
       for j := 0 to Cmd.Parameters.Count - 1 do
         Lines.Add('  ' + RenderParameterCall(VarName, Cmd.Parameters[j]));
       if Trim(Cmd.ParentPath) = '' then
@@ -275,7 +282,8 @@ begin
     Lines.Add('');
     Lines.Add('constructor ' + ClassName + '.Create;');
     Lines.Add('begin');
-    Lines.Add('  inherited Create(''' + Cmd.Name + ''', ''' + Cmd.Description + ''');');
+    Lines.Add('  inherited Create(' + PascalStringLiteral(Cmd.Name) + ', ' +
+      PascalStringLiteral(Cmd.Description) + ');');
     Lines.Add('end;');
     Lines.Add('');
     Lines.Add('function ' + ClassName + '.Execute: Integer;');
@@ -286,7 +294,7 @@ begin
     Lines.Add('    Exit(0);');
     Lines.Add('  end;');
     Lines.Add('');
-    Lines.Add('  WriteLn(''TODO: Implement command "' + FullPath + '"'');');
+    Lines.Add('  ' + PascalWriteLnLiteral('TODO: Implement command "' + FullPath + '"'));
     Lines.Add('  Result := 0;');
     Lines.Add('end;');
     Lines.Add('');

@@ -102,6 +102,15 @@ begin
   end;
 end;
 
+procedure SaveAndGenerateProjectFiles(const Spec: TProjectSpec; const SpecFile: string; const Options: TWriteOptions);
+var
+  ProjectDir: string;
+begin
+  ProjectDir := ExtractFileDir(ExpandFileName(SpecFile));
+  SaveProjectSpec(Spec, SpecFile, Options);
+  GenerateProjectFiles(ProjectDir, Spec, Options);
+end;
+
 procedure GenerateFromSpecFile(const SpecFile: string; const Options: TWriteOptions);
 var
   Spec: TProjectSpec;
@@ -192,8 +201,7 @@ begin
     Spec.Commands.Add(Cmd);
 
     ValidateProjectSpec(Spec);
-    SaveProjectSpec(Spec, SpecFile, Options);
-    GenerateFromSpecFile(SpecFile, Options);
+    SaveAndGenerateProjectFiles(Spec, SpecFile, Options);
   finally
     Spec.Free;
   end;
@@ -248,8 +256,7 @@ begin
       raise Exception.CreateFmt('Command "%s" was not removed', [PathNorm]);
 
     ValidateProjectSpec(Spec);
-    SaveProjectSpec(Spec, SpecFile, Options);
-    GenerateFromSpecFile(SpecFile, Options);
+    SaveAndGenerateProjectFiles(Spec, SpecFile, Options);
   finally
     Spec.Free;
   end;

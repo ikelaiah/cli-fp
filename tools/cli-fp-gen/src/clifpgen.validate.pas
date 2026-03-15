@@ -19,6 +19,31 @@ begin
   Result := Copy(S, 1, Length(Prefix)) = Prefix;
 end;
 
+function IsAbsoluteLikePath(const S: string): Boolean;
+begin
+  Result := (ExtractFileDrive(S) <> '') or
+    ((S <> '') and ((S[1] = '/') or (S[1] = '\')));
+end;
+
+function ContainsParentTraversal(const S: string): Boolean;
+var
+  Parts: TStringList;
+  i: Integer;
+begin
+  Result := False;
+  Parts := TStringList.Create;
+  try
+    Parts.Delimiter := '/';
+    Parts.StrictDelimiter := True;
+    Parts.DelimitedText := S;
+    for i := 0 to Parts.Count - 1 do
+      if Trim(Parts[i]) = '..' then
+        Exit(True);
+  finally
+    Parts.Free;
+  end;
+end;
+
 procedure ValidateProjectSpec(const Spec: TProjectSpec);
 var
   SeenPaths, RootPaths: TStringList;
@@ -28,6 +53,7 @@ var
   FullPath, ParentPath: string;
   Param: TParameterSpec;
   SeenFlags: TStringList;
+  ProgramFileNorm: string;
 begin
   if Spec = nil then
     raise Exception.Create('Spec is nil');
@@ -40,6 +66,16 @@ begin
 
   if Trim(Spec.ProgramFile) = '' then
     raise Exception.Create('Spec app.programFile must not be empty');
+
+  ProgramFileNorm := NormalizePathSlashes(Trim(Spec.ProgramFile));
+  if IsAbsoluteLikePath(ProgramFileNorm) then
+    raise Exception.CreateFmt('Spec app.programFile must be project-relative: %s', [Spec.ProgramFile]);
+  if ContainsParentTraversal(ProgramFileNorm) then
+    raise Exception.CreateFmt('Spec app.programFile must not escape the project directory: %s', [Spec.ProgramFile]);
+  if not StartsWith(AnsiLowerCase(ProgramFileNorm), 'src/') then
+    raise Exception.CreateFmt('Spec app.programFile must live under src/: %s', [Spec.ProgramFile]);
+  if LowerCase(ExtractFileExt(ProgramFileNorm)) <> '.lpr' then
+    raise Exception.CreateFmt('Spec app.programFile must be an .lpr file: %s', [Spec.ProgramFile]);
 
   SeenPaths := TStringList.Create;
   RootPaths := TStringList.Create;

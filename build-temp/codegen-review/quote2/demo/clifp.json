@@ -1,0 +1,33 @@
+{
+  "schemaVersion" : 1,
+  "app" : {
+    "name" : "demo",
+    "version" : "0.1.0",
+    "programFile" : "src\\Demo.lpr"
+  },
+  "commands" : [
+    {
+      "name" : "greet",
+      "description" : "Say hello",
+      "parent" : "",
+      "parameters" : [
+        {
+          "kind" : "string",
+          "short" : "-n",
+          "long" : "--name",
+          "description" : "Name to greet",
+          "required" : false,
+          "default" : "World",
+          "allowedValues" : ""
+        }
+      ]
+    },
+    {
+      "name" : "repo",
+      "description" : "Owner's tools",
+      "parent" : "",
+      "parameters" : [
+      ]
+    }
+  ]
+}
