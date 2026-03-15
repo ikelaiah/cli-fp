@@ -59,19 +59,24 @@ Cmd.AddUrlParameter('-u', '--url', 'Description', True);
 ### Get Parameter Values
 ```pascal
 var
-  StrValue: string;
+  StrValue, IntValueStr, FloatValueStr, BoolValueStr: string;
   IntValue: Integer;
   FloatValue: Double;
   BoolValue: Boolean;
 begin
-  // Returns True if parameter exists or has default value
+  // For non-boolean parameters, returns True when a value or default exists
   if GetParameterValue('--param-name', StrValue) then
     // Use StrValue...
 
-  // Framework automatically converts to correct type
-  GetParameterValue('--count', IntValue);
-  GetParameterValue('--rate', FloatValue);
-  GetParameterValue('--verbose', BoolValue);
+  // Retrieve text, then convert explicitly
+  if GetParameterValue('--count', IntValueStr) then
+    TryStrToInt(IntValueStr, IntValue);
+
+  if GetParameterValue('--rate', FloatValueStr) then
+    TryStrToFloat(FloatValueStr, FloatValue);
+
+  GetParameterValue('--verbose', BoolValueStr);
+  BoolValue := SameText(BoolValueStr, 'true');
 end;
 ```
 
@@ -752,21 +757,20 @@ To retrieve parameter values in your command's Execute method:
 ```pascal
 function TMyCommand.Execute: Integer;
 var
-  Name: string;
+  Name, CountStr, RateStr, Level: string;
   Count: Integer;
   Rate: Double;
-  Level: string;
 begin
   // Get parameter values with error checking
   if GetParameterValue('--name', Name) then
     WriteLn('Name: ', Name);
-    
-  if GetParameterValue('--count', Count) then
+
+  if GetParameterValue('--count', CountStr) and TryStrToInt(CountStr, Count) then
     WriteLn('Count: ', Count);
-    
-  if GetParameterValue('--rate', Rate) then
+
+  if GetParameterValue('--rate', RateStr) and TryStrToFloat(RateStr, Rate) then
     WriteLn('Rate: ', Rate:0:2);
-    
+
   if GetParameterValue('--level', Level) then
     WriteLn('Level: ', Level);
     
@@ -776,14 +780,24 @@ end;
 
 ### Best Practices
 
-1. **Always Check Return Value**: The `GetParameterValue` function returns `False` if the parameter wasn't provided and has no default value.
+1. **Always Check Return Value**: `GetParameterValue` returns `True` for non-boolean parameters when a value or default exists. Boolean parameters still write to the output string, but return `True` only when the flag/value was explicitly provided.
 
-2. **Use Strong Typing**: The framework will automatically convert parameter values to the correct type:
+2. **Convert Retrieved Strings Explicitly**: `GetParameterValue` returns strings, so use `SysUtils` helpers after reading the value:
    ```pascal
    var
-     Count: Integer;
-     Rate: Double;
-     IsEnabled: Boolean;
+      CountValue, RateValue, EnabledValue: string;
+      Count: Integer;
+      Rate: Double;
+      IsEnabled: Boolean;
+
+    GetParameterValue('--count', CountValue);
+    TryStrToInt(CountValue, Count);
+
+    GetParameterValue('--rate', RateValue);
+    TryStrToFloat(RateValue, Rate);
+
+    GetParameterValue('--enabled', EnabledValue);
+    IsEnabled := SameText(EnabledValue, 'true');
    ```
 
 3. **Provide Clear Descriptions**: Parameter descriptions appear in help text:
@@ -997,19 +1011,24 @@ Cmd.AddUrlParameter('-u', '--url', 'Description', True);
 ### Get Parameter Values
 ```pascal
 var
-  StrValue: string;
+  StrValue, IntValueStr, FloatValueStr, BoolValueStr: string;
   IntValue: Integer;
   FloatValue: Double;
   BoolValue: Boolean;
 begin
-  // Returns True if parameter exists or has default value
+  // For non-boolean parameters, returns True when a value or default exists
   if GetParameterValue('--param-name', StrValue) then
     // Use StrValue...
 
-  // Framework automatically converts to correct type
-  GetParameterValue('--count', IntValue);
-  GetParameterValue('--rate', FloatValue);
-  GetParameterValue('--verbose', BoolValue);
+  // Retrieve text, then convert explicitly
+  if GetParameterValue('--count', IntValueStr) then
+    TryStrToInt(IntValueStr, IntValue);
+
+  if GetParameterValue('--rate', FloatValueStr) then
+    TryStrToFloat(FloatValueStr, FloatValue);
+
+  GetParameterValue('--verbose', BoolValueStr);
+  BoolValue := SameText(BoolValueStr, 'true');
 end;
 ```
 

@@ -121,16 +121,14 @@ Each helper method:
 
 #### Getting Parameter Values
 
-`TBaseCommand` provides overloaded `GetParameterValue` methods for type safety:
+`TBaseCommand` currently exposes a single `GetParameterValue` overload:
 
 ```pascal
 function GetParameterValue(const Flag: string; out Value: string): Boolean;
-function GetParameterValue(const Flag: string; out Value: Integer): Boolean;
-function GetParameterValue(const Flag: string; out Value: Double): Boolean;
-function GetParameterValue(const Flag: string; out Value: Boolean): Boolean;
 ```
-- Returns `True` if the parameter was provided or has a default value.
-- Automatically converts to the correct type and raises an error if the value is invalid.
+- For non-boolean parameters, it returns `True` when the parameter was provided or a default value exists.
+- For boolean parameters, it writes the string value to `Value` and returns `True` only when the flag/value was explicitly provided.
+- Convert string results yourself with helpers such as `TryStrToInt`, `TryStrToFloat`, and `SameText`.
 
 Example usage:
 ```pascal
@@ -142,36 +140,35 @@ type
 
 function TTestCommand.Execute: Integer;
 var
-  Name: string;
+  Name, CountStr, RateStr, Level, VerboseStr, DateStr, Url, Tags, ApiKey: string;
   Count: Integer;
   Rate: Double;
-  Level: string;
 begin
-  // Get parameter values using helper methods
+  // Get parameter values using the string-based helper
   if GetParameterValue('--name', Name) then
     WriteLn('Name: ', Name);
-    
-  if GetParameterValue('--count', Count) then
+
+  if GetParameterValue('--count', CountStr) and TryStrToInt(CountStr, Count) then
     WriteLn('Count: ', Count);
-    
-  if GetParameterValue('--rate', Rate) then
+
+  if GetParameterValue('--rate', RateStr) and TryStrToFloat(RateStr, Rate) then
     WriteLn('Rate: ', Rate:0:2);
-    
+
   if GetParameterValue('--level', Level) then
     WriteLn('Level: ', Level);
 
-  if GetParameterValue('--verbose', Verbose) then
-    WriteLn('Verbose: ', Verbose);
-    
+  if GetParameterValue('--verbose', VerboseStr) and SameText(VerboseStr, 'true') then
+    WriteLn('Verbose: true');
+
   if GetParameterValue('--date', DateStr) then
     WriteLn('Date: ', DateStr);
-    
+
   if GetParameterValue('--url', Url) then
     WriteLn('URL: ', Url);
-    
+
   if GetParameterValue('--tags', Tags) then
     WriteLn('Tags: ', Tags);
-    
+
   if GetParameterValue('--api-key', ApiKey) then
     WriteLn('API Key: ', ApiKey);
 
@@ -499,7 +496,7 @@ type
 
 function TCopyCommand.Execute: Integer;
 var
-  Source, Dest: string;
+  Source, Dest, ForceValue: string;
   Force: Boolean;
 begin
   // Get required parameters
@@ -515,8 +512,9 @@ begin
     Exit(1);
   end;
   
-  // Get optional parameter
-  Force := GetParameterValue('--force', Force);
+  // Get optional boolean flag as text, then interpret it
+  GetParameterValue('--force', ForceValue);
+  Force := SameText(ForceValue, 'true');
   
   // Show operation details
   TConsole.WriteLn('Copying file:', ccCyan);
@@ -561,17 +559,19 @@ type
 
 function TTestCommand.Execute: Integer;
 var
+  ForceValue, VerboseValue: string;
   IsForced, IsVerbose: Boolean;
 begin
-  // Get flag value (true when present)
-  GetParameterValue('--force', IsForced);
+  // Get boolean results as strings, then interpret them
+  GetParameterValue('--force', ForceValue);
+  IsForced := SameText(ForceValue, 'true');
   if IsForced then
     TConsole.WriteLn('Force flag is enabled', ccGreen)
   else
     TConsole.WriteLn('Force flag is disabled', ccYellow);
 
-  // Get boolean value (explicit true/false)
-  GetParameterValue('--verbose', IsVerbose);
+  GetParameterValue('--verbose', VerboseValue);
+  IsVerbose := SameText(VerboseValue, 'true');
   if IsVerbose then
     TConsole.WriteLn('Verbose mode is ON', ccGreen)
   else
@@ -627,13 +627,16 @@ type
 
 function TProcessCommand.Execute: Integer;
 var
+  CountStr, VerboseStr: string;
   Count: Integer;
   Verbose: Boolean;
   Progress: IProgressIndicator;
   i: Integer;
 begin
-  GetParameterValue('--count', Count);
-  GetParameterValue('--verbose', Verbose);
+  GetParameterValue('--count', CountStr);
+  TryStrToInt(CountStr, Count);
+  GetParameterValue('--verbose', VerboseStr);
+  Verbose := SameText(VerboseStr, 'true');
 
   Progress := CreateProgressBar('Processing files', Count);
   try
@@ -692,13 +695,14 @@ type
 
 function TValidateCommand.Execute: Integer;
 var
-  Path: string;
+  Path, StopOnErrorValue: string;
   StopOnError: Boolean;
   ErrorCount: Integer;
   i: Integer;
 begin
   GetParameterValue('--path', Path);
-  GetParameterValue('--stop-on-error', StopOnError);
+  GetParameterValue('--stop-on-error', StopOnErrorValue);
+  StopOnError := SameText(StopOnErrorValue, 'true');
   ErrorCount := 0;
 
   for i := 1 to 10 do
