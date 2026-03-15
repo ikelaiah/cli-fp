@@ -64,7 +64,7 @@ classDiagram
         +AddSubCommand(Command: ICommand)
         +SetParsedParams(Params: TStringList)
         +Execute(): Integer
-        #GetParameterValue(Flag: string): Boolean
+        #GetParameterValue(Flag: string, out Value: string): Boolean
     }
     
     class TCommandParameter {
