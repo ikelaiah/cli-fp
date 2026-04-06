@@ -33,6 +33,9 @@ begin
   WriteLn('  - Project spec is clifp.json');
   WriteLn('  - Generated files are written to src/generated');
   WriteLn('  - Command stubs are created in src/commands and not overwritten unless --force');
+  WriteLn('  - --dry-run previews all file operations without writing anything, e.g.:');
+  WriteLn('      [dry-run] would write: src/generated/Myapp_CommandRegistry_Generated.pas');
+  WriteLn('      [dry-run] would write: src/commands/Myapp_Command_Greet.pas');
 end;
 
 function ResolveSpecFile(const ProjectArg: string): string;

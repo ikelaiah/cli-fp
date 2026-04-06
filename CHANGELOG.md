@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `cli-fp-gen` project scaffolding workflow is now documented from the main README, including a direct link to the dedicated generator guide.
+- `cli-fp-gen`: Duplicate command names under the same parent now produce a clear, targeted error message (e.g. `Duplicate command name "clone" under parent "repo"`) instead of the generic `Duplicate command path` message.
+- `cli-fp-gen`: `--dry-run` help text now shows example output lines so users know what to expect before running.
+
+### Fixed
+
+- `cli-fp-gen`: Schema version mismatch error message now includes a prompt to check the migration documentation, making it actionable when a future `schemaVersion` is encountered.
+
+### Improved
+
+- `cli-fp-gen`: `NormalizeCommandName` is documented to clarify that backslash separators (Windows) are normalised to forward slashes before stripping, so users relying on `repo\clone`-style input get predictable single-token output.
+- `cli-fp-gen`: `MakeProgramFileRelPath` is documented to note that the generated `.lpr` filename uses PascalCase, which must be matched exactly in build scripts on case-sensitive filesystems (Linux/macOS).
 
 ### Testing
 

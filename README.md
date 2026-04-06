@@ -196,6 +196,8 @@ fpc -Futools\cli-fp-gen\src .\tools\cli-fp-gen\cli_fp_gen.lpr
 
 Full generator documentation, project layout details, and `clifp.json` reference are in [docs/codegen.md](docs/codegen.md).
 
+> **Note:** The generated program file uses PascalCase (e.g. `src/Myapp.lpr`). On Linux/macOS, reference it with the exact same casing in your build scripts. Use `--dry-run` to preview all file operations before committing them.
+
 ### Progress Indicator Captions (v1.1.6)
 
 Progress indicators now support inline status text via:

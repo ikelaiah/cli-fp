@@ -58,8 +58,12 @@ begin
   if Spec = nil then
     raise Exception.Create('Spec is nil');
 
+  // TODO: when v2 is defined, add migration guidance to this error message
   if Spec.SchemaVersion <> 1 then
-    raise Exception.CreateFmt('Unsupported schemaVersion: %d (expected 1)', [Spec.SchemaVersion]);
+    raise Exception.CreateFmt(
+      'Unsupported schemaVersion: %d (only v1 is supported). ' +
+      'Check the cli-fp-gen documentation for migration instructions.',
+      [Spec.SchemaVersion]);
 
   if Trim(Spec.AppName) = '' then
     raise Exception.Create('Spec app.name must not be empty');
@@ -104,7 +108,15 @@ begin
 
       FullPath := CommandFullPath(Cmd);
       if SeenPaths.IndexOf(AnsiLowerCase(FullPath)) >= 0 then
-        raise Exception.CreateFmt('Duplicate command path "%s"', [FullPath]);
+      begin
+        if Cmd.ParentPath <> '' then
+          raise Exception.CreateFmt(
+            'Duplicate command name "%s" under parent "%s" (full path: "%s")',
+            [Cmd.Name, Cmd.ParentPath, FullPath])
+        else
+          raise Exception.CreateFmt(
+            'Duplicate root command name "%s"', [Cmd.Name]);
+      end;
       SeenPaths.Add(AnsiLowerCase(FullPath));
 
       SeenFlags := TStringList.Create;

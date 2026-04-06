@@ -33,6 +33,12 @@ begin
     Result := StringReplace(Result, '//', '/', [rfReplaceAll]);
 end;
 
+// NormalizeCommandName strips all path separators (both '/' and '\') and
+// surrounding whitespace, yielding a plain single-token name.
+// On Windows, backslashes in user input (e.g. 'repo\clone') are converted
+// to forward slashes by NormalizePathSlashes before being stripped here,
+// so only the final segment survives. Callers that expect a path should
+// use NormalizeCommandPath instead.
 function NormalizeCommandName(const S: string): string;
 begin
   Result := Trim(NormalizePathSlashes(S));
@@ -176,6 +182,10 @@ begin
   Result := TokenToPascalPart(AppName);
 end;
 
+// Returns a relative path such as 'src/Myapp.lpr'. The filename is
+// PascalCase (first letter capitalised) per Free Pascal conventions.
+// On case-sensitive filesystems (Linux/macOS) the generated .lpr file
+// must be referenced by the exact same casing in build scripts.
 function MakeProgramFileRelPath(const AppName: string): string;
 begin
   Result := 'src' + PathDelim + MakeProgramIdentifier(AppName) + '.lpr';
