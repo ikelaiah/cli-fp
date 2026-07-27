@@ -16,6 +16,8 @@ link.res
 *.dll
 *.so
 *.dylib
+/tools/cli-fp-gen/cli_fp_gen
+/build-temp/
 
 # Backup files
 *.bak
@@ -26,6 +28,7 @@ link.res
 # Lazarus specific
 backup/
 lib/
+/packagefiles.xml
 *.lrs
 *.lrt
 *.lps

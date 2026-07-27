@@ -53,23 +53,6 @@ begin
     Result := Candidate;
 end;
 
-procedure ParseWriteOptions(var Index: Integer; var Opts: TWriteOptions; const Count: Integer);
-var
-  Arg: string;
-begin
-  while Index <= Count do
-  begin
-    Arg := ArgOrEmpty(Index);
-    if Arg = '--dry-run' then
-      Opts.DryRun := True
-    else if Arg = '--force' then
-      Opts.Force := True
-    else
-      Break;
-    Inc(Index);
-  end;
-end;
-
 procedure HandleInit;
 var
   TargetDir, AppName, AppVersion: string;

@@ -161,8 +161,13 @@ begin
 
     ValidateProjectSpec(Spec);
 
-    EnsureDirectoryExistsSafe(TargetDir, Options);
     SpecFile := PathCombine(TargetDir, 'clifp.json');
+    if FileExists(SpecFile) and not Options.Force then
+      raise Exception.CreateFmt(
+        'Project spec already exists: %s (use --force to replace it)',
+        [SpecFile]);
+
+    EnsureDirectoryExistsSafe(TargetDir, Options);
     SaveProjectSpec(Spec, SpecFile, Options);
     GenerateProjectFiles(TargetDir, Spec, Options);
   finally

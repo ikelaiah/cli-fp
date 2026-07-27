@@ -22,13 +22,36 @@ function Write-JsonFile([string]$Path, $Object) {
 
 $RootDir = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $GenSrc = Join-Path $RootDir "tools\cli-fp-gen\cli_fp_gen.lpr"
-$GenExe = Join-Path $RootDir "tools\cli-fp-gen\cli_fp_gen.exe"
 $FixtureDir = Join-Path $RootDir "tests\codegen-fixtures\golden-basic"
 $GoldenDir = Join-Path $RootDir "tests\codegen-golden\golden-basic"
 $TmpDir = New-TempDir
+$GenExe = Join-Path $TmpDir "cli_fp_gen.exe"
 
 try {
-  fpc "-Fu$RootDir\tools\cli-fp-gen\src" $GenSrc | Out-Null
+  $GenUnits = Join-Path $TmpDir "gen-units"
+  New-Item -ItemType Directory -Path $GenUnits | Out-Null
+  fpc `
+    "-Fu$RootDir\tools\cli-fp-gen\src" `
+    "-FE$TmpDir" `
+    "-FU$GenUnits" `
+    $GenSrc | Out-Null
+  Assert-True ($LASTEXITCODE -eq 0) "Failed to compile cli-fp-gen"
+
+  # Focused unit tests for naming and validation
+  $UnitTestOutput = Join-Path $TmpDir "unit-tests"
+  $UnitTestUnits = Join-Path $UnitTestOutput "units"
+  New-Item -ItemType Directory -Force -Path $UnitTestUnits | Out-Null
+  fpc `
+    "-Fu$RootDir\tools\cli-fp-gen\src" `
+    "-Fu$PSScriptRoot" `
+    "-FE$UnitTestOutput" `
+    "-FU$UnitTestUnits" `
+    (Join-Path $PSScriptRoot "codegen_test_runner.lpr") | Out-Null
+  Assert-True ($LASTEXITCODE -eq 0) "Failed to compile codegen unit tests"
+
+  & (Join-Path $UnitTestOutput "codegen_test_runner.exe") --all --format=plain | Out-Null
+  Assert-True ($LASTEXITCODE -eq 0) "Codegen unit tests failed"
+  Write-Host "Unit tests passed"
 
   # Golden output check
   $GoldenProject = Join-Path $TmpDir "golden"
@@ -69,7 +92,20 @@ try {
 
   # Operations and path guard check
   $DemoProject = Join-Path $TmpDir "demo"
-  & $GenExe init $DemoProject --force | Out-Null
+  & $GenExe init $DemoProject | Out-Null
+
+  $SpecBeforeReinit = Normalize-Content (Join-Path $DemoProject "clifp.json")
+  $null = (& $GenExe init $DemoProject 2>&1 | Out-String)
+  Assert-True ($LASTEXITCODE -ne 0) "Expected init without --force to protect the existing project spec"
+  Assert-True (
+    (Normalize-Content (Join-Path $DemoProject "clifp.json")) -eq $SpecBeforeReinit
+  ) "Init without --force modified the existing project spec"
+
+  $null = (& $GenExe add command "repo/clone" --project $DemoProject 2>&1 | Out-String)
+  Assert-True ($LASTEXITCODE -ne 0) "Expected a command name containing a path separator to fail"
+  Assert-True (
+    (Normalize-Content (Join-Path $DemoProject "clifp.json")) -eq $SpecBeforeReinit
+  ) "Invalid add command modified the project spec"
 
   $DryRunOutput = (& $GenExe add command repo --project $DemoProject --description "Repo tools" --dry-run) | Out-String
   Assert-True ($DryRunOutput -match "Demo_Command_Repo\.pas") "Dry-run add did not preview the new command stub"
@@ -78,6 +114,13 @@ try {
 
   & $GenExe add command repo --project $DemoProject --description "Repo tools" | Out-Null
   & $GenExe add command clone --parent repo --project $DemoProject --description "Clone repo" | Out-Null
+
+  $RepoStub = Join-Path $DemoProject "src\commands\Demo_Command_Repo.pas"
+  Add-Content -Path $RepoStub -Value "`n{ user customization }"
+  & $GenExe generate --project $DemoProject | Out-Null
+  Assert-True (
+    (Get-Content -Raw $RepoStub) -match [regex]::Escape("{ user customization }")
+  ) "Generate overwrote a user-owned command stub"
 
   $null = (& $GenExe remove command repo --project $DemoProject 2>&1 | Out-String)
   Assert-True ($LASTEXITCODE -ne 0) "Expected remove command without --cascade to fail"
@@ -132,6 +175,22 @@ try {
   $null = (& $GenExe generate --project $PathGuardProject 2>&1 | Out-String)
   Assert-True ($LASTEXITCODE -ne 0) "Expected invalid programFile path to fail validation"
   Assert-True (-not (Test-Path (Join-Path $TmpDir "outside\Escape.lpr"))) "Generator wrote a program file outside the project directory"
+
+  $ManifestGuardProject = Join-Path $TmpDir "manifest-guard"
+  & $GenExe init $ManifestGuardProject | Out-Null
+  $ManifestOutsideDir = Join-Path $TmpDir "manifest-outside"
+  New-Item -ItemType Directory -Path $ManifestOutsideDir | Out-Null
+  $ManifestVictim = Join-Path $ManifestOutsideDir "victim.txt"
+  Set-Content -Path $ManifestVictim -Value "protected"
+
+  $ManifestPath = Join-Path $ManifestGuardProject "src\generated\.clifp-manifest.json"
+  $Manifest = Get-Content -Raw $ManifestPath | ConvertFrom-Json
+  $Manifest.generatedFiles = @("../manifest-outside/victim.txt")
+  Write-JsonFile $ManifestPath $Manifest
+
+  $null = (& $GenExe generate --project $ManifestGuardProject 2>&1 | Out-String)
+  Assert-True ($LASTEXITCODE -ne 0) "Expected an out-of-project manifest entry to fail cleanup"
+  Assert-True (Test-Path $ManifestVictim) "Manifest cleanup deleted a file outside the project directory"
 
   Write-Host "Ops test passed"
 }

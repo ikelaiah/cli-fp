@@ -169,7 +169,7 @@ var
   i: Integer;
   j: Integer;
   Cmd: TCommandSpec;
-  UnitName, VarName, ParentVar: string;
+  VarName, ParentVar: string;
   Path: string;
 begin
   Lines := TStringList.Create;

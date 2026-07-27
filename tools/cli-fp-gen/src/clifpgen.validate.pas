@@ -46,11 +46,14 @@ end;
 
 procedure ValidateProjectSpec(const Spec: TProjectSpec);
 var
-  SeenPaths, RootPaths: TStringList;
+  SeenPaths, SeenGeneratedNames: TStringList;
   i: Integer;
   j: Integer;
   Cmd: TCommandSpec;
   FullPath, ParentPath: string;
+  GeneratedName: string;
+  ConflictingCommand: TCommandSpec;
+  ConflictIndex: Integer;
   Param: TParameterSpec;
   SeenFlags: TStringList;
   ProgramFileNorm: string;
@@ -82,10 +85,10 @@ begin
     raise Exception.CreateFmt('Spec app.programFile must be an .lpr file: %s', [Spec.ProgramFile]);
 
   SeenPaths := TStringList.Create;
-  RootPaths := TStringList.Create;
+  SeenGeneratedNames := TStringList.Create;
   try
     SeenPaths.CaseSensitive := False;
-    RootPaths.CaseSensitive := False;
+    SeenGeneratedNames.CaseSensitive := False;
 
     for i := 0 to Spec.Commands.Count - 1 do
     begin
@@ -118,6 +121,18 @@ begin
             'Duplicate root command name "%s"', [Cmd.Name]);
       end;
       SeenPaths.Add(AnsiLowerCase(FullPath));
+
+      GeneratedName := MakeCommandUnitName(Spec.AppName, FullPath);
+      ConflictIndex := SeenGeneratedNames.IndexOf(GeneratedName);
+      if ConflictIndex >= 0 then
+      begin
+        ConflictingCommand := TCommandSpec(SeenGeneratedNames.Objects[ConflictIndex]);
+        raise Exception.CreateFmt(
+          'Commands "%s" and "%s" generate the same Pascal identifier "%s"; ' +
+          'rename one of the commands',
+          [CommandFullPath(ConflictingCommand), FullPath, GeneratedName]);
+      end;
+      SeenGeneratedNames.AddObject(GeneratedName, Cmd);
 
       SeenFlags := TStringList.Create;
       try
@@ -175,12 +190,10 @@ begin
             'Command "%s" references missing parent "%s"',
             [CommandFullPath(Cmd), Cmd.ParentPath]
           );
-      end
-      else
-        RootPaths.Add(Cmd.Name);
+      end;
     end;
   finally
-    RootPaths.Free;
+    SeenGeneratedNames.Free;
     SeenPaths.Free;
   end;
 end;

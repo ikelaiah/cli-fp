@@ -628,7 +628,7 @@ begin
     else if Param.DefaultValue <> '' then
     begin
       Value := Param.DefaultValue;
-      Result := False; // Not present on command line
+      Result := True;
       Exit;
     end
     else

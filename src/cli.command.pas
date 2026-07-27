@@ -434,7 +434,7 @@ begin
         else if Param.DefaultValue <> '' then
         begin
           Value := Param.DefaultValue;
-          Result := False;
+          Result := True;
           Exit;
         end
         else

@@ -70,6 +70,8 @@ Supported `kind` values:
 
 ## File Ownership
 
+- `clifp.json`: project source of truth; `init` refuses to replace an existing
+  spec unless `--force` is supplied
 - `src/generated/*.pas`: generator-owned, overwritten on `generate`
 - `src/generated/.clifp-manifest.json`: generator-owned manifest for cleanup
 - `src/commands/*.pas`: user-owned command stubs, created once and not overwritten unless `--force`
@@ -107,6 +109,7 @@ Adjust the `..\..\src` path to point at the `cli-fp` framework `src/` directory.
 
 The repository includes focused codegen checks under `tests/codegen/`:
 
+- `run_unit_tests.sh`
 - `run_golden_test.sh`
 - `run_compile_smoke.sh`
 - `run_ops_test.sh`
@@ -119,7 +122,14 @@ Use the Windows-native verification script from the repository root:
 powershell -ExecutionPolicy Bypass -File .\tests\codegen\run_all_tests.ps1
 ```
 
-This script compiles `cli-fp-gen`, verifies golden output, compiles a generated app, and checks `init` / `generate` / `add command` / `remove command` behavior plus the path validation guard.
+This script compiles `cli-fp-gen`, runs the naming and validation unit tests,
+verifies golden output, compiles a generated app, and checks `init` / `generate`
+/ `add command` / `remove command` behavior plus overwrite and path validation
+guards.
+
+GitHub Actions runs the focused suite on Linux and Windows for pushes and pull
+requests that change the generator, its fixtures, the framework source, or the
+workflow. The workflow can also be started manually.
 
 ## Notes
 

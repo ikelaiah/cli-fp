@@ -1,8 +1,0 @@
-{
-  "schemaVersion" : 1,
-  "generatedFiles" : [
-    "src/GoldenDemo.lpr",
-    "src/generated/GoldenDemo_CommandRegistry_Generated.pas",
-    "src/generated/.clifp-manifest.json"
-  ]
-}

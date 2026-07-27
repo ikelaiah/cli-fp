@@ -6,10 +6,15 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 GEN_SRC="$ROOT_DIR/tools/cli-fp-gen/cli_fp_gen.lpr"
-GEN_BIN="$ROOT_DIR/tools/cli-fp-gen/cli_fp_gen"
+GEN_BIN="$TMP_DIR/cli_fp_gen"
 FIXTURE_DIR="$ROOT_DIR/tests/codegen-fixtures/golden-basic"
 
-fpc -Fu"$ROOT_DIR/tools/cli-fp-gen/src" "$GEN_SRC" >/dev/null
+mkdir -p "$TMP_DIR/gen-units"
+fpc \
+  -Fu"$ROOT_DIR/tools/cli-fp-gen/src" \
+  -FE"$TMP_DIR" \
+  -FU"$TMP_DIR/gen-units" \
+  "$GEN_SRC" >/dev/null
 
 mkdir -p "$TMP_DIR/project"
 cp "$FIXTURE_DIR/clifp.json" "$TMP_DIR/project/clifp.json"

@@ -98,7 +98,7 @@ var
 begin
   try
     // Create main application with name and version
-    App := CreateCLIApplication('ProgressDemo', '1.1.6');
+    App := CreateCLIApplication('ProgressDemo', '1.2.0');
     (App as TCLIApplication).DebugMode := False; // Disable debug output for cleaner display
 
     // Create and configure process command

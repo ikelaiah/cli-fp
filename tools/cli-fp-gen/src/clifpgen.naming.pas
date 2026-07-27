@@ -33,16 +33,11 @@ begin
     Result := StringReplace(Result, '//', '/', [rfReplaceAll]);
 end;
 
-// NormalizeCommandName strips all path separators (both '/' and '\') and
-// surrounding whitespace, yielding a plain single-token name.
-// On Windows, backslashes in user input (e.g. 'repo\clone') are converted
-// to forward slashes by NormalizePathSlashes before being stripped here,
-// so only the final segment survives. Callers that expect a path should
-// use NormalizeCommandPath instead.
+// Command names are single tokens. Keep invalid path separators intact so
+// validation can report them instead of silently changing the user's input.
 function NormalizeCommandName(const S: string): string;
 begin
-  Result := Trim(NormalizePathSlashes(S));
-  Result := StringReplace(Result, '/', '', [rfReplaceAll]);
+  Result := Trim(S);
 end;
 
 function NormalizeCommandPath(const S: string): string;
@@ -178,8 +173,19 @@ begin
 end;
 
 function MakeProgramIdentifier(const AppName: string): string;
+const
+  PascalReservedWords =
+    '|absolute|and|array|as|asm|begin|case|class|const|constructor|' +
+    'destructor|dispinterface|div|do|downto|else|end|except|exports|' +
+    'file|finalization|finally|for|function|goto|if|implementation|in|' +
+    'inherited|initialization|inline|interface|is|label|library|mod|nil|' +
+    'not|object|of|on|operator|or|out|packed|procedure|program|property|' +
+    'raise|record|reintroduce|repeat|resourcestring|self|set|shl|shr|' +
+    'string|then|threadvar|to|try|type|unit|until|uses|var|while|with|xor|';
 begin
   Result := TokenToPascalPart(AppName);
+  if Pos('|' + LowerCase(Result) + '|', PascalReservedWords) > 0 then
+    Result := 'App' + Result;
 end;
 
 // Returns a relative path such as 'src/Myapp.lpr'. The filename is

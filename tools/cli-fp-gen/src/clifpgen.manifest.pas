@@ -27,6 +27,15 @@ begin
   Result := StringReplace(Trim(S), '\', '/', [rfReplaceAll]);
 end;
 
+procedure ConfigurePathList(const Paths: TStringList);
+begin
+  {$IFDEF MSWINDOWS}
+  Paths.CaseSensitive := False;
+  {$ELSE}
+  Paths.CaseSensitive := True;
+  {$ENDIF}
+end;
+
 function ProjectPath(const ProjectDir, RelPath: string): string;
 begin
   Result := ExpandFileName(IncludeTrailingPathDelimiter(ProjectDir) +
@@ -39,7 +48,11 @@ var
 begin
   RootNorm := IncludeTrailingPathDelimiter(ExpandFileName(ProjectDir));
   FileNorm := ExpandFileName(FileName);
+  {$IFDEF MSWINDOWS}
   Result := SameText(Copy(FileNorm, 1, Length(RootNorm)), RootNorm);
+  {$ELSE}
+  Result := Copy(FileNorm, 1, Length(RootNorm)) = RootNorm;
+  {$ENDIF}
 end;
 
 function LoadGeneratedManifest(const ProjectDir: string): TStringList;
@@ -51,7 +64,7 @@ var
   i: Integer;
 begin
   Result := TStringList.Create;
-  Result.CaseSensitive := False;
+  ConfigurePathList(Result);
   Result.Sorted := False;
   Result.Duplicates := dupIgnore;
 
@@ -105,7 +118,7 @@ var
 begin
   CurrentSet := TStringList.Create;
   try
-    CurrentSet.CaseSensitive := False;
+    ConfigurePathList(CurrentSet);
     for i := 0 to CurrentRelFiles.Count - 1 do
       CurrentSet.Add(NormalizeRelPath(CurrentRelFiles[i]));
 
