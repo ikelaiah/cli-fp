@@ -48,15 +48,39 @@ Closes #14.
 - [x] Preserve output for specifications without a root command.
 - [x] Extend unit, golden, runtime, and compile-smoke coverage.
 
-## Examples and Documentation
+## Compatibility
+
+Existing code remains valid:
+
+```pascal
+App := CreateCLIApplication('MyApp', '1.0.0');
+```
+
+Root behavior is enabled only through the new overload:
+
+```pascal
+App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
+```
+
+No migration is required for existing applications or schema-v1
+`clifp.json` files.
+
+## Examples and Release Metadata
 
 - [x] Add `RootCommandDemo`.
-- [x] Update README, API reference, user manual, technical documentation, and
-  generator documentation.
 - [x] Add v1.3.0 release notes and changelog entries.
 - [x] Update the Lazarus package and README version to `1.3.0`.
-- [x] Correct copy/paste API examples and Linux generated-program casing.
-- [x] Clarify password handling and shell-completion behavior.
+
+## Documentation
+
+- [x] Rework README onboarding for root, named, and combined CLI applications.
+- [x] Correct public API signatures and compile-check key Pascal examples.
+- [x] Fix code-generator instructions and case-sensitive Linux build commands.
+- [x] Align Bash and PowerShell completion guides with current behavior.
+- [x] Clarify date-time parsing, Boolean defaults, password handling, and
+  custom-completion limitations.
+- [x] Repair documentation links and label dated test reports as historical
+  snapshots.
 
 ## Verification
 
@@ -75,20 +99,3 @@ Closes #14.
 - [x] Documentation links and examples verified.
 
 After merge, create the `v1.3.0` tag and publish the prepared release notes.
-
-## Compatibility
-
-Existing code remains valid:
-
-```pascal
-App := CreateCLIApplication('MyApp', '1.0.0');
-```
-
-Root behavior is enabled only through the new overload:
-
-```pascal
-App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
-```
-
-No migration is required for existing applications or schema-v1
-`clifp.json` files.

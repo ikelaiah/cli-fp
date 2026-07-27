@@ -88,6 +88,22 @@ When configured, `cli-fp-gen`:
 
 Existing specifications without `rootCommand` generate as before.
 
+## Documentation
+
+The documentation received a release-wide accuracy and onboarding pass:
+
+- Reworked the README to help new developers choose between root commands,
+  named commands, and combined applications.
+- Corrected public API signatures and copy/paste Pascal examples, with key
+  examples verified by compilation.
+- Updated root-command and code-generator instructions, including
+  case-sensitive Linux build commands.
+- Aligned Bash and PowerShell completion guides with current behavior.
+- Clarified date-time parsing, Boolean defaults, password handling, and current
+  custom-completion limitations.
+- Repaired local documentation links and labelled dated test reports as
+  historical snapshots.
+
 ## Examples and Verification
 
 - Added `examples/RootCommandDemo`.
