@@ -56,7 +56,13 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ## Testing
 
-* Run the test suite with `runtests.pas`
+* Run the framework test suite with `bash tests/run_tests.sh` on Linux/macOS
+  or `powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1` on Windows
+* Run the code-generator suite with `bash tests/codegen/run_unit_tests.sh`,
+  `bash tests/codegen/run_golden_test.sh`, `bash tests/codegen/run_ops_test.sh`,
+  and `bash tests/codegen/run_compile_smoke.sh` on Linux/macOS, or
+  `powershell -ExecutionPolicy Bypass -File tests\codegen\run_all_tests.ps1`
+  on Windows
 * Add test cases for new functionality
 * Ensure existing tests pass
 
@@ -72,4 +78,4 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 * Feel free to open an issue for discussion
 * Contact the maintainers directly
 
-Thank you for your contribution! 🚀 
+Thank you for your contribution! 🚀

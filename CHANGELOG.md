@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-27
+
+### Added
+
+- Added `cli-fp-gen`, a standalone scaffold generator for creating `cli-fp`
+  applications from a versioned `clifp.json` project specification.
+- Added `init`, `generate`, `add command`, and `remove command` workflows,
+  including nested commands, cascade removal, dry-run previews, and controlled
+  force-overwrite behavior.
+- Added generated application entry points, command registries, parameter
+  registration for every supported parameter kind, and user-owned command
+  stubs.
+- Added a generated-file manifest for safe stale-file cleanup when generated
+  paths change.
+- Added full generator documentation from the main README, including project
+  layout, file ownership, build instructions, and local verification commands.
+
+### Fixed
+
+- `cli-fp-gen`: Schema version mismatch error message now includes a prompt to check the migration documentation, making it actionable when a future `schemaVersion` is encountered.
+- `cli-fp-gen`: `init` now protects an existing `clifp.json` unless `--force` is supplied.
+- `cli-fp-gen`: Command names containing path separators are rejected instead of being silently rewritten.
+- `cli-fp-gen`: Commands that collapse to the same generated Pascal identifier are rejected with a targeted error.
+- `cli-fp-gen`: Reserved Pascal words used as application names now produce valid program identifiers.
+- `cli-fp-gen`: Manifest cleanup now uses platform-appropriate path casing and refuses similarly named sibling directories on case-sensitive filesystems.
+- `cli-fp-gen`: Manifest cleanup now refuses stale-file paths that traverse Unix symbolic links or Windows reparse points, including directory junctions.
+- `cli-fp-gen`: Malformed project specifications now release partially constructed commands and parameters safely.
+- Boolean parameter lookups now report defaults as available values, matching the public API contract.
+
+### Improved
+
+- Duplicate command names under the same parent now produce a targeted error
+  naming the conflicting sibling and parent.
+- `--dry-run` help text now includes example output so file operations are clear
+  before execution.
+- `cli-fp-gen`: Command-name validation preserves invalid input so diagnostics can report the original name.
+- `cli-fp-gen`: `MakeProgramFileRelPath` is documented to note that the generated `.lpr` filename uses PascalCase, which must be matched exactly in build scripts on case-sensitive filesystems (Linux/macOS).
+
+### Testing
+
+- Added a Windows PowerShell verification path for `cli-fp-gen` in `tests/codegen/run_all_tests.ps1`.
+- Added focused FPCUnit coverage for generator naming, validation, malformed-spec error handling, and exception-safe ownership.
+- GitHub Actions now runs the framework suite plus generator unit, golden-output, lifecycle, ownership, path-safety, and generated-app compile checks on Linux and Windows.
+- Added Unix symbolic-link and Windows directory-junction regression tests for manifest cleanup.
+- Code generator documentation now includes both the Bash test scripts and the PowerShell verification command.
+
 ## [1.1.6] - 2026-02-21
 
 ### Added
@@ -246,5 +292,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ikelaiah/cli-fp/compare/v1.1.6...v1.2.0
 [1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0
 
