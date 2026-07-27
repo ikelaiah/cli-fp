@@ -81,7 +81,7 @@ are built.
 ## Documentation
 
 - [Release notes](RELEASE_NOTES_v1.2.0.md)
-- [Changelog](CHANGELOG.md)
-- [Generator guide](docs/codegen.md)
-- [README](README.md)
-- [Contributing](CONTRIBUTING.md)
+- [Changelog](../CHANGELOG.md)
+- [Generator guide](codegen.md)
+- [README](../README.md)
+- [Contributing](../CONTRIBUTING.md)

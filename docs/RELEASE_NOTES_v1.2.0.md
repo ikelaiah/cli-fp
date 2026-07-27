@@ -98,7 +98,7 @@ tools/cli-fp-gen/cli_fp_gen init ./my-app --name my-app
 
 On Windows, use `cli_fp_gen.exe`.
 
-See [docs/codegen.md](docs/codegen.md) for the complete specification and
+See [codegen.md](codegen.md) for the complete specification and
 workflow reference.
 
 ## Upgrade notes
@@ -110,7 +110,7 @@ workflow reference.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+This project is licensed under the MIT License. See [LICENSE](../LICENSE).
 
 ---
 
