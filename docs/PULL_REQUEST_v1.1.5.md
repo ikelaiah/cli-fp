@@ -108,7 +108,9 @@ This release emphasizes the **"commands first"** design principle:
 
 ## ⚠️ Known Limitations
 
-- Custom completion callbacks (`RegisterFlagValueCompletion()`, `RegisterPositionalCompletion()`) are stubbed due to FPC 3.2.2 limitations
+- Custom completion callbacks (`RegisterFlagValueCompletion()`,
+  `RegisterPositionalCompletion()`) remain stubbed after compatibility
+  problems in the original experiment
 - Built-in completion (commands, flags, booleans, enums) works perfectly
 
 ## 📦 Breaking Changes
@@ -163,9 +165,9 @@ true  false
 
 Full documentation available:
 - [Release Notes](RELEASE_NOTES_v1.1.5.md)
-- [Bash Completion Guide](docs/completion-testing/BASH_COMPLETION_GUIDE.md)
-- [PowerShell Completion Guide](docs/completion-testing/PS_COMPLETION_GUIDE.md)
-- [Complete Test Results](docs/completion-testing/)
+- [Bash Completion Guide](completion-testing/BASH_COMPLETION_GUIDE.md)
+- [PowerShell Completion Guide](completion-testing/PS_COMPLETION_GUIDE.md)
+- [Complete Test Results](completion-testing/)
 
 ## 👥 Reviewers
 

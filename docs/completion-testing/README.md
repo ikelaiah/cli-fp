@@ -1,11 +1,14 @@
 # Shell Completion Testing Documentation
 
 **Created:** 2025-12-29
-**Last Updated:** 2025-12-29
+**Last Updated:** 2026-07-27
 **Framework:** cli-fp
-**Coverage:** Bash completion testing (PowerShell testing planned)
+**Coverage:** Bash and PowerShell completion documentation
 
-This directory contains comprehensive testing documentation for the Bash and PowerShell completion functionality of the cli-fp framework.
+This directory contains current user guides plus historical completion test and
+development records. The dated test reports describe the implementation at the
+time they were written; use the user guides and the
+[main user manual](../user-manual.md#bash-completion) for current behavior.
 
 ## Files
 
@@ -15,6 +18,12 @@ This directory contains comprehensive testing documentation for the Bash and Pow
   - How completion works
   - Common patterns and usage
   - Tips and tricks
+  - Troubleshooting
+
+- **[PS_COMPLETION_GUIDE.md](PS_COMPLETION_GUIDE.md)** - Complete user guide for PowerShell completion
+  - Installation instructions
+  - Completion behavior and common patterns
+  - PowerShell version notes
   - Troubleshooting
 
 ### Testing Documentation
@@ -28,6 +37,10 @@ This directory contains comprehensive testing documentation for the Bash and Pow
   - Bug fixes applied
   - Explanation of expected vs actual behavior
   - Recommendations for improvements
+
+- **[PS_COMPLETION_TESTS.md](PS_COMPLETION_TESTS.md)** and
+  **[PS_COMPLETION_SUMMARY.md](PS_COMPLETION_SUMMARY.md)** - Historical
+  PowerShell test cases and results
 
 ### Verification
 - **[VERIFY_FIX.md](VERIFY_FIX.md)** - Quick verification steps for bug fixes
@@ -46,7 +59,7 @@ This directory contains comprehensive testing documentation for the Bash and Pow
   - Files created/modified/deleted
   - Next steps
 
-## Test Results Summary
+## Historical Test Results Summary
 
 **Date:** December 29, 2025
 **Framework:** cli-fp
@@ -58,17 +71,18 @@ This directory contains comprehensive testing documentation for the Bash and Pow
 - **Passing:** 26 (87%)
 - **Real Bugs Found:** 1
 - **Real Bugs Fixed:** 1 ✅
-- **Status:** All tests passing correctly!
+- **Status at the time:** All tests passing correctly!
 
 ### Bug Fixed
 Root-level flag completion (e.g., `./app --h[TAB]`) now works correctly.
-- **File Modified:** `src/cli.application.pas` (lines 1095-1110)
+- **File Modified:** `src/cli.application.pas`
 - **Fix:** Added check for flags starting with `-` before attempting command matching
 
 ## How to Use These Documents
 
 ### For Users
-Start with **BASH_COMPLETION_GUIDE.md** to learn how to use shell completion effectively.
+Start with **BASH_COMPLETION_GUIDE.md** or **PS_COMPLETION_GUIDE.md** to learn
+how to use shell completion effectively.
 
 ### For Testers
 1. Review **BASH_COMPLETION_TESTS.md** for the test suite
@@ -81,15 +95,10 @@ Start with **BASH_COMPLETION_GUIDE.md** to learn how to use shell completion eff
 2. **BASH_COMPLETION_TEST_SUMMARY.md** - Technical analysis of completion behavior
 3. **test_fix.md** - Specific bug fix details
 
-## Future Testing
+## Other Shells
 
-### PowerShell Testing (TODO)
-Similar test suite should be created for PowerShell completion:
-- Generate completion script: `./app --completion-file-pwsh > completion.ps1`
-- Create PowerShell version of test files
-- Document PowerShell-specific behaviors
+Potential future coverage:
 
-### Other Shells (Future)
 - Zsh completion testing
 - Fish shell completion testing
 
@@ -98,6 +107,10 @@ Similar test suite should be created for PowerShell completion:
 ### Completion Scripts (in example-bin/)
 - `subcommanddemo_completion.bash` - Generated Bash completion script
 - `simpledemo_completion.bash` - Generated Bash completion script
+- `subcommanddemo_completion.ps1` - Generated PowerShell completion script
+
+Checked-in generated scripts may be release snapshots. Regenerate them from the
+current executable before installation.
 
 ### Source Code
 - `src/cli.application.pas` - Contains `__complete` implementation and script generators
@@ -109,10 +122,11 @@ Similar test suite should be created for PowerShell completion:
 ## Contributing
 
 If you find issues with shell completion:
-1. Add test cases to **BASH_COMPLETION_TESTS.md**
+
+1. Add or update an automated test in the main test suite
 2. Document expected vs actual behavior
 3. Create an issue with test results
-4. Reference these test files in bug reports
+4. Reference the relevant guide or historical test record in bug reports
 
 ## License
 

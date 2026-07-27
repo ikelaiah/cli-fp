@@ -1,5 +1,9 @@
 # Pull Request: Release v1.3.0 - Optional Root Commands
 
+**Target Release:** v1.3.0
+
+**Release Date:** July 28, 2026
+
 ## Summary
 
 This PR adds opt-in root-command execution so `cli-fp` applications can run
@@ -8,6 +12,13 @@ the existing `ICLIApplication` contract and two-argument factory behavior.
 
 Closes #14.
 
+## Type of Change
+
+- [x] New backward-compatible feature
+- [x] Documentation correction
+- [x] Test and CI coverage
+- [ ] Breaking change
+
 ## Framework
 
 - [x] Add the backward-compatible three-argument `CreateCLIApplication`
@@ -15,7 +26,8 @@ Closes #14.
 - [x] Execute the root command for an empty argument list or leading
   root-level option.
 - [x] Preserve named command and nested-subcommand resolution.
-- [x] Keep terminal global help, version, and completion options authoritative.
+- [x] Keep sole help/version requests and first-argument completion-script
+  options authoritative.
 - [x] Share parsing, validation, defaults, and exception handling between root
   and named commands.
 - [x] Reset application parsing state between executions.
@@ -43,6 +55,8 @@ Closes #14.
   generator documentation.
 - [x] Add v1.3.0 release notes and changelog entries.
 - [x] Update the Lazarus package and README version to `1.3.0`.
+- [x] Correct copy/paste API examples and Linux generated-program casing.
+- [x] Clarify password handling and shell-completion behavior.
 
 ## Verification
 
@@ -50,7 +64,17 @@ Closes #14.
 - [x] RootCommandDemo Release build and runtime smoke tests.
 - [x] Full Windows code-generator suite.
 - [x] Generated root-command application compile and runtime smoke test.
-- [ ] GitHub Actions on Linux and Windows.
+- [x] GitHub Actions on Linux and Windows.
+- [x] No conflicts with the base branch.
+
+## Release Readiness
+
+- [x] Changelog finalized for July 28, 2026.
+- [x] Release notes finalized for July 28, 2026.
+- [x] Version metadata targets `1.3.0`.
+- [x] Documentation links and examples verified.
+
+After merge, create the `v1.3.0` tag and publish the prepared release notes.
 
 ## Compatibility
 

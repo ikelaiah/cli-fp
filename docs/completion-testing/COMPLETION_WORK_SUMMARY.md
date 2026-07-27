@@ -1,5 +1,10 @@
 # Bash Completion Work Summary
 
+> **Historical snapshot:** This records completion work and results from
+> December 2025. Source line numbers, generated output, file counts, and option
+> lists may differ in v1.3.0. See the
+> [current completion guides](README.md#user-documentation) for current behavior.
+
 **Project Start:** 2025-12-28
 **Project Complete:** 2025-12-29
 **Duration:** 2 days

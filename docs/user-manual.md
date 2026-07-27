@@ -16,8 +16,8 @@ App := CreateCLIApplication('AppName', '1.0.0');
 
 ### Create Command
 ```pascal
-// Create a command with name and description
-Cmd := TBaseCommand.Create('command-name', 'Command description');
+// TMyCommand must descend from TBaseCommand and override Execute
+Cmd := TMyCommand.Create('command-name', 'Command description');
 ```
 
 ### Add Parameters
@@ -43,13 +43,13 @@ Cmd.AddPathParameter('-p', '--path', 'Description', False, GetCurrentDir);
 // Enum parameter
 Cmd.AddEnumParameter('-l', '--level', 'Description', 'debug|info|warn|error');
 
-// DateTime parameter (format: YYYY-MM-DD HH:MM)
+// DateTime parameter (recommended format: YYYY-MM-DD HH:MM)
 Cmd.AddDateTimeParameter('-d', '--date', 'Description');
 
 // Array parameter (comma-separated values)
 Cmd.AddArrayParameter('-t', '--tags', 'Description', False, 'tag1,tag2');
 
-// Password parameter (masked in output)
+// Password parameter (treat the retrieved string as sensitive)
 Cmd.AddPasswordParameter('-k', '--key', 'Description', True);
 
 // URL parameter (validates URL format)
@@ -82,11 +82,11 @@ end;
 
 ### Add Subcommands
 ```pascal
-// Create main command
-MainCmd := TBaseCommand.Create('git', 'Git operations');
+// Both classes descend from TBaseCommand and override Execute
+MainCmd := TGitCommand.Create('git', 'Git operations');
 
 // Create and add subcommand
-SubCmd := TBaseCommand.Create('clone', 'Clone repository');
+SubCmd := TCloneCommand.Create('clone', 'Clone repository');
 MainCmd.AddSubCommand(SubCmd);
 ```
 
@@ -96,7 +96,7 @@ MainCmd.AddSubCommand(SubCmd);
 App.RegisterCommand(Cmd);
 
 // Run application
-ExitCode := App.Execute;
+Halt(App.Execute);
 ```
 
 ### Progress Indicators
@@ -105,7 +105,8 @@ ExitCode := App.Execute;
 Spinner := CreateSpinner(ssDots);
 Spinner.Start;
 try
-  // Work here...
+  Spinner.Update(0, 'Working...');
+  // Work here, calling Update regularly...
 finally
   Spinner.Stop;
 end;
@@ -143,8 +144,9 @@ end;
   - [Installation](#installation)
   - [Quick Start](#quick-start)
     - [1. Creating a Simple CLI Application](#1-creating-a-simple-cli-application)
-    - [2. Creating a Git-like CLI](#2-creating-a-git-like-cli)
-    - [3. Progress Indicators](#3-progress-indicators)
+    - [2. Creating a Command-less Application](#2-creating-a-command-less-application)
+    - [3. Creating a Git-like CLI](#3-creating-a-git-like-cli)
+    - [4. Progress Indicators](#4-progress-indicators)
       - [Spinner Types](#spinner-types)
       - [Using Spinners](#using-spinners)
       - [Progress Bars](#progress-bars)
@@ -190,7 +192,7 @@ end;
     - [Features of the Generated Script](#features-of-the-generated-script)
     - [How It Works](#how-it-works)
       - [Technical Rationale](#technical-rationale)
-  - [PowerShell Tab Completion (v2025.06)](#powershell-tab-completion-v202506)
+  - [PowerShell Tab Completion](#powershell-tab-completion)
     - [Overview](#overview-1)
     - [How to Enable](#how-to-enable)
     - [Usage](#usage)
@@ -221,11 +223,15 @@ flowchart TD
     C -->|Yes| D{Root Command?}
     D -->|No| R[Show General Help]
     D -->|Yes| M
-    C -->|No| E{Help or Version?}
-    E -->|Yes| F[Show Help/Version]
-    E -->|No| G{Valid Command?}
-    G -->|No| H[Show Error & Brief Help]
-    G -->|Yes| I{Has Subcommands?}
+    C -->|No| E{Application-level request?}
+    E -->|Yes| F[Show Help, Version, or Completion Script]
+    E -->|No| G{Leading option?}
+    G -->|Yes| S{Root Command?}
+    S -->|No| H[Show Error & Brief Help]
+    S -->|Yes| M
+    G -->|No| T{Valid Command?}
+    T -->|No| H
+    T -->|Yes| I{Has Subcommands?}
     I -->|Yes| J[Process Subcommand]
     J --> K{Valid Subcommand?}
     K -->|No| L[Show Subcommand Help]
@@ -273,7 +279,7 @@ flowchart TD
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/cli-fp.git
+   git clone https://github.com/ikelaiah/cli-fp.git
    ```
 
 2. Add to your project:
@@ -312,10 +318,10 @@ type
 
 function TGreetCommand.Execute: Integer;
 var
-  Name: string;
+  PersonName: string;
 begin
-  if GetParameterValue('--name', Name) then
-    TConsole.WriteLn('Hello, ' + Name + '!')
+  if GetParameterValue('--name', PersonName) then
+    TConsole.WriteLn('Hello, ' + PersonName + '!')
   else
     TConsole.WriteLn('Hello, World!');
   Result := 0;
@@ -364,11 +370,11 @@ type
 
 function TGreetRootCommand.Execute: Integer;
 var
-  Name: string;
+  PersonName: string;
 begin
-  if not GetParameterValue('--name', Name) then
-    Name := 'World';
-  WriteLn('Hello, ', Name, '!');
+  if not GetParameterValue('--name', PersonName) then
+    PersonName := 'World';
+  WriteLn('Hello, ', PersonName, '!');
   Result := 0;
 end;
 
@@ -381,7 +387,7 @@ begin
     False, 'World');
 
   App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end.
 ```
 
@@ -398,13 +404,19 @@ commands registered through `RegisterCommand`; a leading command name selects
 the named command, while a leading option selects the root command.
 
 Root parameters are not inherited by named commands, and positional arguments
-are not currently supported. Application-level help, version, and completion
-options retain precedence.
+are not currently supported. Sole help/version requests and first-argument
+completion-script requests are dispatched at application level before root
+execution.
 
 ### 3. Creating a Git-like CLI
 
 ```pascal
 type
+  TRepoCommand = class(TBaseCommand)
+  public
+    function Execute: Integer; override;
+  end;
+
   TCloneCommand = class(TBaseCommand)
   public
     function Execute: Integer; override;
@@ -414,6 +426,12 @@ type
   public
     function Execute: Integer; override;
   end;
+
+function TRepoCommand.Execute: Integer;
+begin
+  // The application displays command help when no subcommand is selected.
+  Result := 0;
+end;
 
 function TCloneCommand.Execute: Integer;
 var
@@ -460,7 +478,7 @@ end;
 
 var
   App: ICLIApplication;
-  RepoCmd: TBaseCommand;
+  RepoCmd: TRepoCommand;
   CloneCmd: TCloneCommand;
   InitCmd: TInitCommand;
   ExitCode: Integer;
@@ -468,7 +486,7 @@ begin
   try
     App := CreateCLIApplication('MyGit', '1.0.0');
     
-    RepoCmd := TBaseCommand.Create('repo', 'Repository management');
+    RepoCmd := TRepoCommand.Create('repo', 'Repository management');
     
     CloneCmd := TCloneCommand.Create('clone', 'Clone a repository');
     // Add a required string parameter for the URL.
@@ -708,11 +726,13 @@ AddFlag('-v', '--verbose', 'Enable verbose mode');
 AddBooleanParameter('-d', '--debug', 'Debug mode', False, 'false');
 ```
 
-> **Note:** Flags created with `AddFlag` are always `false` by default and only become `true` if present on the command line. If you set a default value of `'true'`, the flag will be `true` even if not present, which is not standard CLI behavior and not recommended unless you have a specific use case.
+> **Note:** `AddFlag` uses the default string `'false'` unless you override it.
+> Presence without an explicit value produces `'true'`. A custom default of
+> `'true'` therefore makes an absent flag true, which is usually surprising.
 
 #### Date and Time Parameters
 ```pascal
-// Must be in format "YYYY-MM-DD HH:MM" (24-hour format)
+// Recommended portable format: "YYYY-MM-DD HH:MM"
 AddDateTimeParameter('-d', '--date', 'Date parameter');
 ```
 
@@ -736,9 +756,13 @@ AddArrayParameter('-t', '--tags', 'Tag list');
 
 #### Password Parameters
 ```pascal
-// Value is masked in help text and logs
+// Treat the retrieved value as sensitive
 AddPasswordParameter('-k', '--api-key', 'API Key');
 ```
+
+Password parameters are returned to command code as ordinary strings. The
+framework does not automatically redact values written by your application or
+external logging.
 
 ### Parameter Validation
 
@@ -751,11 +775,13 @@ The framework validates all parameters before executing a command. Each paramete
 - **Boolean**: Must be 'true' or 'false' (case-insensitive)
 
 ### Complex Types
-- **DateTime**: Must be in format "YYYY-MM-DD HH:MM" (24-hour format)
+- **DateTime**: Uses `TryStrToDateTime` with `yyyy-mm-dd` date settings.
+  `YYYY-MM-DD HH:MM` is the recommended portable form, but the current parser
+  may also accept date-only values or seconds.
 - **Enum**: Must match one of the pipe-separated allowed values
 - **URL**: Must start with http://, https://, git://, or ssh://
 - **Array**: No validation on individual items
-- **Password**: No validation, but value is masked in output
+- **Password**: No validation or automatic output redaction
 
 ### Error Messages
 
@@ -802,8 +828,11 @@ AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error', False, '
 
 The default value will be used when:
 - The parameter is not provided on the command line
-- The parameter is optional (Required = False)
 - A default value is specified
+
+A non-empty default also satisfies the current required-parameter check.
+Avoid combining `Required = True` with a default when you need to distinguish
+user input from fallback configuration.
 
 ### Getting Parameter Values
 
@@ -812,13 +841,13 @@ To retrieve parameter values in your command's Execute method:
 ```pascal
 function TMyCommand.Execute: Integer;
 var
-  Name, CountStr, RateStr, Level: string;
+  PersonName, CountStr, RateStr, Level: string;
   Count: Integer;
   Rate: Double;
 begin
   // Get parameter values with error checking
-  if GetParameterValue('--name', Name) then
-    WriteLn('Name: ', Name);
+  if GetParameterValue('--name', PersonName) then
+    WriteLn('Name: ', PersonName);
 
   if GetParameterValue('--count', CountStr) and TryStrToInt(CountStr, Count) then
     WriteLn('Count: ', Count);
@@ -835,7 +864,11 @@ end;
 
 ### Best Practices
 
-1. **Always Check Return Value**: `GetParameterValue` returns `True` for non-boolean parameters when a value or default exists. Boolean parameters still write to the output string, but return `True` only when the flag/value was explicitly provided.
+1. **Check the Retrieved Boolean Text**: `GetParameterValue` returns `True`
+   when a value or non-empty default exists. Standard flags have the default
+   string `'false'`, so an absent flag normally still returns `True`. Use
+   `SameText(Value, 'true')` to determine its value; the return value does not
+   tell you whether the user explicitly typed the flag.
 
 2. **Convert Retrieved Strings Explicitly**: `GetParameterValue` returns strings, so use `SysUtils` helpers after reading the value:
    ```pascal
@@ -872,6 +905,7 @@ end;
 
 ```bash
 myapp <command> [options]
+myapp [root-options]          # when a root command is configured
 ```
 
 ### Getting Help
@@ -920,9 +954,9 @@ myapp test               # --flag is false
        Value: string;
      begin
        if GetParameterValue('--param', Value) then
-         // Parameter was provided
+         // A provided value or non-empty default is available
        else
-         // Parameter was not provided
+         // No value or default is available
      end;
      ```
 
@@ -1023,8 +1057,8 @@ App := CreateCLIApplication('AppName', '1.0.0');
 
 ### Create Command
 ```pascal
-// Create a command with name and description
-Cmd := TBaseCommand.Create('command-name', 'Command description');
+// TMyCommand must descend from TBaseCommand and override Execute
+Cmd := TMyCommand.Create('command-name', 'Command description');
 ```
 
 ### Add Parameters
@@ -1050,13 +1084,13 @@ Cmd.AddPathParameter('-p', '--path', 'Description', False, GetCurrentDir);
 // Enum parameter
 Cmd.AddEnumParameter('-l', '--level', 'Description', 'debug|info|warn|error');
 
-// DateTime parameter (format: YYYY-MM-DD HH:MM)
+// DateTime parameter (recommended format: YYYY-MM-DD HH:MM)
 Cmd.AddDateTimeParameter('-d', '--date', 'Description');
 
 // Array parameter (comma-separated values)
 Cmd.AddArrayParameter('-t', '--tags', 'Description', False, 'tag1,tag2');
 
-// Password parameter (masked in output)
+// Password parameter (treat the retrieved string as sensitive)
 Cmd.AddPasswordParameter('-k', '--key', 'Description', True);
 
 // URL parameter (validates URL format)
@@ -1089,11 +1123,11 @@ end;
 
 ### Add Subcommands
 ```pascal
-// Create main command
-MainCmd := TBaseCommand.Create('git', 'Git operations');
+// Both classes descend from TBaseCommand and override Execute
+MainCmd := TGitCommand.Create('git', 'Git operations');
 
 // Create and add subcommand
-SubCmd := TBaseCommand.Create('clone', 'Clone repository');
+SubCmd := TCloneCommand.Create('clone', 'Clone repository');
 MainCmd.AddSubCommand(SubCmd);
 ```
 
@@ -1103,7 +1137,7 @@ MainCmd.AddSubCommand(SubCmd);
 App.RegisterCommand(Cmd);
 
 // Run application
-ExitCode := App.Execute;
+Halt(App.Execute);
 ```
 
 ### Progress Indicators
@@ -1112,7 +1146,8 @@ ExitCode := App.Execute;
 Spinner := CreateSpinner(ssDots);
 Spinner.Start;
 try
-  // Work here...
+  Spinner.Update(0, 'Working...');
+  // Work here, calling Update regularly...
 finally
   Spinner.Stop;
 end;
@@ -1144,7 +1179,7 @@ The CLI framework provides an advanced Bash completion system. You can generate 
 - Instead, source the generated script from your shell config:
 
 ```bash
-echo 'source $(pwd)/myapp-completion.sh' >> ~/.bashrc
+echo "source \"$PWD/myapp-completion.sh\"" >> ~/.bashrc
 ```
 
 > The CLI can only warn you if you pass `.bashrc` (or similar) as a direct argument. If you use shell redirection (`> ~/.bashrc`), the CLI cannot detect this, so please follow the safe usage instructions above.
@@ -1152,19 +1187,27 @@ echo 'source $(pwd)/myapp-completion.sh' >> ~/.bashrc
 ### Features of the Generated Script
 
 - Tab-completion for all commands, subcommands, and parameters
-- **Context-aware:** Only valid subcommands and parameters for the current command path are suggested
-- **Global flags:**
-  - At the root level, completions include all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`).
-  - At all subcommand levels, only `-h` and `--help` are offered as global flags (matching the CLI's actual behavior).
+- **Context-aware command metadata:** Subcommand and parameter candidates are
+  scoped to the current command path; built-in application flags follow the
+  behavior described below
+- **Root options:** Starting `-` at the root offers root-command parameters plus
+  `--help`, `-h`, `--help-complete`, `--version`, `-v`,
+  `--completion-file`, and `--completion-file-pwsh`.
+- **Named command options:** At an empty new token, completion includes
+  subcommands, command parameters, and help. With an option prefix, the current
+  engine also exposes `--version` and `-v`.
 - **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - Stays up-to-date with your CLI's structure
-- No external dependencies required
+- Requires Bash 4+ and the common `sed` and `tail` utilities
 
 ### How It Works
 
-- The script uses a Bash associative array to represent the full command/subcommand/parameter tree.
-- Completions are context-sensitive: only valid subcommands and parameters for the current path are suggested.
-- Global flags are only included where they are actually accepted by the CLI.
+- The generated shell function forwards the current tokens to the executable's
+  hidden `__complete` entrypoint.
+- `DoComplete` resolves the command path and returns one candidate per line,
+  followed by a completion-directive line.
+- The generated script currently also emits a command-tree associative array
+  for compatibility, but dynamic completion is driven by `__complete`.
 
 **Example:**
 If your CLI has a structure like:
@@ -1173,19 +1216,21 @@ mycli repo clone --url ...
 mycli repo init --path ...
 mycli repo remote add ...
 ```
-Then, after typing `mycli repo` and pressing Tab, you will see only valid subcommands and `-h`/`--help`. Only at the root will you see all global flags. After `mycli repo clone -`, you will see only valid parameters for `clone` plus `-h`/`--help`.
-
-> This matches the behavior of popular tools like `git` and `docker`, and ensures a user-friendly and robust completion experience.
+Then, after typing `mycli repo` and pressing Tab, you will see its valid
+subcommands plus help. After `mycli repo clone -`, you will see valid
+parameters for `clone`, help, and the version options currently recognized by
+the completion engine.
 
 #### Technical Rationale
 
-- The completion script generator outputs a Bash associative array for the command tree.
-- The root node includes all global flags; subcommands only include help flags.
-- This ensures completions are always valid and never suggest flags that would be rejected by the CLI parser.
-- The approach is robust, user-friendly, and matches modern CLI conventions.
+- The completion script asks the running application for candidates, so command
+  metadata and root parameters stay synchronized with the executable.
+- Empty root completion is commands-first. Type `-` or `--` to request root
+  and application options.
+- Boolean and enum value candidates come from parameter metadata.
 
 
-## PowerShell Tab Completion (v2025.06)
+## PowerShell Tab Completion
 
 ### Overview
 The CLI now provides robust, context-aware PowerShell tab completion for all commands, subcommands, and flags. This matches the experience of modern CLI tools (e.g., Go's Cobra, git, etc.).
@@ -1202,9 +1247,11 @@ The CLI now provides robust, context-aware PowerShell tab completion for all com
 3. (Optional) Add the above line to your `$PROFILE` for automatic loading.
 
 ### Usage
-- After typing the executable and a space, press Tab to see all subcommands and global flags (not files).
+- After typing the executable and a space, press Tab to see named commands.
+  Type `-` or `--` to see root and application options.
 - After typing a subcommand and a space, press Tab to see sub-subcommands and flags for that subcommand.
-- Completion is context-aware at every level.
+- Command, subcommand, and parameter candidates are scoped to the resolved
+  command path.
 - **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - If there are no further subcommands, only flags are shown.
 - If nothing matches, file completion is suppressed.
@@ -1212,12 +1259,13 @@ The CLI now provides robust, context-aware PowerShell tab completion for all com
 ### Example
 ```
 PS> ./SubCommandDemo.exe <Tab>
-  foo      bar      --help   --version
-PS> ./SubCommandDemo.exe foo <Tab>
-  sub1     sub2     --flag1  --help
+  repo
+PS> ./SubCommandDemo.exe repo <Tab>
+  init     clone     remote     --help     -h
 ```
 
 ### Notes
-- Works in PowerShell 7.5+ (tested)
+- Uses `Register-ArgumentCompleter`; PowerShell 7+ additionally receives
+  native executable registration
 - The completion script is dynamically generated from the CLI command tree.
 - Bash completion is also supported (see README).

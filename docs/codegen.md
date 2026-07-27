@@ -29,7 +29,7 @@ Example:
   "app": {
     "name": "myapp",
     "version": "0.1.0",
-    "programFile": "src\\Myapp.lpr"
+    "programFile": "src/Myapp.lpr"
   },
   "rootCommand": {
     "description": "Run the default greeting",
@@ -151,13 +151,13 @@ From the generated project directory, compile with the framework source path plu
 ### Linux/macOS (Bash)
 
 ```bash
-fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/MyApp.lpr
+fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\MyApp.lpr
+fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
 ```
 
 Adjust the first `-Fu` path (`../../src` or `..\..\src`) to point at the
@@ -209,7 +209,8 @@ The generator is split into small units with one main responsibility:
 - `CliFpGen.Filesystem`: managed writes, deletions, and dry-run behavior
 - `CliFpGen.Manifest`: generated-file tracking and safe stale-file cleanup
 
-`TProjectSpec` owns its commands, and each `TCommandSpec` owns its parameters.
+`TProjectSpec` owns its root-command specification and named commands. The
+root-command specification and each `TCommandSpec` own their parameters.
 When parsing JSON, construct an object completely before transferring it to
 its owning list. If parsing raises an exception before that transfer, free the
 partially constructed object in the same routine.

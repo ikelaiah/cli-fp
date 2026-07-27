@@ -144,11 +144,11 @@ end;
 ## 📖 Documentation
 
 - [Release Notes](RELEASE_NOTES_v1.1.6.md)
-- [Changelog](CHANGELOG.md)
-- [README](README.md)
-- [API Reference](docs/api-reference.md)
-- [Technical Docs](docs/technical-docs.md)
-- [User Manual](docs/user-manual.md)
+- [Changelog](../CHANGELOG.md)
+- [README](../README.md)
+- [API Reference](api-reference.md)
+- [Technical Docs](technical-docs.md)
+- [User Manual](user-manual.md)
 
 ## 💬 Additional Notes
 

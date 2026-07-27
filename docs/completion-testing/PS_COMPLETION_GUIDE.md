@@ -1,9 +1,9 @@
 # PowerShell Completion User Guide
 
-**Document Version:** 1.0
-**Last Updated:** 2025-12-30
+**Document Version:** 1.1
+**Last Updated:** 2026-07-27
 **Framework:** cli-fp
-**Applies To:** PowerShell 5.1+ (Windows, Linux, macOS)
+**Applies To:** Windows PowerShell 5.1 on Windows; PowerShell 7+ cross-platform
 
 ## Overview
 
@@ -81,6 +81,10 @@ PS> .\SubCommandDemo.exe --help    # Cycles through long flags only
 
 This behavior is **intentional** and consistent across both Bash and PowerShell completion.
 
+If the application defines a root command, its parameters are also offered when
+the current token starts with `-`. An empty root-level token still suggests named
+commands first.
+
 #### 1. TAB Cycling vs. Showing All Options
 
 **PowerShell behavior differs from Bash:**
@@ -121,16 +125,19 @@ PS> .\SubCommandDemo.exe repo clone --url https://example.com --path
 
 This is standard PowerShell completion behavior - the shell needs something to complete.
 
-#### 3. Global Flags Appear Everywhere
+#### 3. Application Flags in Command Contexts
 
-Global flags like `--help`, `--version`, `-h`, and `-v` are available at every command level:
+The completion engine offers `--help`, `--version`, `-h`, and `-v` while
+completing flags at a named command:
 
 ```powershell
 PS> .\SubCommandDemo.exe repo init --[TAB]
 # Cycles through: --path, --bare, --help, --version
 ```
 
-This is **correct behavior** - global flags should always be accessible.
+`--help` and `-h` work at any command level. Version output is currently an
+application-level operation, so `--version` and `-v` must be the executable's
+only argument even though completion also offers them in command contexts.
 
 #### 4. Command Groups Have No Flags
 
@@ -249,7 +256,7 @@ PS> .\SubCommandDemo.exe repo init -[TAB]
    Get-Command Register-ArgumentCompleter
    ```
 
-3. Check PowerShell version (needs 5.1+):
+3. Check the PowerShell version:
    ```powershell
    $PSVersionTable.PSVersion
    ```
@@ -285,9 +292,9 @@ Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 |---------|-----------|------|
 | **TAB Behavior** | Cycles through options | Shows all options (double-TAB) |
 | **Root Completion** | Commands only (without prefix) | Commands only (without prefix) |
-| **Case Sensitivity** | Case-insensitive | Case-sensitive |
+| **Case Sensitivity** | Case-insensitive | Case-insensitive |
 | **Reverse Cycling** | SHIFT+TAB | N/A (shows all) |
-| **Global Flags** | Always available | Always available |
+| **Application Flags** | Help and version flags are offered in command contexts | Same |
 | **Boolean Values** | `true`/`false` | `true`/`false` |
 
 ---
@@ -336,7 +343,7 @@ Key points to remember:
 3. **SHIFT+TAB**: Goes backwards through options
 4. **Prefix required**: Type `-` or `--` after values to see flags
 5. **Case-insensitive**: Uppercase and lowercase both work
-6. **Global flags**: `--help`, `--version`, `-h`, `-v` always available
+6. **Application flags**: completion offers help and version flags in command contexts; version execution is standalone
 
 ---
 

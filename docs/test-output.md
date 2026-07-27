@@ -1,5 +1,9 @@
 # Test Output
 
+> **Historical snapshot:** This captures the 30-test suite as it ran on
+> 2024-12-21. The v1.3.0 framework suite contains 38 tests; run the current
+> scripts under `tests/` for release verification.
+
 ## 2024-12-21
 
 ```bash

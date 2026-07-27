@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-28
+
 ### Added
 
 - Added optional root commands through a backward-compatible
@@ -28,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Application argument handling is internally testable without modifying the
   process command line, and execution state is reset between runs.
 - Lazarus package metadata and the README version badge now target `1.3.0`.
+
+### Fixed
+
+- Password parameter help no longer claims that values are automatically
+  masked; applications receive raw strings and remain responsible for keeping
+  them out of output and logs.
+- Corrected copy/paste API examples and the case-sensitive generated-program
+  filename in Linux build instructions.
 
 ### Testing
 
@@ -322,7 +332,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ikelaiah/cli-fp/compare/v1.1.6...v1.2.0
 [1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0
 

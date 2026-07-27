@@ -1,9 +1,22 @@
 # Release Notes - cli-fp v1.3.0
 
+**Release Date:** July 28, 2026
+
+## Overview
+
+Version `1.3.0` introduces optional root commands, allowing focused utilities
+to run directly as `app [options]` without giving up named commands or nested
+subcommands. It also adds root-command support to `cli-fp-gen` and completes a
+documentation-correction pass for the public API, build commands, and shell
+completion guidance.
+
+This is a backward-compatible minor release. Existing applications and
+schema-v1 generator specifications require no migration.
+
 ## Optional Root Commands
 
-Version `1.3.0` adds an opt-in root command for applications that should run
-without requiring a named command.
+Applications can opt into a root command that runs without requiring a named
+command.
 
 ```text
 myapp
@@ -17,9 +30,9 @@ myapp about
 myapp repo clone
 ```
 
-This is a backward-compatible minor release. Existing applications using the
-two-argument factory retain their command-first behavior and continue to show
-general help when invoked without a command.
+Existing applications using the two-argument factory retain their
+command-first behavior and continue to show general help when invoked without
+a command.
 
 ## Framework API
 
@@ -31,12 +44,13 @@ RootCommand.AddStringParameter('-n', '--name', 'Name to greet',
   False, 'World');
 
 App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
-ExitCode := App.Execute;
+Halt(App.Execute);
 ```
 
 Root execution shares the same parsing, typed validation, defaults, help, and
-exception handling as named commands. Terminal global options such as
-`--help`, `--version`, and completion-script generation retain precedence.
+exception handling as named commands. Sole help/version requests and
+first-argument completion-script requests retain precedence over root
+selection.
 
 Root parameters are local to the root command. Persistent/inherited flags and
 positional arguments are not introduced in this release.
@@ -52,7 +66,9 @@ positional arguments are not introduced in this release.
 
 ## Generator Support
 
-Schema version 1 now accepts an optional `rootCommand` object:
+Schema version 1 now accepts an optional `rootCommand` object. The following
+shows that member in isolation; a complete specification still requires
+`schemaVersion`, `app`, and `commands`:
 
 ```json
 {
@@ -75,10 +91,16 @@ Existing specifications without `rootCommand` generate as before.
 ## Examples and Verification
 
 - Added `examples/RootCommandDemo`.
+- Corrected copy/paste API examples, generated-program filename casing, and
+  shell-completion compatibility notes.
+- Removed the generated password-help claim that values are masked; password
+  values are raw strings and must be handled as sensitive by the application.
 - Expanded the framework suite from 30 to 38 tests.
 - Added generator parsing, round-trip, golden-output, runtime, and compile
   coverage for root commands.
 - Verified the full framework and generator suites on Windows with FPC 3.2.2.
+- GitHub Actions passed on Linux and Windows for both push and pull-request
+  events.
 
 ## Versioning
 
