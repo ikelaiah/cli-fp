@@ -53,6 +53,10 @@ The generator includes safeguards for:
 - Project-relative generated program paths
 - Manifest cleanup outside the project directory
 - Case-sensitive path handling on Linux and other case-sensitive filesystems
+- Manifest cleanup through Unix symbolic links and Windows reparse points,
+  including directory junctions
+- Exception-safe cleanup of partially parsed commands and parameters when
+  `clifp.json` is malformed
 - Invalid command tokens and missing parents
 - Duplicate command paths and generated Pascal identifier collisions
 - Reserved Pascal words used as application names
@@ -72,10 +76,11 @@ GitHub Actions now verifies the framework and generator on Linux and Windows.
 The automated suite includes:
 
 - 30 framework unit tests
-- Focused generator naming and validation unit tests
+- Focused generator naming, validation, parsing-error, and ownership tests
 - Golden-output comparisons
 - Generator lifecycle and file-ownership checks
-- Program and manifest path-safety checks
+- Program and manifest path-safety checks, including Unix symlink and Windows
+  junction escape attempts
 - Compilation and execution of a generated application
 - Lazarus package compilation
 - Compilation of all six shipped example applications

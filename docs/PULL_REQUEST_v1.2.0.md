@@ -34,6 +34,10 @@ generated-file safety, and fixes boolean default-value lookup behavior.
 - Reserved Pascal application names produce valid program identifiers
 - Program and manifest paths are guarded against project-directory escape
 - Manifest path comparisons follow platform casing rules
+- Manifest cleanup refuses paths that traverse Unix symbolic links or Windows
+  reparse points, including directory junctions
+- Malformed project specifications release partially constructed commands and
+  parameters safely
 - Boolean defaults satisfy the documented `GetParameterValue` contract
 - Test compilers write to temporary directories instead of dirtying the source
   tree
@@ -48,13 +52,14 @@ generated-file safety, and fixes boolean default-value lookup behavior.
 
 ### Generator
 
-- [x] Focused naming and validation unit tests pass
+- [x] Focused naming, validation, and malformed-spec ownership tests pass
 - [x] Golden output matches expected generated source
 - [x] Generated application compiles and runs
 - [x] `init`, `generate`, `add command`, and `remove command` operations pass
 - [x] Dry-run behavior is non-mutating
 - [x] User-owned command stubs are preserved
-- [x] Program and manifest path guards are covered
+- [x] Program and manifest path guards are covered, including Unix symlink and
+  Windows junction escape attempts
 
 ### CI
 

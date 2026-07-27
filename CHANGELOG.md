@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cli-fp-gen`: Commands that collapse to the same generated Pascal identifier are rejected with a targeted error.
 - `cli-fp-gen`: Reserved Pascal words used as application names now produce valid program identifiers.
 - `cli-fp-gen`: Manifest cleanup now uses platform-appropriate path casing and refuses similarly named sibling directories on case-sensitive filesystems.
+- `cli-fp-gen`: Manifest cleanup now refuses stale-file paths that traverse Unix symbolic links or Windows reparse points, including directory junctions.
+- `cli-fp-gen`: Malformed project specifications now release partially constructed commands and parameters safely.
 - Boolean parameter lookups now report defaults as available values, matching the public API contract.
 
 ### Improved
@@ -46,8 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 
 - Added a Windows PowerShell verification path for `cli-fp-gen` in `tests/codegen/run_all_tests.ps1`.
-- Added focused FPCUnit coverage for generator naming and validation rules.
+- Added focused FPCUnit coverage for generator naming, validation, malformed-spec error handling, and exception-safe ownership.
 - GitHub Actions now runs the framework suite plus generator unit, golden-output, lifecycle, ownership, path-safety, and generated-app compile checks on Linux and Windows.
+- Added Unix symbolic-link and Windows directory-junction regression tests for manifest cleanup.
 - Code generator documentation now includes both the Bash test scripts and the PowerShell verification command.
 
 ## [1.1.6] - 2026-02-21
