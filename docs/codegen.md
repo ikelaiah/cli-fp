@@ -31,6 +31,20 @@ Example:
     "version": "0.1.0",
     "programFile": "src\\Myapp.lpr"
   },
+  "rootCommand": {
+    "description": "Run the default greeting",
+    "parameters": [
+      {
+        "kind": "string",
+        "short": "-n",
+        "long": "--name",
+        "description": "Name to greet",
+        "required": false,
+        "default": "World",
+        "allowedValues": ""
+      }
+    ]
+  },
   "commands": [
     {
       "name": "greet",
@@ -51,6 +65,26 @@ Example:
   ]
 }
 ```
+
+### Optional Root Command
+
+`rootCommand` is optional in schema version 1. When present, the generated
+application can execute without a named command:
+
+```text
+Myapp
+Myapp --name Gus
+```
+
+The object accepts `description` and `parameters`; it deliberately has no
+`name` or `parent`. Generation creates
+`src/commands/<App>_RootCommand.pas` as a user-owned implementation stub and
+wires it into the three-argument `CreateCLIApplication` overload. Named
+commands in `commands` remain available alongside it.
+
+Removing `rootCommand` restores the traditional command-first generated
+application. The former root stub is retained because user-owned files are
+never removed as stale generated output.
 
 ### Parameter Kinds
 
@@ -74,7 +108,8 @@ Supported `kind` values:
   spec unless `--force` is supplied
 - `src/generated/*.pas`: generator-owned, overwritten on `generate`
 - `src/generated/.clifp-manifest.json`: generator-owned manifest for cleanup
-- `src/commands/*.pas`: user-owned command stubs, created once and not overwritten unless `--force`
+- `src/commands/*.pas`: user-owned command and optional root-command stubs,
+  created once and not overwritten unless `--force`
 - `src/*.lpr`: generator-owned in Phase 1
 
 ### Cleanup Safety
@@ -102,6 +137,7 @@ user-owned command stubs. It does not bypass manifest path safety checks.
   src/
     <App>.lpr
     commands/
+      <App>_RootCommand.pas       # only when rootCommand is configured
       <App>_Command_*.pas
     generated/
       <App>_CommandRegistry_Generated.pas

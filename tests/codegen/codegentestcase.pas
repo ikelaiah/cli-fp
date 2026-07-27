@@ -27,8 +27,10 @@ type
     procedure TestReservedWordAppNameProducesValidProgramIdentifier;
     procedure TestProgramFileCannotEscapeProject;
     procedure TestInvalidParameterKindReportsItsLocation;
+    procedure TestInvalidRootParameterKindReportsItsLocation;
     procedure TestNonObjectParameterReportsItsLocation;
     procedure TestMalformedParameterDoesNotLeakOwnedSpecs;
+    procedure TestRootCommandSpecRoundTrips;
   end;
 
 implementation
@@ -193,6 +195,17 @@ begin
   );
 end;
 
+procedure TCodegenTests.TestInvalidRootParameterKindReportsItsLocation;
+begin
+  AssertSpecLoadFails(
+    '{"schemaVersion":1,"app":{"name":"demo","version":"1.0.0",' +
+    '"programFile":"src/Demo.lpr"},"rootCommand":{"description":"Run",' +
+    '"parameters":[{"kind":"not-a-kind","short":"-x","long":"--bad",' +
+    '"description":"Bad","required":false}]},"commands":[]}',
+    'rootCommand.parameters[0]'
+  );
+end;
+
 procedure TCodegenTests.TestNonObjectParameterReportsItsLocation;
 begin
   AssertSpecLoadFails(
@@ -262,6 +275,49 @@ begin
       AfterStatus.CurrHeapUsed <= BeforeStatus.CurrHeapUsed
     );
   finally
+    DeleteFile(SpecFile);
+  end;
+end;
+
+procedure TCodegenTests.TestRootCommandSpecRoundTrips;
+var
+  Spec, Loaded: TProjectSpec;
+  Param: TParameterSpec;
+  SpecFile: string;
+  Options: TWriteOptions;
+begin
+  Spec := NewValidSpec;
+  SpecFile := GetTempFileName(GetTempDir(False), 'cfg');
+  try
+    Spec.HasRootCommand := True;
+    Spec.RootCommand.Description := 'Default action';
+    Param := TParameterSpec.Create;
+    Param.Kind := pkString;
+    Param.ShortFlag := '-n';
+    Param.LongFlag := '--name';
+    Param.Description := 'Name';
+    Param.DefaultValue := 'World';
+    Spec.RootCommand.Parameters.Add(Param);
+
+    Options.DryRun := False;
+    Options.Force := True;
+    SaveProjectSpec(Spec, SpecFile, Options);
+
+    Loaded := LoadProjectSpec(SpecFile);
+    try
+      AssertTrue('Root command should remain enabled',
+        Loaded.HasRootCommand);
+      AssertEquals('Root description should round-trip',
+        'Default action', Loaded.RootCommand.Description);
+      AssertEquals('Root parameters should round-trip', 1,
+        Loaded.RootCommand.Parameters.Count);
+      AssertEquals('Root parameter flag should round-trip',
+        '--name', Loaded.RootCommand.Parameters[0].LongFlag);
+    finally
+      Loaded.Free;
+    end;
+  finally
+    Spec.Free;
     DeleteFile(SpecFile);
   end;
 end;

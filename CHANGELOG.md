@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added optional root commands through a backward-compatible
+  `CreateCLIApplication(Name, Version, RootCommand)` overload. Root commands
+  execute without a command name and use the existing parameter validation and
+  error-handling pipeline.
+- Added root-command help and dynamic/static completion support, including
+  boolean and enum value completion.
+- Added `RootCommandDemo`, demonstrating root parameters alongside a named
+  command.
+- Added optional schema-v1 `rootCommand` support to `cli-fp-gen`, including a
+  protected user-owned root implementation stub and generated application
+  wiring.
+
+### Changed
+
+- General and complete help now show root descriptions and options when a root
+  command is configured.
+- Application argument handling is internally testable without modifying the
+  process command line, and execution state is reset between runs.
+- Lazarus package metadata and the README version badge now target `1.3.0`.
+
+### Testing
+
+- Added focused framework coverage for root creation, no-argument execution,
+  parameter parsing, named-command precedence, global-option precedence,
+  validation, and completion.
+- Extended generator unit, golden-output, and compile-smoke coverage for
+  root-command specifications and generated applications.
+
 ## [1.2.0] - 2026-07-27
 
 ### Added

@@ -38,6 +38,7 @@ cli-fp-gen remove command <cmd/path> [--cascade] [--project <dir-or-spec-file>] 
 See [docs/codegen.md](../../docs/codegen.md) for the full reference, including:
 
 - Project spec format (`clifp.json`)
+- Optional `rootCommand` generation for command-less applications
 - Supported parameter kinds
 - File ownership rules
 - Cleanup safety rules

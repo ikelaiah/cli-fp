@@ -12,7 +12,7 @@ else
   echo "ℹ️  example-bin/ does not exist. Nothing to clean."
 fi
 
-for ex in ColorDemo ErrorHandlingDemo LongRunningOpDemo ProgressDemo SimpleDemo SubCommandDemo; do
+for ex in ColorDemo ErrorHandlingDemo LongRunningOpDemo ProgressDemo RootCommandDemo SimpleDemo SubCommandDemo; do
   if [ -d "examples/$ex/lib" ]; then
     echo "🧹 Removing old lib/ from examples/$ex..."
     rm -rf "examples/$ex/lib"

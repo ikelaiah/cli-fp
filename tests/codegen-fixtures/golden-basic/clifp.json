@@ -5,6 +5,20 @@
     "version": "1.2.3",
     "programFile": "src/GoldenDemo.lpr"
   },
+  "rootCommand": {
+    "description": "Run the default greeting",
+    "parameters": [
+      {
+        "kind": "string",
+        "short": "-r",
+        "long": "--root-name",
+        "description": "Name for the root greeting",
+        "required": false,
+        "default": "World",
+        "allowedValues": ""
+      }
+    ]
+  },
   "commands": [
     {
       "name": "greet",

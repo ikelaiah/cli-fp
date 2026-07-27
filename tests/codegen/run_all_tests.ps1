@@ -64,6 +64,7 @@ try {
     "src\GoldenDemo.lpr",
     "src\generated\GoldenDemo_CommandRegistry_Generated.pas",
     "src\generated\.clifp-manifest.json",
+    "src\commands\GoldenDemo_RootCommand.pas",
     "src\commands\GoldenDemo_Command_Greet.pas",
     "src\commands\GoldenDemo_Command_Repo.pas",
     "src\commands\GoldenDemo_Command_RepoClone.pas",
@@ -88,6 +89,8 @@ try {
   Assert-True ($LASTEXITCODE -eq 0) "Failed to compile generated golden project"
 
   & (Join-Path $GoldenProject "src\GoldenDemo.exe") --help | Out-Null
+  $RootOutput = (& (Join-Path $GoldenProject "src\GoldenDemo.exe") --root-name Gus) | Out-String
+  Assert-True ($RootOutput -match "TODO: Implement the root command") "Generated root command did not execute"
   & (Join-Path $GoldenProject "src\GoldenDemo.exe") repo | Out-Null
 
   Write-Host "Compile smoke test passed"

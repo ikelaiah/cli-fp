@@ -205,6 +205,7 @@ end;
 ## Features
 
 - Command and subcommand support
+- Optional root commands for command-less applications
 - Parameter handling with validation
 - Progress indicators (spinner and progress bar)
 - Colored console output
@@ -217,7 +218,9 @@ end;
 flowchart TD
     A[Start Application] --> B[Parse Command Line]
     B --> C{Empty Command Line?}
-    C -->|Yes| D[Show General Help]
+    C -->|Yes| D{Root Command?}
+    D -->|No| R[Show General Help]
+    D -->|Yes| M
     C -->|No| E{Help or Version?}
     E -->|Yes| F[Show Help/Version]
     E -->|No| G{Valid Command?}
@@ -232,7 +235,7 @@ flowchart TD
     N -->|No| O[Show Parameter Help]
     N -->|Yes| P[Execute Command]
     P --> Q[Return Exit Code]
-    D --> Q
+    R --> Q
     F --> Q
     H --> Q
     L --> Q
@@ -346,7 +349,59 @@ begin
 end.
 ```
 
-### 2. Creating a Git-like CLI
+### 2. Creating a Command-less Application
+
+An optional root command runs as the executable's default action. It uses the
+same `TBaseCommand` parameter and validation APIs as named commands, but its
+name is not typed on the command line:
+
+```pascal
+type
+  TGreetRootCommand = class(TBaseCommand)
+  public
+    function Execute: Integer; override;
+  end;
+
+function TGreetRootCommand.Execute: Integer;
+var
+  Name: string;
+begin
+  if not GetParameterValue('--name', Name) then
+    Name := 'World';
+  WriteLn('Hello, ', Name, '!');
+  Result := 0;
+end;
+
+var
+  App: ICLIApplication;
+  RootCommand: TGreetRootCommand;
+begin
+  RootCommand := TGreetRootCommand.Create('', 'Greet someone');
+  RootCommand.AddStringParameter('-n', '--name', 'Name to greet',
+    False, 'World');
+
+  App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
+  ExitCode := App.Execute;
+end.
+```
+
+Usage:
+
+```text
+MyApp
+MyApp --name Gus
+```
+
+Root commands are opt-in. The existing two-argument factory continues to show
+general help for an empty command line. A root command may coexist with
+commands registered through `RegisterCommand`; a leading command name selects
+the named command, while a leading option selects the root command.
+
+Root parameters are not inherited by named commands, and positional arguments
+are not currently supported. Application-level help, version, and completion
+options retain precedence.
+
+### 3. Creating a Git-like CLI
 
 ```pascal
 type
@@ -443,7 +498,7 @@ begin
 end;
 ```
 
-### 3. Progress Indicators
+### 4. Progress Indicators
 
 The framework provides two types of progress indicators: spinners for indeterminate progress (when you don't know the total steps) and progress bars for determinate progress (when you know the total steps). Both support optional inline status text via `Update(Progress, Caption)`.
 

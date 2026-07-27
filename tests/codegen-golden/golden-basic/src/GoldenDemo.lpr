@@ -13,9 +13,11 @@ uses
 
 var
   App: ICLIApplication;
+  RootCommand: ICommand;
 begin
   try
-    App := CreateCLIApplication('golden-demo', '1.2.3');
+    RootCommand := CreateGeneratedRootCommand;
+    App := CreateCLIApplication('golden-demo', '1.2.3', RootCommand);
     RegisterGeneratedCommands(App);
     ExitCode := App.Execute;
   except

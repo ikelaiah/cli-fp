@@ -257,6 +257,7 @@ TCLIApplication = class(TInterfacedObject, ICLIApplication)
 public
   property DebugMode: Boolean read FDebugMode write FDebugMode;
   property Version: string read FVersion;
+  property RootCommand: ICommand read FRootCommand;
   property Commands: TCommandList read GetCommands;
 end;
 ```
@@ -267,7 +268,31 @@ end;
 Creates a new CLI application instance.
 ```pascal
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
+function CreateCLIApplication(const Name, Version: string;
+  const RootCommand: ICommand): ICLIApplication;
 ```
+
+The two-argument overload preserves the traditional command-first behavior:
+invoking the executable without arguments displays general help.
+
+The three-argument overload configures an optional executable root command.
+The root command runs when no arguments are supplied or when the first
+argument is a non-global option:
+
+```pascal
+Root := TGreetCommand.Create('', 'Greet someone');
+Root.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+App := CreateCLIApplication('MyApp', '1.0.0', Root);
+```
+
+This supports `MyApp` and `MyApp --name Gus` without requiring a command name.
+Registered named commands still take precedence when the first argument is a
+command token. Root parameters are local to root execution. Positional
+arguments and inherited/persistent root flags are not currently modeled.
+
+The terminal global options `--help`, `-h`, `--help-complete`, `--version`,
+`-v`, `--completion-file`, and `--completion-file-pwsh` retain their existing
+application-level behavior.
 
 ### CLI.Command
 

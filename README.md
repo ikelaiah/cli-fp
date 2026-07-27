@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -34,6 +34,7 @@ If this is your first Free Pascal project, install FPC first and confirm that
 - [Start Here](#start-here)
 - [✨ Features](#-features)
 - [🚀 Quick Start](#-quick-start)
+- [🌱 Root Commands](#-root-commands)
 - [🧩 Project Generator](#-project-generator)
 - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
   - [Basic Types](#basic-types)
@@ -60,6 +61,8 @@ If this is your first Free Pascal project, install FPC first and confirm that
 
 - **Commands and subcommands:** Build command trees such as
   `app repo clone`.
+- **Optional root commands:** Build command-less applications that run as
+  `app [options]` while retaining named commands when needed.
 - **Typed parameters:** Validate strings, numbers, paths, URLs, enums,
   passwords, arrays, booleans, and date/time values.
 - **Helpful terminal UX:** Generate contextual help, defaults, required-value
@@ -185,6 +188,48 @@ Options:
 A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
 To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
 
+## 🌱 Root Commands
+
+A root command lets the executable perform its default action without requiring
+a command name:
+
+```text
+MyApp --name Gus
+```
+
+Create the command normally, give it an empty name, and pass it to the
+three-argument application factory:
+
+```pascal
+var
+  App: ICLIApplication;
+  RootCommand: TGreetCommand;
+begin
+  RootCommand := TGreetCommand.Create('', 'Greet someone');
+  RootCommand.AddStringParameter('-n', '--name', 'Name to greet',
+    False, 'World');
+
+  App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
+  ExitCode := App.Execute;
+end.
+```
+
+The root command is explicit and optional. Applications using the existing
+two-argument `CreateCLIApplication` continue to show general help when invoked
+without a named command. Root parameters apply only to root execution; the
+framework does not currently model positional arguments or Cobra-style
+persistent flags.
+
+Named commands can coexist with a root command:
+
+```text
+MyApp --name Gus
+MyApp about
+```
+
+See [`RootCommandDemo`](examples/RootCommandDemo/RootCommandDemo.lpr) for a
+complete example.
+
 ## 🧩 Project Generator
 
 This repository also includes `cli-fp-gen`, a scaffold generator for new `cli-fp` applications.
@@ -203,6 +248,10 @@ fpc -Futools\cli-fp-gen\src .\tools\cli-fp-gen\cli_fp_gen.lpr
 application immediately. The generated project references the framework units
 from this repository; see the build command in
 [the generator guide](docs/codegen.md#build-generated-app-example).
+
+To generate a command-less application, add an optional `rootCommand` object
+to `clifp.json`. The generator creates a user-owned root implementation stub
+and wires it into the application factory.
 
 Full generator documentation, project layout details, and `clifp.json` reference are in [docs/codegen.md](docs/codegen.md).
 

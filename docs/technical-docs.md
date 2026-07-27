@@ -182,6 +182,7 @@ end;
 
 The `TCLIApplication` class is the central component that:
 - Manages command registration
+- Holds an optional executable root command
 - Handles command-line parsing
 - Implements the help system
 - Coordinates command execution
@@ -192,6 +193,7 @@ TCLIApplication = class(TInterfacedObject, ICLIApplication)
 private
   FName: string;
   FVersion: string;
+  FRootCommand: ICommand;
   FCommands: TCommandList;
   FCurrentCommand: ICommand;
   FParsedParams: TStringList;
@@ -202,9 +204,25 @@ public
   function Execute: Integer;
   property DebugMode: Boolean read FDebugMode write FDebugMode;
   property Version: string read FVersion;
+  property RootCommand: ICommand read FRootCommand;
   property Commands: TCommandList read GetCommands;
 end;
 ```
+
+Root-command support is introduced through an overload rather than by changing
+`ICLIApplication`, preserving the existing public interface contract:
+
+```pascal
+function CreateCLIApplication(const Name, Version: string): ICLIApplication;
+function CreateCLIApplication(const Name, Version: string;
+  const RootCommand: ICommand): ICLIApplication;
+```
+
+At execution time, an empty argument list selects `FRootCommand` when present.
+A leading option also selects it after terminal global options have been
+handled. A leading non-option token continues through the existing named
+command and subcommand resolver. Both paths converge on the same parameter
+parsing, validation, and exception handling pipeline.
 
 ### 3. Base Classes
 

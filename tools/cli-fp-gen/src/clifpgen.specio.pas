@@ -23,8 +23,8 @@ begin
   Result := Obj.Objects[Name];
 end;
 
-function LoadParameterSpec(const ParamObj: TJSONObject; const CommandIndex,
-  ParameterIndex: Integer): TParameterSpec;
+function LoadParameterSpec(const ParamObj: TJSONObject;
+  const Location: string): TParameterSpec;
 var
   ParamKind: TParameterKind;
 begin
@@ -34,9 +34,7 @@ begin
     Result.LongFlag := ParamObj.Get('long', '');
     Result.Description := ParamObj.Get('description', '');
     if not TryParseParameterKind(ParamObj.Get('kind', 'string'), ParamKind) then
-      raise Exception.CreateFmt(
-        'Invalid parameter kind in commands[%d].parameters[%d]',
-        [CommandIndex, ParameterIndex]);
+      raise Exception.CreateFmt('Invalid parameter kind in %s', [Location]);
     Result.Kind := ParamKind;
     Result.Required := ParamObj.Get('required', False);
     Result.DefaultValue := ParamObj.Get('default', '');
@@ -48,40 +46,50 @@ begin
   end;
 end;
 
-function LoadCommandSpec(const CmdObj: TJSONObject;
-  const CommandIndex: Integer): TCommandSpec;
+procedure LoadParameters(const OwnerObj: TJSONObject;
+  const Location: string; const Parameters: TParameterSpecList);
 var
   ParamArray: TJSONArray;
   ParamObj: TJSONObject;
   Param: TParameterSpec;
+  ParamLocation: string;
   j: Integer;
+begin
+  if OwnerObj.Find('parameters') = nil then
+    Exit;
+  if not (OwnerObj.Find('parameters') is TJSONArray) then
+    raise Exception.CreateFmt('Invalid spec: %s.parameters must be an array',
+      [Location]);
+
+  ParamArray := TJSONArray(OwnerObj.Find('parameters'));
+  for j := 0 to ParamArray.Count - 1 do
+  begin
+    ParamLocation := Format('%s.parameters[%d]', [Location, j]);
+    if not (ParamArray.Items[j] is TJSONObject) then
+      raise Exception.CreateFmt('Invalid spec: %s must be an object',
+        [ParamLocation]);
+    ParamObj := TJSONObject(ParamArray.Items[j]);
+    Param := LoadParameterSpec(ParamObj, ParamLocation);
+    try
+      // Parameters is owning; clear the local only after Add succeeds.
+      Parameters.Add(Param);
+      Param := nil;
+    finally
+      Param.Free;
+    end;
+  end;
+end;
+
+function LoadCommandSpec(const CmdObj: TJSONObject;
+  const CommandIndex: Integer): TCommandSpec;
 begin
   Result := TCommandSpec.Create;
   try
     Result.Name := CmdObj.Get('name', '');
     Result.Description := CmdObj.Get('description', '');
     Result.ParentPath := CmdObj.Get('parent', '');
-    if (CmdObj.Find('parameters') <> nil) and
-      (CmdObj.Arrays['parameters'] is TJSONArray) then
-    begin
-      ParamArray := CmdObj.Arrays['parameters'];
-      for j := 0 to ParamArray.Count - 1 do
-      begin
-        if not (ParamArray.Items[j] is TJSONObject) then
-          raise Exception.CreateFmt(
-            'Invalid spec: commands[%d].parameters[%d] must be an object',
-            [CommandIndex, j]);
-        ParamObj := TJSONObject(ParamArray.Items[j]);
-        Param := LoadParameterSpec(ParamObj, CommandIndex, j);
-        try
-          // Parameters is owning; clear the local only after Add succeeds.
-          Result.Parameters.Add(Param);
-          Param := nil;
-        finally
-          Param.Free;
-        end;
-      end;
-    end;
+    LoadParameters(CmdObj, Format('commands[%d]', [CommandIndex]),
+      Result.Parameters);
   except
     Result.Free;
     Result := nil;
@@ -92,7 +100,7 @@ end;
 function LoadProjectSpec(const SpecFile: string): TProjectSpec;
 var
   Root: TJSONData;
-  RootObj, AppObj: TJSONObject;
+  RootObj, AppObj, RootCommandObj: TJSONObject;
   CmdArray: TJSONArray;
   i: Integer;
   CmdObj: TJSONObject;
@@ -117,6 +125,19 @@ begin
       Result.AppName := AppObj.Get('name', '');
       Result.AppVersion := AppObj.Get('version', '0.1.0');
       Result.ProgramFile := AppObj.Get('programFile', '');
+
+      if RootObj.Find('rootCommand') <> nil then
+      begin
+        if not (RootObj.Find('rootCommand') is TJSONObject) then
+          raise Exception.Create(
+            'Invalid spec: rootCommand must be an object');
+        RootCommandObj := TJSONObject(RootObj.Find('rootCommand'));
+        Result.HasRootCommand := True;
+        Result.RootCommand.Description :=
+          RootCommandObj.Get('description', '');
+        LoadParameters(RootCommandObj, 'rootCommand',
+          Result.RootCommand.Parameters);
+      end;
 
       if (RootObj.Find('commands') <> nil) and (RootObj.Arrays['commands'] is TJSONArray) then
       begin
@@ -147,7 +168,7 @@ end;
 
 procedure SaveProjectSpec(const Spec: TProjectSpec; const SpecFile: string; const Options: TWriteOptions);
 var
-  RootObj, AppObj, CmdObj, ParamObj: TJSONObject;
+  RootObj, AppObj, RootCommandObj, CmdObj, ParamObj: TJSONObject;
   CmdArray, ParamArray: TJSONArray;
   i: Integer;
   j: Integer;
@@ -163,6 +184,28 @@ begin
     AppObj.Add('version', Spec.AppVersion);
     AppObj.Add('programFile', Spec.ProgramFile);
     RootObj.Add('app', AppObj);
+
+    if Spec.HasRootCommand then
+    begin
+      RootCommandObj := TJSONObject.Create;
+      RootCommandObj.Add('description', Spec.RootCommand.Description);
+      ParamArray := TJSONArray.Create;
+      for j := 0 to Spec.RootCommand.Parameters.Count - 1 do
+      begin
+        Param := Spec.RootCommand.Parameters[j];
+        ParamObj := TJSONObject.Create;
+        ParamObj.Add('kind', ParameterKindToString(Param.Kind));
+        ParamObj.Add('short', Param.ShortFlag);
+        ParamObj.Add('long', Param.LongFlag);
+        ParamObj.Add('description', Param.Description);
+        ParamObj.Add('required', Param.Required);
+        ParamObj.Add('default', Param.DefaultValue);
+        ParamObj.Add('allowedValues', Param.AllowedValues);
+        ParamArray.Add(ParamObj);
+      end;
+      RootCommandObj.Add('parameters', ParamArray);
+      RootObj.Add('rootCommand', RootCommandObj);
+    end;
 
     CmdArray := TJSONArray.Create;
     for i := 0 to Spec.Commands.Count - 1 do

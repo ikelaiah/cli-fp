@@ -15,6 +15,7 @@ $examples = @(
     'ErrorHandlingDemo',
     'LongRunningOpDemo',
     'ProgressDemo',
+    'RootCommandDemo',
     'SimpleDemo',
     'SubCommandDemo'
 )

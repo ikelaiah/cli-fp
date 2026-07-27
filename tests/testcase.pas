@@ -60,6 +60,16 @@ type
     procedure Test_6_3_BackgroundColors;
     procedure Test_6_4_ColorReset;
     procedure Test_6_5_WriteWithColors;
+
+    // 7.x - Root Command Tests
+    procedure Test_7_1_CreateApplicationWithRootCommand;
+    procedure Test_7_2_ExecuteRootCommandWithoutArguments;
+    procedure Test_7_3_ExecuteRootCommandWithParameters;
+    procedure Test_7_4_NamedCommandTakesPrecedence;
+    procedure Test_7_5_GlobalHelpDoesNotExecuteRoot;
+    procedure Test_7_6_InvalidRootParameterDoesNotExecute;
+    procedure Test_7_7_CompleteRootParameters;
+    procedure Test_7_8_NoRootPreservesEmptyArgumentBehavior;
   end;
 
 implementation
@@ -72,6 +82,16 @@ type
     function TestGetParameterValue(const Flag: string; out Value: string): Boolean;
   end;
 
+  TRecordingCommand = class(TBaseCommand)
+  private
+    FExecuteCount: Integer;
+    FLastName: string;
+  public
+    function Execute: Integer; override;
+    property ExecuteCount: Integer read FExecuteCount;
+    property LastName: string read FLastName;
+  end;
+
 function TTestCommand.Execute: Integer;
 begin
   Result := 0;
@@ -80,6 +100,24 @@ end;
 function TTestCommand.TestGetParameterValue(const Flag: string; out Value: string): Boolean;
 begin
   Result := GetParameterValue(Flag, Value);
+end;
+
+function TRecordingCommand.Execute: Integer;
+begin
+  Inc(FExecuteCount);
+  if not GetParameterValue('--name', FLastName) then
+    FLastName := '';
+  Result := 0;
+end;
+
+function MakeArgs(const Values: array of string): TStringArray;
+var
+  i: Integer;
+begin
+  Result := nil;
+  SetLength(Result, Length(Values));
+  for i := 0 to Length(Values) - 1 do
+    Result[i] := Values[i];
 end;
 
 { TCLIFrameworkTests }
@@ -690,6 +728,164 @@ begin
     AssertTrue('Write with colors should not raise exceptions', True);
   finally
     TConsole.ResetColors;
+  end;
+end;
+
+// 7.x - Root Command Tests
+
+procedure TCLIFrameworkTests.Test_7_1_CreateApplicationWithRootCommand;
+var
+  Root: TRecordingCommand;
+  App: ICLIApplication;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  App := CreateCLIApplication('TestApp', '1.3.0', Root);
+  AssertNotNull('Application with root command should be created', App);
+  AssertTrue('Application should retain the configured root command',
+    Assigned((App as TCLIApplication).RootCommand));
+end;
+
+procedure TCLIFrameworkTests.Test_7_2_ExecuteRootCommandWithoutArguments;
+var
+  Root: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    AssertEquals('Root execution should succeed', 0,
+      App.TestExecute(MakeArgs([])));
+    AssertEquals('Root command should execute once', 1, Root.ExecuteCount);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_3_ExecuteRootCommandWithParameters;
+var
+  Root: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  Root.AddStringParameter('-n', '--name', 'Name to greet');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    AssertEquals('Root execution with parameters should succeed', 0,
+      App.TestExecute(MakeArgs(['--name', 'Gus'])));
+    AssertEquals('Root command should execute once', 1, Root.ExecuteCount);
+    AssertEquals('Root command should receive its parameter', 'Gus',
+      Root.LastName);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_4_NamedCommandTakesPrecedence;
+var
+  Root, Named: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  Named := TRecordingCommand.Create('named', 'Named action');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    App.RegisterCommand(Named);
+    AssertEquals('Named command execution should succeed', 0,
+      App.TestExecute(MakeArgs(['named'])));
+    AssertEquals('Root command should not execute', 0, Root.ExecuteCount);
+    AssertEquals('Named command should execute once', 1, Named.ExecuteCount);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_5_GlobalHelpDoesNotExecuteRoot;
+var
+  Root: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    AssertEquals('Global help should succeed', 0,
+      App.TestExecute(MakeArgs(['--help'])));
+    AssertEquals('Global help should not execute the root command', 0,
+      Root.ExecuteCount);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_6_InvalidRootParameterDoesNotExecute;
+var
+  Root: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  Root.AddIntegerParameter('-c', '--count', 'Number of runs');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    AssertEquals('Invalid root parameter should fail', 1,
+      App.TestExecute(MakeArgs(['--count', 'not-a-number'])));
+    AssertEquals('Invalid parameters should prevent root execution', 0,
+      Root.ExecuteCount);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_7_CompleteRootParameters;
+var
+  Root: TRecordingCommand;
+  App: TCLIApplication;
+  Candidates: TStringList;
+begin
+  Root := TRecordingCommand.Create('', 'Default application action');
+  Root.AddStringParameter('-n', '--name', 'Name to greet');
+  Root.AddEnumParameter('-m', '--mode', 'Greeting mode',
+    'normal|friendly|formal');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    Candidates := App.TestComplete(MakeArgs(['--n']));
+    try
+      AssertTrue('Root parameter name should be completed',
+        Candidates.IndexOf('--name') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['--']));
+    try
+      AssertTrue('Root completion should retain all global options',
+        Candidates.IndexOf('--completion-file') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['--mode', '']));
+    try
+      AssertTrue('Root enum value should be completed',
+        Candidates.IndexOf('friendly') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_8_NoRootPreservesEmptyArgumentBehavior;
+var
+  App: TCLIApplication;
+begin
+  App := TCLIApplication.Create('TestApp', '1.3.0');
+  try
+    AssertEquals('Empty execution without a root command should show help', 0,
+      App.TestExecute(MakeArgs([])));
+    AssertFalse('No command should be selected without a root command',
+      Assigned(App.CurrentCommand));
+  finally
+    App.Free;
   end;
 end;
 
