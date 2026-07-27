@@ -1,33 +1,147 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/ikelaiah/cli-fp)](https://github.com/ikelaiah/cli-fp/issues)
 
-`cli-fp` is a Free Pascal framework for building terminal applications. It
-provides `git`-style commands, typed parameters, generated help, shell
-completion, progress indicators, and coloured output so your application code
-can focus on what each command actually does.
+Build native command-line tools in Object Pascal.
 
-Free Pascal 3.2.2 or newer is recommended. You can use the project generator
-for a new application, add the framework units to an existing project, or
-install the included Lazarus package.
+`cli-fp` adds command trees, typed option metadata, generated help, Bash and
+PowerShell completion, progress indicators, and coloured output to an ordinary
+Free Pascal program. The core framework uses standard FPC units and produces
+a normal native executable—there is no separate application runtime to deploy.
+
+The repository is also a practical Free Pascal showcase: it contains an
+interface-based framework, a JSON-driven source generator, platform-aware
+console code, shell-completion protocols, and an FPCUnit test suite. CI builds
+and tests the project on Windows and Linux.
 
 ## Start Here
 
-- **Creating a new CLI application?** Start with the
-  [project generator](#-project-generator-fastest-start). It creates the
-  project structure, command units, and a `clifp.json` specification for you.
-- **Adding CLI features to an existing Pascal project?** Follow the
-  [manual quick start](#manual-quick-start).
-- **Using Lazarus?** Compile `packages/lazarus/cli_fp.lpk`, then add it to your
-  project's required packages.
+| If you are... | Start with... |
+| --- | --- |
+| New to Free Pascal | [Install Free Pascal](#install-free-pascal), then read [Free Pascal in two minutes](#free-pascal-in-two-minutes) |
+| New to `cli-fp` | [Build your first generated CLI](#build-your-first-generated-cli) |
+| Adding CLI support to an existing Pascal program | [Manual Quick Start](#manual-quick-start) |
+| Using Lazarus | [Lazarus setup](#lazarus-setup) |
+| Looking for a specific API or design detail | [Documentation map](#documentation-map) |
 
-If this is your first Free Pascal project, install FPC first and confirm that
-`fpc -iV` works in your terminal.
+## Install Free Pascal
+
+`cli-fp` targets Free Pascal 3.2.2. Install FPC from the
+[official download page](https://docs.freepascal.org/download.html), or use an
+installation supplied with Lazarus. Confirm the compiler is available:
+
+```text
+fpc -iV
+```
+
+The command should print `3.2.2`. The
+[official Free Pascal manuals](https://www.freepascal.org/docs.html) include a
+language reference, compiler user guide, RTL reference, and FCL reference.
+
+Some Linux distributions split the compiler and Free Component Library into
+separate packages. On Debian and Ubuntu, the same packages used by this
+project's CI can be installed with:
+
+```bash
+sudo apt-get install fp-compiler fp-units-fcl
+```
+
+The FCL package supplies the JSON units used by `cli-fp-gen`.
+
+## Build Your First Generated CLI
+
+This path creates, compiles, and runs a real application before you need to
+understand the framework internals.
+
+### Linux/macOS with Bash
+
+```bash
+git clone https://github.com/ikelaiah/cli-fp.git
+cd cli-fp
+fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
+./tools/cli-fp-gen/cli_fp_gen init ./build-temp/myapp --name myapp
+cd build-temp/myapp
+fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
+./src/Myapp greet --help
+```
+
+### Windows with PowerShell
+
+```powershell
+git clone https://github.com/ikelaiah/cli-fp.git
+Set-Location .\cli-fp
+fpc "-Futools\cli-fp-gen\src" .\tools\cli-fp-gen\cli_fp_gen.lpr
+.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
+Set-Location .\build-temp\myapp
+fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
+.\src\Myapp.exe greet --help
+```
+
+You now have a native executable with a registered `greet` command, generated
+usage text, a typed `--name` option, and no application runtime dependency.
+
+### Make the Generated Command Yours
+
+Open `src/commands/Myapp_Command_Greet.pas`. Command files are user-owned, so
+the generator will not overwrite your implementation during normal
+regeneration. Replace the generated `Execute` method with:
+
+```pascal
+function TGreetCommand.Execute: Integer;
+var
+  PersonName: string;
+begin
+  if not GetParameterValue('--name', PersonName) then
+    PersonName := 'World';
+
+  WriteLn('Hello, ', PersonName, '!');
+  Result := 0;
+end;
+```
+
+Compile again with the same `fpc` command. On Linux or macOS, run:
+
+```bash
+./src/Myapp greet --name Ada
+```
+
+On Windows, run:
+
+```powershell
+.\src\Myapp.exe greet --name Ada
+```
+
+```text
+Hello, Ada!
+```
+
+That small command already uses class inheritance, a virtual method, generated
+parameter registration, framework parsing and defaults, and native
+compilation.
+
+## Free Pascal in Two Minutes
+
+You only need a few conventions to follow this project:
+
+| Pascal concept | Meaning in this repository |
+| --- | --- |
+| `.lpr` file | The program entry point—the file passed to `fpc` |
+| `.pas` file | Usually a reusable unit containing classes or other declarations |
+| `uses` | Imports units, similar to importing modules in other languages |
+| `-Fu<path>` | Adds a directory to FPC's unit search path |
+| `{$mode objfpc}` | Enables the Object Pascal language mode used by `cli-fp` |
+| `TBaseCommand` descendant | A command class whose `Execute` method performs the work |
+| `Halt(App.Execute)` | Returns the framework's exit code to the operating system |
+
+Free Pascal gives this library strong typing, classes, interfaces, generics,
+exceptions, deterministic `try..finally` cleanup, conditional compilation, and
+native binaries. `cli-fp` packages those capabilities into a focused CLI
+developer experience.
 
 ## Choose Your CLI Shape
 
@@ -40,130 +154,51 @@ application, or combine both:
 | `MyApp --name Gus` | Root action | Root command |
 | `MyApp about` | Named `about` command | `about` command |
 | `MyApp about --verbose` | Named `about` command | `about` command |
-| `MyApp --help` | Framework help | Application-global |
+| `MyApp --help` | General application help, including root options | Application-level |
 
-Root options belong to the default action; they are not automatically inherited
-by named commands. Standalone application requests such as `--help`,
-`--version`, and completion-script generation take precedence over root
-execution.
+Root options belong to the default action; they are not inherited by named
+commands. Built-in requests have distinct scopes:
 
-## 📑 Table of Contents
+- Used alone, `--help`/`-h` shows general application help,
+  `--help-complete` shows the complete command reference, and
+  `--version`/`-v` prints version information.
+- After a named command or subcommand, `--help`/`-h` shows help for that
+  selected level.
+- Completion-script generation is handled at application level when
+  `--completion-file` or `--completion-file-pwsh` is the first argument.
 
-- [Start Here](#start-here)
-- [Choose Your CLI Shape](#choose-your-cli-shape)
-- [✨ Features](#-features)
-- [🧩 Project Generator: Fastest Start](#-project-generator-fastest-start)
-- [Manual Quick Start](#manual-quick-start)
-- [🌱 Root Commands](#-root-commands)
-- [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
-  - [Basic Types](#basic-types)
-  - [Boolean and Flags](#boolean-and-flags)
-  - [Complex Types](#complex-types)
-  - [Validation Rules](#validation-rules)
-- [🧩 Shell Completion](#-shell-completion)
-- [📖 Screenshots](#-screenshots)
-- [📖 System Requirements](#-system-requirements)
-  - [Tested Environments](#tested-environments)
-  - [Theoretical Compatibility](#theoretical-compatibility)
-  - [Dependencies](#dependencies)
-  - [Build Requirements](#build-requirements)
-- [📖 Documentation](#-documentation)
-- [🎯 Use Cases](#-use-cases)
-- [🤝 Contributing](#-contributing)
-- [📝 License](#-license)
-- [🙏 Acknowledgments](#-acknowledgments)
-
-## ✨ Features
+## Feature Tour
 
 - **Commands and subcommands:** Build command trees such as
-  `app repo clone`.
-- **Optional root commands:** Build command-less applications that run as
-  `app [options]` while retaining named commands when needed.
+  `app repo remote add`.
+- **Optional root commands:** Build focused applications that run as
+  `app [options]`, while retaining named commands when useful.
 - **Typed parameter metadata:** Define strings, numbers, paths, URLs, enums,
   passwords, arrays, booleans, and date/time values, with type-specific
-  validation where the framework provides it.
-- **Helpful terminal UX:** Generate contextual help, defaults, required-value
-  errors, and suggestions for unknown commands.
-- **Shell completion:** Generate Bash and PowerShell completion scripts,
-  including boolean and enum value completion.
-- **Console tools:** Use coloured output, spinners, and progress bars with
-  optional status captions.
-- **Project generation:** Scaffold a new application and add or remove command
-  units with `cli-fp-gen`.
-- **Pascal-friendly design:** Use strongly typed interfaces and ordinary FPC
-  units without a separate runtime dependency.
+  validation where implemented.
+- **Generated help:** Show usage, defaults, required options, subcommands, and
+  a complete command reference.
+- **Shell completion:** Generate Bash and PowerShell scripts with contextual
+  command, option, Boolean, and enum suggestions.
+- **Terminal UX:** Use ANSI/Windows colour support, seven spinner styles, and
+  progress bars with inline captions.
+- **Project generation:** Initialize projects and add or remove nested commands
+  from a versioned `clifp.json` specification.
+- **Testable design:** Exercise argument handling without mutating the process
+  command line; the repository includes framework and generator suites.
 
-## 🧩 Project Generator: Fastest Start
+## Contents
 
-For a new application, the generator provides the shortest path to a compiling
-project. Run these commands from the `cli-fp` repository root.
-
-### Linux/macOS (Bash)
-
-```bash
-fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
-./tools/cli-fp-gen/cli_fp_gen init ./build-temp/myapp --name myapp
-cd build-temp/myapp
-fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
-./src/Myapp greet --help
-```
-
-### Windows (PowerShell)
-
-```powershell
-fpc "-Futools\cli-fp-gen\src" .\tools\cli-fp-gen\cli_fp_gen.lpr
-.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
-Set-Location .\build-temp\myapp
-fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
-.\src\Myapp.exe greet --help
-```
-
-The generated project contains a working `greet` command and a `clifp.json`
-specification. Add commands through the generator, or edit the specification
-and regenerate:
-
-```text
-cli-fp-gen add command status --project <project> --description "Show status"
-cli-fp-gen generate --project <project>
-```
-
-To generate a command-less application, add a top-level `rootCommand` object to
-`clifp.json`:
-
-```json
-{
-  "schemaVersion": 1,
-  "app": {
-    "name": "myapp",
-    "version": "0.1.0",
-    "programFile": "src/Myapp.lpr"
-  },
-  "rootCommand": {
-    "description": "Greet someone",
-    "parameters": [
-      {
-        "kind": "string",
-        "short": "-n",
-        "long": "--name",
-        "description": "Name to greet",
-        "required": false,
-        "default": "World",
-        "allowedValues": ""
-      }
-    ]
-  },
-  "commands": []
-}
-```
-
-Running `generate` creates a user-owned `<App>_RootCommand.pas` implementation
-stub and wires it into the generated application. The object deliberately has
-no `name` or `parent`.
-
-See the [generator guide](docs/codegen.md) for the complete schema, generated
-layout, file-ownership rules, and additional commands. Generated Pascal
-filenames use exact casing, such as `src/Myapp.lpr`; preserve that casing on
-Linux and macOS.
+- [Build Your First Generated CLI](#build-your-first-generated-cli)
+- [Free Pascal in Two Minutes](#free-pascal-in-two-minutes)
+- [Choose Your CLI Shape](#choose-your-cli-shape)
+- [Feature Tour](#feature-tour)
+- [Manual Quick Start](#manual-quick-start)
+- [Root Commands](#root-commands)
+- [Parameter Types and Validation](#parameter-types-and-validation)
+- [Shell Completion](#shell-completion)
+- [System Requirements](#system-requirements)
+- [Documentation Map](#documentation-map)
 
 ## Manual Quick Start
 
@@ -273,11 +308,12 @@ Options:
   -h, --help          Show this help message
 ```
 
-**Lazarus users:**
+### Lazarus Setup
+
 A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
 To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
 
-## 🌱 Root Commands
+## Root Commands
 
 A root command is the application's unnamed default action. It lets a focused
 utility run with defaults or accept options directly after the executable,
@@ -326,9 +362,11 @@ MyApp about
 See [`RootCommandDemo`](examples/RootCommandDemo/RootCommandDemo.lpr) for a
 complete example.
 
-## 🎯 Parameter Types and Validation
+## Parameter Types and Validation
 
-The framework provides comprehensive type-safe parameter handling with built-in validation:
+The framework records parameter types for validation and help generation.
+Command implementations retrieve the resulting values as strings and convert
+them as needed:
 
 ### Basic Types
 
@@ -393,7 +431,7 @@ Each parameter type has built-in validation:
 - `Array`: No validation on individual items
 - `Password`: No validation or automatic output redaction
 
-## 🧩 Shell Completion
+## Shell Completion
 
 Generate a completion script from your application:
 
@@ -414,54 +452,54 @@ See the [user manual](docs/user-manual.md#bash-completion) for safe installation
 instructions and [`docs/completion-testing/`](docs/completion-testing/) for the
 detailed Bash and PowerShell verification guides.
 
-## 📖 Screenshots
+## Screenshots
 
 ![ColorDemo Help](docs/images/colordemo-help.png)
 ![ColorDemo Greeting](docs/images/colordemo-greeting.png)
 *Above: The ColorDemo example showing professional CLI styling with colors, Unicode characters, and progress indicators.*
 
-## 📖 System Requirements
+## System Requirements
 
 ### Tested Environments
 
-- **Operating System**: Windows 11, Ubuntu 24.04
-- **Compiler**: Free Pascal (FPC) 3.2.2
-- **IDE**: Lazarus 3.6, Lazarus 4.0
+- **Linux CI:** `ubuntu-latest` with the distribution's `fp-compiler` and
+  `fp-units-fcl` packages
+- **Windows CI:** `windows-latest` with Free Pascal 3.2.2 from Lazarus 4.0
 
-### Theoretical Compatibility
+The CI workflow compiles and runs both the framework tests and generator
+tests. Lazarus itself is used to supply the Windows toolchain; the package is
+runtime-only and does not require Lazarus at application runtime.
 
-- **Operating Systems**:
-  - Windows (7, 8, 10, 11)
-  - Linux (Any distribution with FPC support)
-  - macOS (with FPC support)
-  - FreeBSD
-- **Compiler**: Free Pascal 3.2.2 or higher
-- **IDE & Editor**: Any IDE that supports Free Pascal
-  - Lazarus 3.6 or higher
-  - VS Code with Pascal extensions
-  - Other text editors
+### Other Platforms
+
+The console implementation has Windows and Unix code paths, so macOS,
+FreeBSD, and other FPC-supported Unix systems are expected to be viable, but
+they are not currently exercised by this repository's CI. Reports and fixes
+from those platforms are welcome.
 
 ### Dependencies
 
-- No external dependencies required
-- Uses only standard Free Pascal RTL units
+- No third-party libraries are required
+- The framework uses units supplied with Free Pascal
+- The generator additionally uses the standard FCL JSON units
 
 ### Build Requirements
 
-- Free Pascal Compiler (FPC) 3.2.2+
-- Lazarus 3.6+ only when using the Lazarus IDE or package
+- Free Pascal Compiler (the project is tested with FPC 3.2.2)
+- Lazarus only when using the Lazarus IDE or supplied package
 - Git only when cloning the repository rather than using a release archive
 
-## 📖 Documentation
+## Documentation Map
 
-- [User Manual](docs/user-manual.md): Complete guide for using the framework, *including a cheat sheet*
-- [API Reference](docs/api-reference.md): Detailed API reference for the framework
-- [Technical Documentation](docs/technical-docs.md): Architecture and implementation details
-- [Code Generator](docs/codegen.md): `cli-fp-gen` usage, generated layout, and verification notes
-- [Examples](examples/): Working example applications
-- [Changelog](CHANGELOG.md): Version history and updates
+- [Documentation home](docs/README.md): Choose a guide by goal or experience
+- [User manual](docs/user-manual.md): Build applications and use framework features
+- [Code generator](docs/codegen.md): Generate a project and evolve its command tree
+- [API reference](docs/api-reference.md): Look up public types and methods
+- [Technical documentation](docs/technical-docs.md): Understand architecture and internals
+- [Examples](examples/): Explore focused, compilable applications
+- [Changelog](CHANGELOG.md): Review version history and updates
 
-## 🎯 Use Cases
+## Use Cases
 
 Perfect for building:
 
@@ -472,7 +510,7 @@ Perfect for building:
 - System Utilities
 - DevOps Tools
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
@@ -482,11 +520,11 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE

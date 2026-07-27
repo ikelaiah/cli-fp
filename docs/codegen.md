@@ -1,12 +1,76 @@
-# CLI Code Generator (Phase 1)
+# CLI Project Generator
 
-`cli-fp-gen` is a standalone scaffold generator for `cli-fp` applications.
+[Documentation home](README.md) · [Project README](../README.md) ·
+[User manual](user-manual.md) · [API reference](api-reference.md)
 
-Phase 1 focuses on CLI project generation only (no Lazarus wizard yet).
+`cli-fp-gen` turns a small JSON command specification into a native Free
+Pascal project. It creates the program entry point, command registry, and
+user-owned command classes, while keeping generated and hand-written code
+separate.
+
+Use the generator when you want a working project layout immediately or expect
+the command tree to evolve. For a single-file integration into an existing
+program, the [manual quick start](../README.md#manual-quick-start) may be
+simpler.
+
+## Quick Start
+
+Run these commands from the `cli-fp` repository root.
+
+### Linux/macOS with Bash
+
+```bash
+fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
+./tools/cli-fp-gen/cli_fp_gen init ./build-temp/myapp --name myapp
+cd build-temp/myapp
+fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
+./src/Myapp greet --help
+```
+
+### Windows with PowerShell
+
+```powershell
+fpc "-Futools\cli-fp-gen\src" .\tools\cli-fp-gen\cli_fp_gen.lpr
+.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
+Set-Location .\build-temp\myapp
+fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
+.\src\Myapp.exe greet --help
+```
+
+You have now compiled both the generator and a generated application with FPC.
+Next, edit `src/commands/Myapp_Command_Greet.pas` and implement its `Execute`
+method. Change command metadata in `clifp.json`, then regenerate:
+
+```text
+cli-fp-gen generate --project .
+```
+
+Use the platform-specific generator path shown above if it is not installed on
+your command path.
+
+## How Generation Fits Free Pascal
+
+The generated project uses ordinary Object Pascal source files:
+
+| File | Role |
+| --- | --- |
+| `src/Myapp.lpr` | Program entry point passed to `fpc` |
+| `src/generated/*.pas` | Generated units that register the command tree and its parameters |
+| `src/commands/*.pas` | User-owned command classes where `Execute` does the work |
+| `clifp.json` | Language-neutral source of truth for command metadata |
+
+FPC compiles all of these units into one native executable. The four `-Fu`
+arguments in the build command expose, respectively, the `cli-fp` framework,
+the program units, generated units, and command implementations to the
+compiler.
+
+Generation currently targets command-line projects. It does not install a
+Lazarus design-time wizard; Lazarus users may open the generated `.lpr` as a
+project and use the runtime package separately.
 
 ## Location
 
-- Tool source: `tools/cli-fp-gen/`
+- Tool source: [`tools/cli-fp-gen/`](../tools/cli-fp-gen/)
 
 ## Commands
 
@@ -110,7 +174,7 @@ Supported `kind` values:
 - `src/generated/.clifp-manifest.json`: generator-owned manifest for cleanup
 - `src/commands/*.pas`: user-owned command and optional root-command stubs,
   created once and not overwritten unless `--force`
-- `src/*.lpr`: generator-owned in Phase 1
+- `src/*.lpr`: generator-owned by the current generator
 
 ### Cleanup Safety
 

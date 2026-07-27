@@ -1,7 +1,11 @@
 # Shell Completion Testing Documentation
 
+[Documentation home](../README.md) · [User manual](../user-manual.md) ·
+[Bash guide](BASH_COMPLETION_GUIDE.md) ·
+[PowerShell guide](PS_COMPLETION_GUIDE.md)
+
 **Created:** 2025-12-29
-**Last Updated:** 2026-07-27
+**Last Updated:** 2026-07-28
 **Framework:** cli-fp
 **Coverage:** Bash and PowerShell completion documentation
 

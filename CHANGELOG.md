@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-07-28
+
+### Documentation
+
+- Reworked the README around a five-minute generated CLI, a concise Free
+  Pascal primer, accurate help scopes, and clearer framework capabilities.
+- Added a documentation landing page with learning paths, an examples map,
+  repository orientation, and a distinction between current guides and
+  historical release records.
+- Streamlined the user manual entrance, removed duplicated quick-reference
+  material from the learning path, and clarified root-command, help, and
+  parameter terminology.
+- Expanded the code-generator guide with a cross-platform first build and an
+  explanation of how generated Pascal units fit together.
+- Clarified CI-tested platforms separately from expected but currently
+  untested Unix targets.
+
+### Changed
+
+- Updated the README badge and Lazarus package metadata to `1.3.1`.
+
 ## [1.3.0] - 2026-07-28
 
 ### Added
@@ -332,7 +353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/ikelaiah/cli-fp/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ikelaiah/cli-fp/compare/v1.1.6...v1.2.0
 [1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0

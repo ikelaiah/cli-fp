@@ -1,5 +1,19 @@
 # CLI Framework API Reference
 
+[Documentation home](README.md) · [Project README](../README.md) ·
+[User manual](user-manual.md) · [Technical documentation](technical-docs.md)
+
+Use this page when you already know the framework concept and need its public
+types or method signatures. If you are building your first application, begin
+with the [user manual](user-manual.md); it supplies complete program context
+that the isolated declarations here intentionally omit.
+
+The excerpts focus on supported application-facing members. Test hooks on
+`TCLIApplication` and the currently disabled custom-completion callback
+registry are documented in the
+[technical completion notes](technical-docs.md#historical-investigation-disabled-custom-callbacks).
+The declarations in [`src/`](../src/) remain authoritative.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -126,7 +140,7 @@ values and values with or without seconds may also be accepted. Treat
 `YYYY-MM-DD HH:MM` as the recommended portable input until validation is made
 strict.
 
-`AddPasswordParameter` marks a parameter as sensitive, but retrieved values are
+`AddPasswordParameter` records `ptPassword` metadata, but retrieved values are
 ordinary strings. The framework does not automatically redact values written
 by application code or external logging.
 
@@ -272,6 +286,12 @@ Main application class implementing `ICLIApplication`.
 ```pascal
 TCLIApplication = class(TInterfacedObject, ICLIApplication)
 public
+  constructor Create(const AName, AVersion: string;
+    const ARootCommand: ICommand = nil);
+  destructor Destroy; override;
+  procedure RegisterCommand(const Command: ICommand);
+  function Execute: Integer;
+
   property DebugMode: Boolean read FDebugMode write FDebugMode;
   property Version: string read FVersion;
   property RootCommand: ICommand read FRootCommand;
@@ -323,9 +343,17 @@ Base command implementation.
 Abstract base class for all CLI commands.
 ```pascal
 TBaseCommand = class(TInterfacedObject, ICommand)
+protected
+  function GetParameterValue(const Flag: string; out Value: string): Boolean;
+  procedure ShowHelp;
 public
   constructor Create(const AName, ADescription: string);
+  destructor Destroy; override;
+  procedure UpdateDescription(const ADescription: string);
   procedure AddParameter(const Parameter: ICommandParameter);
+  procedure AddParameter(const ShortFlag, LongFlag, Description: string;
+    Required: Boolean; ParamType: TParameterType;
+    const DefaultValue: string = ''; const AllowedValues: string = '');
   procedure AddSubCommand(const Command: ICommand);
   procedure SetParsedParams(const Params: TStringList);
   function Execute: Integer; virtual; abstract;
@@ -336,6 +364,9 @@ public
   property SubCommands: specialize TArray<ICommand> read GetSubCommands;
 end;
 ```
+
+The type-specific `Add*Parameter` methods are listed in
+[Parameter Helper Methods](#parameter-helper-methods).
 
 ### CLI.Parameter
 
@@ -494,6 +525,11 @@ public
   constructor CreateFmt(const Msg: string; const Args: array of const);
 end;
 ```
+
+Specialized descendants are `ECommandNotFoundException`,
+`EInvalidParameterException`, `ERequiredParameterMissingException`,
+`EInvalidParameterValueException`, and `ECommandExecutionException`. Each
+supports the same `Create` and `CreateFmt` constructors.
 
 ## Examples
 

@@ -1,7 +1,10 @@
 # Bash Completion User Guide
 
+[Documentation home](../README.md) · [Completion index](README.md) ·
+[PowerShell guide](PS_COMPLETION_GUIDE.md)
+
 **Document Version:** 1.1
-**Last Updated:** 2026-07-27
+**Last Updated:** 2026-07-28
 **Framework:** cli-fp
 **Applies To:** Bash 4.0+ (Linux, macOS with a newer Bash, Git Bash on Windows)
 
