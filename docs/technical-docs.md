@@ -1,5 +1,13 @@
 # CLI Framework Technical Documentation
 
+[Documentation home](README.md) · [Project README](../README.md) ·
+[User manual](user-manual.md) · [API reference](api-reference.md)
+
+This is a maintainer-level guide to parser flow, object ownership, help and
+completion generation, console behaviour, and tests. Application authors
+looking for public usage examples should start with the
+[user manual](user-manual.md).
+
 ## Architecture Overview
 
 The Free Pascal CLI Framework is built on a modular, interface-based architecture that promotes extensibility and maintainability. The framework is organized into several key components that work together to provide a complete CLI solution.
@@ -384,19 +392,26 @@ registration currently raises a generic `Exception`.
 ## Platform-Specific Considerations
 
 ### Windows Console Support
+
+Foreground/background colours and colour reset use the Windows console API:
+
 ```pascal
 {$IFDEF WINDOWS}
-  // Uses Windows API for console manipulation
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleScreenBufferInfo(Handle, Info);
   SetConsoleTextAttribute(Handle, Attributes);
 {$ENDIF}
 ```
 
-### Unix/Linux Console Support
+Cursor movement and position helpers still emit ANSI control sequences, so
+those operations depend on ANSI-compatible terminal behaviour.
+
+### Unix-Like Console Support
+
+On non-Windows targets, colours and cursor control use ANSI escape sequences:
+
 ```pascal
 {$ELSE}
-  // Uses ANSI escape sequences
   System.Write(#27'[<color_code>m');
 {$ENDIF}
 ```

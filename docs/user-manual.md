@@ -1,213 +1,66 @@
 # CLI Framework User Manual
 
+[Documentation home](README.md) · [Project README](../README.md) ·
+[Code generator](codegen.md) · [API reference](api-reference.md)
+
 ## Overview
 
-The Free Pascal CLI Framework is a modern, feature-rich library for building command-line applications. It provides an intuitive way to create CLIs with commands, subcommands, parameters, and interactive progress indicators.
+`cli-fp` is an Object Pascal library for native command-line applications. It
+provides root commands, named commands and subcommands, typed parameter
+metadata, generated help, shell completion, coloured output, and progress
+indicators.
 
-## Quick Reference Cheat Sheet
+This guide starts with complete programs and then explains individual
+features. For the shortest first success, generate and compile the
+[README tutorial project](../README.md#build-your-first-generated-cli) before
+returning here.
 
-Essential commands for building CLI applications:
+## Before You Begin
 
-### Create Application
-```pascal
-// Create new CLI application
-App := CreateCLIApplication('AppName', '1.0.0');
+The project is tested with Free Pascal 3.2.2. Confirm that the compiler is on
+your command path:
+
+```text
+fpc -iV
 ```
 
-### Create Command
-```pascal
-// TMyCommand must descend from TBaseCommand and override Execute
-Cmd := TMyCommand.Create('command-name', 'Command description');
-```
+When a command in this guide contains `-Fu../cli-fp/src`, adjust the path so it
+points to this repository's `src` directory. `-Fu` adds a unit-search path;
+units named in a Pascal `uses` clause are found there.
 
-### Add Parameters
-```pascal
-// String parameter
-Cmd.AddStringParameter('-n', '--name', 'Description', False, 'default');
+If `.lpr`, `.pas`, `uses`, or `{$mode objfpc}` are new to you, read
+[Free Pascal in two minutes](../README.md#free-pascal-in-two-minutes).
 
-// Integer parameter
-Cmd.AddIntegerParameter('-c', '--count', 'Description', True);  // Required
+## Choose a Learning Path
 
-// Float parameter
-Cmd.AddFloatParameter('-r', '--rate', 'Description', False, '1.0');
-
-// Boolean flag (presence means true)
-Cmd.AddFlag('-v', '--verbose', 'Description');
-
-// Boolean parameter (explicit true/false)
-Cmd.AddBooleanParameter('-d', '--debug', 'Description', False, 'false');
-
-// Path parameter
-Cmd.AddPathParameter('-p', '--path', 'Description', False, GetCurrentDir);
-
-// Enum parameter
-Cmd.AddEnumParameter('-l', '--level', 'Description', 'debug|info|warn|error');
-
-// DateTime parameter (recommended format: YYYY-MM-DD HH:MM)
-Cmd.AddDateTimeParameter('-d', '--date', 'Description');
-
-// Array parameter (comma-separated values)
-Cmd.AddArrayParameter('-t', '--tags', 'Description', False, 'tag1,tag2');
-
-// Password parameter (treat the retrieved string as sensitive)
-Cmd.AddPasswordParameter('-k', '--key', 'Description', True);
-
-// URL parameter (validates URL format)
-Cmd.AddUrlParameter('-u', '--url', 'Description', True);
-```
-
-### Get Parameter Values
-```pascal
-var
-  StrValue, IntValueStr, FloatValueStr, BoolValueStr: string;
-  IntValue: Integer;
-  FloatValue: Double;
-  BoolValue: Boolean;
-begin
-  // For non-boolean parameters, returns True when a value or default exists
-  if GetParameterValue('--param-name', StrValue) then
-    // Use StrValue...
-
-  // Retrieve text, then convert explicitly
-  if GetParameterValue('--count', IntValueStr) then
-    TryStrToInt(IntValueStr, IntValue);
-
-  if GetParameterValue('--rate', FloatValueStr) then
-    TryStrToFloat(FloatValueStr, FloatValue);
-
-  GetParameterValue('--verbose', BoolValueStr);
-  BoolValue := SameText(BoolValueStr, 'true');
-end;
-```
-
-### Add Subcommands
-```pascal
-// Both classes descend from TBaseCommand and override Execute
-MainCmd := TGitCommand.Create('git', 'Git operations');
-
-// Create and add subcommand
-SubCmd := TCloneCommand.Create('clone', 'Clone repository');
-MainCmd.AddSubCommand(SubCmd);
-```
-
-### Register and Run
-```pascal
-// Register command
-App.RegisterCommand(Cmd);
-
-// Run application
-Halt(App.Execute);
-```
-
-### Progress Indicators
-```pascal
-// Spinner (for unknown duration)
-Spinner := CreateSpinner(ssDots);
-Spinner.Start;
-try
-  Spinner.Update(0, 'Working...');
-  // Work here, calling Update regularly...
-finally
-  Spinner.Stop;
-end;
-
-// Progress bar (for known steps)
-Progress := CreateProgressBar(TotalSteps);
-Progress.Start;
-try
-  for i := 1 to TotalSteps do
-  begin
-    // Work here...
-    Progress.Update(i);
-  end;
-finally
-  Progress.Stop;
-end;
-```
+| Goal | Start here |
+| --- | --- |
+| Build a conventional CLI with named commands | [Simple application](#1-creating-a-simple-cli-application) |
+| Build a focused tool invoked as `app [options]` | [Root-command application](#2-creating-a-root-command-application) |
+| Build `git`-style nested commands | [Git-like CLI](#3-creating-a-git-like-cli) |
+| Add spinners or progress bars | [Progress indicators](#4-progress-indicators) |
+| Look up registration calls quickly | [API cheat sheet](#api-cheat-sheet) |
+| Generate the project structure | [Code-generator guide](codegen.md) |
 
 ## Table of Contents
 
-- [CLI Framework User Manual](#cli-framework-user-manual)
-  - [Overview](#overview)
-  - [Quick Reference Cheat Sheet](#quick-reference-cheat-sheet)
-    - [Create Application](#create-application)
-    - [Create Command](#create-command)
-    - [Add Parameters](#add-parameters)
-    - [Get Parameter Values](#get-parameter-values)
-    - [Add Subcommands](#add-subcommands)
-    - [Register and Run](#register-and-run)
-    - [Progress Indicators](#progress-indicators)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Application Flow](#application-flow)
-  - [Command Parameter Building Flow](#command-parameter-building-flow)
-  - [Installation](#installation)
-  - [Quick Start](#quick-start)
-    - [1. Creating a Simple CLI Application](#1-creating-a-simple-cli-application)
-    - [2. Creating a Command-less Application](#2-creating-a-command-less-application)
-    - [3. Creating a Git-like CLI](#3-creating-a-git-like-cli)
-    - [4. Progress Indicators](#4-progress-indicators)
-      - [Spinner Types](#spinner-types)
-      - [Using Spinners](#using-spinners)
-      - [Progress Bars](#progress-bars)
-      - [Choosing Between Spinner and Progress Bar](#choosing-between-spinner-and-progress-bar)
-  - [Parameter Types and Validation](#parameter-types-and-validation)
-    - [Basic Types](#basic-types)
-      - [String Parameters](#string-parameters)
-      - [Integer Parameters](#integer-parameters)
-      - [Float Parameters](#float-parameters)
-      - [Boolean Parameters and Flags](#boolean-parameters-and-flags)
-      - [Date and Time Parameters](#date-and-time-parameters)
-      - [Enumerated Values](#enumerated-values)
-      - [URL Parameters](#url-parameters)
-      - [Array Parameters](#array-parameters)
-      - [Password Parameters](#password-parameters)
-    - [Parameter Validation](#parameter-validation)
-    - [Basic Types](#basic-types-1)
-    - [Complex Types](#complex-types)
-    - [Error Messages](#error-messages)
-    - [Required Parameters](#required-parameters)
-    - [Default Values](#default-values)
-    - [Getting Parameter Values](#getting-parameter-values)
-    - [Best Practices](#best-practices)
-  - [Command-Line Usage](#command-line-usage)
-    - [Basic Command Structure](#basic-command-structure)
-    - [Getting Help](#getting-help)
-    - [Parameter Formats](#parameter-formats)
-  - [Troubleshooting](#troubleshooting)
-    - [Common Issues](#common-issues)
-  - [Best Practices](#best-practices-1)
-  - [Useful Unicode Characters for CLI Interfaces](#useful-unicode-characters-for-cli-interfaces)
-  - [Getting Help](#getting-help-1)
-  - [Summary](#summary)
-  - [Cheat Sheet](#cheat-sheet)
-    - [Create Application](#create-application-1)
-    - [Create Command](#create-command-1)
-    - [Add Parameters](#add-parameters-1)
-    - [Get Parameter Values](#get-parameter-values-1)
-    - [Add Subcommands](#add-subcommands-1)
-    - [Register and Run](#register-and-run-1)
-    - [Progress Indicators](#progress-indicators-1)
-  - [Bash Completion](#bash-completion)
-    - [Features of the Generated Script](#features-of-the-generated-script)
-    - [How It Works](#how-it-works)
-      - [Technical Rationale](#technical-rationale)
-  - [PowerShell Tab Completion](#powershell-tab-completion)
-    - [Overview](#overview-1)
-    - [How to Enable](#how-to-enable)
-    - [Usage](#usage)
-    - [Example](#example)
-    - [Notes](#notes)
-
-
-
-
-
+- [Features](#features)
+- [How an application executes](#application-flow)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Parameter types and validation](#parameter-types-and-validation)
+- [Command-line usage](#command-line-usage)
+- [Troubleshooting](#troubleshooting)
+- [Best practices](#best-practices)
+- [API cheat sheet](#api-cheat-sheet)
+- [Bash completion](#bash-completion)
+- [PowerShell tab completion](#powershell-tab-completion)
+- [Where to go next](#where-to-go-next)
 
 ## Features
 
 - Command and subcommand support
-- Optional root commands for command-less applications
+- Optional root commands for applications with a default action
 - Parameter handling with validation
 - Progress indicators (spinner and progress bar)
 - Colored console output
@@ -355,7 +208,7 @@ begin
 end.
 ```
 
-### 2. Creating a Command-less Application
+### 2. Creating a Root-Command Application
 
 An optional root command runs as the executable's default action. It uses the
 same `TBaseCommand` parameter and validation APIs as named commands, but its
@@ -697,7 +550,7 @@ Use a **Progress Bar** when:
 
 The framework provides a rich set of parameter types with built-in validation:
 
-### Basic Types
+### Registration Methods by Type
 
 #### String Parameters
 ```pascal
@@ -768,7 +621,7 @@ external logging.
 
 The framework validates all parameters before executing a command. Each parameter type has specific validation rules:
 
-### Basic Types
+### Validation Rules by Type
 - **String**: No validation
 - **Integer**: Must be a valid integer number
 - **Float**: Must be a valid floating-point number
@@ -862,7 +715,7 @@ begin
 end;
 ```
 
-### Best Practices
+### Parameter Best Practices
 
 1. **Check the Retrieved Boolean Text**: `GetParameterValue` returns `True`
    when a value or non-empty default exists. Standard flags have the default
@@ -910,9 +763,11 @@ myapp [root-options]          # when a root command is configured
 
 ### Getting Help
 
-- Show general help: `myapp -h` or `myapp --help`
-- Show detailed reference: `myapp --help-complete`
-- Show command help: `myapp <command> --help`
+- Used alone, `myapp -h` or `myapp --help` shows general application help.
+- `myapp --help-complete` shows the complete command reference.
+- `myapp <command> --help` shows help for the selected command level.
+- Used alone, `myapp -v` or `myapp --version` prints application version
+  information.
 
 ### Parameter Formats
 
@@ -934,10 +789,15 @@ myapp test               # --flag is false
 1. **Command Not Found**
    - Verify command name spelling
    - Check if command is properly registered with `App.RegisterCommand`
-   - Enable debug mode:
+   - When diagnosing dispatch, construct the concrete application class and
+     enable its debug output before execution:
      ```pascal
-     (App as TCLIApplication).DebugMode := True;
+     Application := TCLIApplication.Create('MyApp', '1.0.0');
+     Application.DebugMode := True;
      ```
+     `DebugMode` is a `TCLIApplication` property and is not exposed by the
+     `ICLIApplication` returned from the factory. Manage the concrete
+     instance's lifetime normally.
 
 2. **Parameter Errors**
    - Check parameter format:
@@ -961,8 +821,10 @@ myapp test               # --flag is false
      ```
 
 3. **Console Colors Not Working**
-   - Windows: Check if ANSI support is enabled
-   - Unix/Linux: Verify terminal supports colors
+   - Windows foreground and background colours use the console API
+   - Unix-like systems require a terminal that interprets ANSI colour codes
+   - Cursor movement and position helpers require ANSI-compatible terminal
+     behaviour on every platform
    - Always reset colors:
      ```pascal
      TConsole.SetForegroundColor(ccRed);
@@ -1031,21 +893,7 @@ myapp test               # --flag is false
 '╚═╝' // Bottom border
 ```
 
-
-
-## Getting Help
-
-- Use `--help-complete` for comprehensive documentation
-- Check command-specific help with `<command> --help`
-- Enable debug mode for troubleshooting
-- Refer to the technical documentation for development details
-
-## Summary
-
-This manual has walked you through building and extending CLI applications using the Free Pascal CLI Framework. By following these guidelines and best practices, you can create robust and user-friendly command-line tools.
-Happy Coding!
-
-## Cheat Sheet
+## API Cheat Sheet
 
 Essential commands for building CLI applications:
 
@@ -1232,7 +1080,7 @@ the completion engine.
 
 ## PowerShell Tab Completion
 
-### Overview
+### PowerShell Behaviour
 The CLI now provides robust, context-aware PowerShell tab completion for all commands, subcommands, and flags. This matches the experience of modern CLI tools (e.g., Go's Cobra, git, etc.).
 
 ### How to Enable
@@ -1268,4 +1116,13 @@ PS> ./SubCommandDemo.exe repo <Tab>
 - Uses `Register-ArgumentCompleter`; PowerShell 7+ additionally receives
   native executable registration
 - The completion script is dynamically generated from the CLI command tree.
-- Bash completion is also supported (see README).
+- Bash completion is also supported (see [Bash Completion](#bash-completion)).
+
+## Where to Go Next
+
+- Generate a maintainable project layout with the
+  [code-generator guide](codegen.md).
+- Look up exact signatures in the [API reference](api-reference.md).
+- Read the [technical documentation](technical-docs.md) when changing parser,
+  ownership, help, or completion internals.
+- Explore the focused [example programs](../examples/).
