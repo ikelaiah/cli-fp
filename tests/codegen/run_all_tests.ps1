@@ -34,7 +34,7 @@ try {
     "-Fu$RootDir\tools\cli-fp-gen\src" `
     "-FE$TmpDir" `
     "-FU$GenUnits" `
-    $GenSrc | Out-Null
+    $GenSrc
   Assert-True ($LASTEXITCODE -eq 0) "Failed to compile cli-fp-gen"
 
   # Focused unit tests for naming and validation
@@ -46,7 +46,7 @@ try {
     "-Fu$PSScriptRoot" `
     "-FE$UnitTestOutput" `
     "-FU$UnitTestUnits" `
-    (Join-Path $PSScriptRoot "codegen_test_runner.lpr") | Out-Null
+    (Join-Path $PSScriptRoot "codegen_test_runner.lpr")
   Assert-True ($LASTEXITCODE -eq 0) "Failed to compile codegen unit tests"
 
   & (Join-Path $UnitTestOutput "codegen_test_runner.exe") --all --format=plain | Out-Null
@@ -83,7 +83,8 @@ try {
     "-Fu$GoldenProject\src" `
     "-Fu$GoldenProject\src\generated" `
     "-Fu$GoldenProject\src\commands" `
-    (Join-Path $GoldenProject "src\GoldenDemo.lpr") | Out-Null
+    (Join-Path $GoldenProject "src\GoldenDemo.lpr")
+  Assert-True ($LASTEXITCODE -eq 0) "Failed to compile generated golden project"
 
   & (Join-Path $GoldenProject "src\GoldenDemo.exe") --help | Out-Null
   & (Join-Path $GoldenProject "src\GoldenDemo.exe") repo | Out-Null
@@ -159,7 +160,8 @@ try {
     "-Fu$DescriptionsProject\src" `
     "-Fu$DescriptionsProject\src\generated" `
     "-Fu$DescriptionsProject\src\commands" `
-    $ProgramPath | Out-Null
+    $ProgramPath
+  Assert-True ($LASTEXITCODE -eq 0) "Failed to compile generated descriptions project"
 
   $ExePath = [System.IO.Path]::ChangeExtension($ProgramPath, ".exe")
   $HelpOutput = (& $ExePath repo --help) | Out-String

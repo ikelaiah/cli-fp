@@ -20,7 +20,7 @@ try {
     "-Fu$RootDir\tests" `
     "-FE$TmpDir" `
     "-FU$UnitDir" `
-    (Join-Path $RootDir "tests\TestRunner.lpr") | Out-Null
+    (Join-Path $RootDir "tests\TestRunner.lpr")
   Assert-LastExitCode "Failed to compile framework tests"
 
   & (Join-Path $TmpDir "TestRunner.exe") --all --format=plain

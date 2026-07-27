@@ -112,14 +112,27 @@ PY
 
 "$GEN_BIN" generate --project "$TMP_DIR/descriptions" >/dev/null
 
+description_program_rel="$(python3 - <<'PY' "$TMP_DIR/descriptions/clifp.json"
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    print(json.load(f)["app"]["programFile"])
+PY
+)"
+description_program="$TMP_DIR/descriptions/$description_program_rel"
+test -f "$description_program" || {
+  echo "Generated program file not found: $description_program"
+  exit 1
+}
+
 fpc \
   -Fu"$ROOT_DIR/src" \
   -Fu"$TMP_DIR/descriptions/src" \
   -Fu"$TMP_DIR/descriptions/src/generated" \
   -Fu"$TMP_DIR/descriptions/src/commands" \
-  "$TMP_DIR/descriptions/src/Demo.lpr" >/dev/null
+  "$description_program"
 
-"$TMP_DIR/descriptions/src/Demo" repo --help | grep -q "Repo team's tools" || {
+description_executable="${description_program%.lpr}"
+"$description_executable" repo --help | grep -q "Repo team's tools" || {
   echo "Regenerated command description did not update runtime help"
   exit 1
 }

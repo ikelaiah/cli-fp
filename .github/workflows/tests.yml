@@ -49,9 +49,12 @@ jobs:
       - name: Install Free Pascal
         shell: powershell
         run: |
-          choco install freepascal --version=3.2.2 --yes --no-progress
+          choco install freepascal --version=3.2.2 --yes --no-progress --forcex86
           'C:\tools\freepascal\bin\i386-win32' |
             Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & 'C:\tools\freepascal\bin\i386-win32\fpc.exe' -iV
+          & 'C:\tools\freepascal\bin\i386-win32\fpc.exe' -iTP
+          & 'C:\tools\freepascal\bin\i386-win32\fpc.exe' -iTO
       - name: Framework Unit Tests
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1
