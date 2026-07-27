@@ -185,6 +185,37 @@ test -f "$TMP_DIR/manifest-outside/victim.txt" || {
   exit 1
 }
 
+link_guard_project="$TMP_DIR/link-guard"
+link_guard_outside="$TMP_DIR/link-guard-outside"
+"$GEN_BIN" init "$link_guard_project" >/dev/null
+mkdir -p "$link_guard_outside"
+printf 'protected\n' >"$link_guard_outside/victim.txt"
+ln -s "$link_guard_outside" "$link_guard_project/linked"
+
+python3 - <<'PY' "$link_guard_project/src/generated/.clifp-manifest.json"
+import json, sys
+p = sys.argv[1]
+with open(p, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["generatedFiles"] = ["linked/victim.txt"]
+with open(p, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+PY
+
+if link_guard_output="$("$GEN_BIN" generate --project "$link_guard_project" 2>&1)"; then
+  echo "Expected a manifest entry through a symbolic link to fail cleanup"
+  exit 1
+fi
+printf '%s' "$link_guard_output" | grep -q 'symbolic link or reparse point' || {
+  echo "Generator did not report the linked manifest path"
+  exit 1
+}
+test -f "$link_guard_outside/victim.txt" || {
+  echo "Manifest cleanup followed a symbolic link and deleted an external file"
+  exit 1
+}
+
 # On case-sensitive filesystems, a sibling that differs only by case is still
 # outside the project and must not pass the manifest cleanup prefix check.
 case_project="$TMP_DIR/CaseProject"

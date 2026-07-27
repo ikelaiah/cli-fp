@@ -15,7 +15,8 @@ procedure CleanupStaleGeneratedFiles(const ProjectDir: string; const PreviousRel
 implementation
 
 uses
-  fpjson, jsonparser, CliFpGen.Filesystem;
+  fpjson, jsonparser, CliFpGen.Filesystem
+  {$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 function ManifestRelPath: string;
 begin
@@ -53,6 +54,55 @@ begin
   {$ELSE}
   Result := Copy(FileNorm, 1, Length(RootNorm)) = RootNorm;
   {$ENDIF}
+end;
+
+function PathsEqual(const LeftPath, RightPath: string): Boolean;
+begin
+  {$IFDEF MSWINDOWS}
+  Result := SameText(LeftPath, RightPath);
+  {$ELSE}
+  Result := LeftPath = RightPath;
+  {$ENDIF}
+end;
+
+function IsLinkOrReparsePoint(const FileName: string): Boolean;
+var
+  Attributes: LongInt;
+begin
+  Attributes := FileGetAttr(FileName);
+  {$IFDEF MSWINDOWS}
+  Result := (Attributes <> -1) and
+    ((Attributes and FILE_ATTRIBUTE_REPARSE_POINT) <> 0);
+  {$ELSE}
+  Result := (Attributes <> -1) and ((Attributes and faSymLink) <> 0);
+  {$ENDIF}
+end;
+
+function FindLinkOrReparsePoint(const ProjectDir, FileName: string;
+  out LinkPath: string): Boolean;
+var
+  RootNorm: string;
+  CurrentPath: string;
+  ParentPath: string;
+begin
+  Result := False;
+  LinkPath := '';
+  RootNorm := ExcludeTrailingPathDelimiter(ExpandFileName(ProjectDir));
+  CurrentPath := ExcludeTrailingPathDelimiter(ExpandFileName(FileName));
+
+  while not PathsEqual(CurrentPath, RootNorm) do
+  begin
+    if IsLinkOrReparsePoint(CurrentPath) then
+    begin
+      LinkPath := CurrentPath;
+      Exit(True);
+    end;
+
+    ParentPath := ExcludeTrailingPathDelimiter(ExtractFileDir(CurrentPath));
+    if PathsEqual(ParentPath, CurrentPath) then
+      Exit;
+    CurrentPath := ParentPath;
+  end;
 end;
 
 function LoadGeneratedManifest(const ProjectDir: string): TStringList;
@@ -115,6 +165,7 @@ var
   i: Integer;
   RelPath: string;
   AbsPath: string;
+  LinkPath: string;
 begin
   CurrentSet := TStringList.Create;
   try
@@ -132,6 +183,10 @@ begin
       AbsPath := ProjectPath(ProjectDir, RelPath);
       if not IsWithinProjectDir(ProjectDir, AbsPath) then
         raise Exception.CreateFmt('Refusing to delete outside project dir: %s', [AbsPath]);
+      if FindLinkOrReparsePoint(ProjectDir, AbsPath, LinkPath) then
+        raise Exception.CreateFmt(
+          'Refusing to delete through symbolic link or reparse point: %s',
+          [LinkPath]);
       DeleteManagedFile(AbsPath, Options);
     end;
   finally

@@ -7,94 +7,88 @@
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/ikelaiah/cli-fp)](https://github.com/ikelaiah/cli-fp/issues)
 
-A robust toolkit for building command-line (terminal) applications in Free Pascal. Leverage Pascal's strong typing and compile-time checks while creating sophisticated terminal tools with features like `git`-style commands, progress bars, and coloured output for better readability.
+`cli-fp` is a Free Pascal framework for building terminal applications. It
+provides `git`-style commands, typed parameters, generated help, shell
+completion, progress indicators, and coloured output so your application code
+can focus on what each command actually does.
 
-Combines Free Pascal's speed and reliability with professional-grade features. The object-oriented design handles the complex parts, letting you focus on your application's logic.
+Free Pascal 3.2.2 or newer is recommended. You can use the project generator
+for a new application, add the framework units to an existing project, or
+install the included Lazarus package.
+
+## Start Here
+
+- **Creating a new CLI application?** Start with the
+  [project generator](#-project-generator). It creates the project structure,
+  command units, and a `clifp.json` specification for you.
+- **Adding CLI features to an existing Pascal project?** Follow the
+  [manual quick start](#-quick-start).
+- **Using Lazarus?** Compile `packages/lazarus/cli_fp.lpk`, then add it to your
+  project's required packages.
+
+If this is your first Free Pascal project, install FPC first and confirm that
+`fpc -iV` works in your terminal.
 
 ## 📑 Table of Contents
 
-- [Command-Line Interface Framework for Free Pascal 🚀](#command-line-interface-framework-for-free-pascal-)
-  - [📑 Table of Contents](#-table-of-contents)
-  - [✨ Features](#-features)
-  - [🚀 Quick Start](#-quick-start)
-  - [🧩 Project Generator](#-project-generator)
-  - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
-    - [Basic Types](#basic-types)
-    - [Boolean and Flags](#boolean-and-flags)
-    - [Complex Types](#complex-types)
-    - [Validation Rules](#validation-rules)
-  - [📖 Screenshots](#-screenshots)
-  - [📖 System Requirements](#-system-requirements)
-    - [Tested Environments](#tested-environments)
-    - [Theoretical Compatibility](#theoretical-compatibility)
-    - [Dependencies](#dependencies)
-    - [Build Requirements](#build-requirements)
-  - [📖 Documentation](#-documentation)
-  - [🎯 Use Cases](#-use-cases)
-  - [🤝 Contributing](#-contributing)
-  - [📝 License](#-license)
-  - [🙏 Acknowledgments](#-acknowledgments)
-  - [� Completion Script Testing](#-completion-script-testing)
-  - [🧩 How to Generate Completion Scripts](#-how-to-generate-completion-scripts)
-  - [🧩 Bash Completion Script (`--completion-file`)](#-bash-completion-script---completion-file)
-  - [🧩 PowerShell Completion Script (`--completion-file-pwsh`)](#-powershell-completion-script---completion-file-pwsh)
+- [Start Here](#start-here)
+- [✨ Features](#-features)
+- [🚀 Quick Start](#-quick-start)
+- [🧩 Project Generator](#-project-generator)
+- [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
+  - [Basic Types](#basic-types)
+  - [Boolean and Flags](#boolean-and-flags)
+  - [Complex Types](#complex-types)
+  - [Validation Rules](#validation-rules)
+- [📖 Screenshots](#-screenshots)
+- [📖 System Requirements](#-system-requirements)
+  - [Tested Environments](#tested-environments)
+  - [Theoretical Compatibility](#theoretical-compatibility)
+  - [Dependencies](#dependencies)
+  - [Build Requirements](#build-requirements)
+- [📖 Documentation](#-documentation)
+- [🎯 Use Cases](#-use-cases)
+- [🤝 Contributing](#-contributing)
+- [📝 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [🧪 Completion Script Testing](#-completion-script-testing)
+- [🧩 How to Generate Completion Scripts](#-how-to-generate-completion-scripts)
+- [🧩 Bash Completion Script (`--completion-file`)](#-bash-completion-script---completion-file)
+- [🧩 PowerShell Completion Script (`--completion-file-pwsh`)](#-powershell-completion-script---completion-file-pwsh)
 
 ## ✨ Features
 
-- 🎯 **Command & Subcommand Support**: Organize complex CLIs with hierarchical commands
-- 🔍 **Smart Parameter Handling**: Automatic validation and type checking
-- 📊 **Progress Indicators**: Built-in spinners and progress bars with optional status captions
-- 🎨 **Colored Output**: Rich console output with basic color support
-- 📚 **Comprehensive Help System**: Auto-generated help with examples
-- 🛡️ **Type-Safe**: Interface-based design with strong typing
-- 🔌 **Extensible**: Easy to extend with custom commands and parameters
-- **Modern Command-Line Interface**
-  - Subcommand support (e.g., `app repo init`, `app repo clone`)
-  - Short and long flags (`-h`, `--help`)
-  - Automatic help generation
-  - Colored output support
-  - **Shell Completion**: Generate completion scripts for Bash (`--completion-file`) and PowerShell (`--completion-file-pwsh`) with automatic value completion for boolean and enum parameters
-- **Robust Error Handling**
-  - Clear error messages for unknown commands and subcommands
-  - Validation of command-line flags and parameters
-  - Helpful suggestions when errors occur
-  - Context-aware help display
-- **Developer-Friendly**
-  - Interface-based design
-  - Easy command registration
-  - Extensible parameter system
-  - Built-in progress indicators
-- **User-Friendly**
-  - Consistent help formatting
-  - Command suggestions
-  - Default values support
-  - Required parameter validation
+- **Commands and subcommands:** Build command trees such as
+  `app repo clone`.
+- **Typed parameters:** Validate strings, numbers, paths, URLs, enums,
+  passwords, arrays, booleans, and date/time values.
+- **Helpful terminal UX:** Generate contextual help, defaults, required-value
+  errors, and suggestions for unknown commands.
+- **Shell completion:** Generate Bash and PowerShell completion scripts,
+  including boolean and enum value completion.
+- **Console tools:** Use coloured output, spinners, and progress bars with
+  optional status captions.
+- **Project generation:** Scaffold a new application and add or remove command
+  units with `cli-fp-gen`.
+- **Pascal-friendly design:** Use strongly typed interfaces and ordinary FPC
+  units without a separate runtime dependency.
 
 ## 🚀 Quick Start
 
-1. **Installation**
-
-No complex build system needed! Just:
-
-> **Note:** All example builds output their executables and units to the `example-bin/` folder in the repository root for easy access and cleanup.
->
-> **Tip:** To build or clean all example projects at once, use the provided scripts:
->
-> - On **Linux/macOS**: `./compile-all-examples.sh` and `./clean-all-examples.sh`
-> - On **Windows**: `./compile-all-examples.ps1` and `./clean-all-examples.ps1`
-
+1. **Get the source**
 
 ```bash
-# Clone the repository
 git clone https://github.com/ikelaiah/cli-fp.git
-
-# Or copy the source files to your project's directory
 ```
 
-2. **Use in Your Project**
+You can also download a release archive. Keep the repository's `src/`
+directory available to your project.
 
-- Add the source directory to your project's search path (Project -> Project Options ... -> Compiler Options -> Paths -> Other unit files)
-- Add the units to your uses clause:
+2. **Add the framework to your project**
+
+Add `cli-fp/src` to FPC's unit search path with `-Fu`, or in Lazarus open
+**Project → Project Options → Compiler Options → Paths → Other unit files**.
+Then add the units you need:
 
 ```pascal
 uses
@@ -106,7 +100,7 @@ uses
   CLI.Console;       // Optional: Colored console output
 ```
 
-3. **Create Your First CLI App**
+3. **Create your first CLI app**
 
 ```pascal
 program MyApp;
@@ -158,16 +152,26 @@ begin
 end.
 ```
 
+Save the file as `MyApp.lpr`. If the `cli-fp` repository is next to your
+project directory, compile and run it with:
+
+```bash
+fpc -Fu../cli-fp/src MyApp.lpr
+./MyApp greet --name "John"
+```
+
+On Windows, run the generated executable as `.\MyApp.exe`.
+
 **Output:**
 ```
-$ ./myapp greet --name "John"
+$ ./MyApp greet --name "John"
 Hello, John!
 
-$ ./myapp greet
+$ ./MyApp greet
 Hello, World!
 
-$ ./myapp greet --help
-Usage: myapp greet [options]
+$ ./MyApp greet --help
+Usage: MyApp greet [options]
 
 Say hello
 
@@ -190,9 +194,15 @@ Typical workflow:
 ```powershell
 fpc -Futools\cli-fp-gen\src .\tools\cli-fp-gen\cli_fp_gen.lpr
 .\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
-.\tools\cli-fp-gen\cli_fp_gen.exe add command greet --project .\build-temp\myapp --description "Say hello"
+.\tools\cli-fp-gen\cli_fp_gen.exe add command status --project .\build-temp\myapp --description "Show status"
+# Run this after manually editing clifp.json:
 .\tools\cli-fp-gen\cli_fp_gen.exe generate --project .\build-temp\myapp
 ```
+
+`init` creates a working `greet` command, so you can compile the generated
+application immediately. The generated project references the framework units
+from this repository; see the build command in
+[the generator guide](docs/codegen.md#build-generated-app-example).
 
 Full generator documentation, project layout details, and `clifp.json` reference are in [docs/codegen.md](docs/codegen.md).
 
@@ -276,6 +286,9 @@ Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
 // URL with protocol validation
 Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
 
+// File or directory path
+Cmd.AddPathParameter('-p', '--path', 'Target path');
+
 // Array (comma-separated)
 Cmd.AddArrayParameter('-t', '--tags', 'Tag list');
 
@@ -290,10 +303,12 @@ Each parameter type has built-in validation:
 - `String`: No validation
 - `Integer`: Must be a valid integer number
 - `Float`: Must be a valid floating-point number
+- `Flag`: Presence sets the value; absent flags use their default
 - `Boolean`: Must be 'true' or 'false' (case-insensitive)
 - `DateTime`: Must be in format "YYYY-MM-DD HH:MM" (24-hour)
 - `Enum`: Must match one of the pipe-separated allowed values
 - `URL`: Must start with http://, https://, git://, or ssh://
+- `Path`: No path-existence validation
 - `Array`: No validation on individual items
 - `Password`: No validation, but value is masked in output
 

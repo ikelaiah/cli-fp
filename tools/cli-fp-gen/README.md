@@ -13,13 +13,13 @@ A standalone scaffold generator for [cli-fp](../../README.md) applications.
 From the repository root:
 
 ```bash
-fpc -Ftools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
+fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
 ```
 
 Or from this directory:
 
 ```bash
-fpc -Fsrc cli_fp_gen.lpr
+fpc -Fusrc cli_fp_gen.lpr
 ```
 
 The output binary (`cli_fp_gen` / `cli_fp_gen.exe`) will be placed in this directory.
@@ -40,6 +40,8 @@ See [docs/codegen.md](../../docs/codegen.md) for the full reference, including:
 - Project spec format (`clifp.json`)
 - Supported parameter kinds
 - File ownership rules
+- Cleanup safety rules
 - Generated project layout
 - How to build a generated app
 - Verification / test scripts
+- Generator architecture and extension checklist

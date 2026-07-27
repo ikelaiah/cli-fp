@@ -77,6 +77,23 @@ Supported `kind` values:
 - `src/commands/*.pas`: user-owned command stubs, created once and not overwritten unless `--force`
 - `src/*.lpr`: generator-owned in Phase 1
 
+### Cleanup Safety
+
+The manifest is used only to remove stale generator-owned files. Before
+deleting a manifest entry, `cli-fp-gen` verifies that its normalized path is
+inside the project directory and that no child path component is a symbolic
+link or Windows reparse point (including directory junctions). If either check
+fails, generation stops and reports the unsafe path.
+
+This protection is deliberately conservative: a stale generated file reached
+through a link is not deleted, even when that link points to another location
+inside the project. Edit or remove the unexpected manifest entry or link, then
+run `generate` again.
+
+`--force` allows overwrite operations that normally protect existing files,
+including replacement of an existing spec during `init` and regeneration of
+user-owned command stubs. It does not bypass manifest path safety checks.
+
 ## Generated Layout
 
 ```text
@@ -95,13 +112,20 @@ Supported `kind` values:
 
 From the generated project directory, compile with the framework source path plus local generated/unit paths.
 
+### Linux/macOS (Bash)
+
+```bash
+fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/MyApp.lpr
+```
+
 ### Windows (PowerShell)
 
 ```powershell
 fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\MyApp.lpr
 ```
 
-Adjust the `..\..\src` path to point at the `cli-fp` framework `src/` directory.
+Adjust the first `-Fu` path (`../../src` or `..\..\src`) to point at the
+`cli-fp` framework `src/` directory.
 
 ## Verification
 
@@ -122,7 +146,7 @@ Use the Windows-native verification script from the repository root:
 powershell -ExecutionPolicy Bypass -File .\tests\codegen\run_all_tests.ps1
 ```
 
-This script compiles `cli-fp-gen`, runs the naming and validation unit tests,
+This script compiles `cli-fp-gen`, runs the focused unit tests,
 verifies golden output, compiles a generated app, and checks `init` / `generate`
 / `add command` / `remove command` behavior plus overwrite and path validation
 guards.
@@ -130,6 +154,47 @@ guards.
 GitHub Actions runs the focused suite on Linux and Windows for pushes and pull
 requests that change the generator, its fixtures, the framework source, or the
 workflow. The workflow can also be started manually.
+
+The operations tests include manifest cleanup escape attempts through a Unix
+symbolic link and a Windows directory junction. They assert that the generator
+fails safely and leaves the external file untouched.
+
+## Maintainer Guide
+
+The generator is split into small units with one main responsibility:
+
+- `CliFpGen.App`: command-line parsing and command dispatch
+- `CliFpGen.Generate`: project operations and generation workflow
+- `CliFpGen.Model`: in-memory project and parameter types
+- `CliFpGen.SpecIO`: `clifp.json` loading and saving
+- `CliFpGen.Validate`: semantic and path validation
+- `CliFpGen.Naming`: Pascal identifiers, unit names, and command paths
+- `CliFpGen.Renderer`: Pascal source rendering
+- `CliFpGen.Filesystem`: managed writes, deletions, and dry-run behavior
+- `CliFpGen.Manifest`: generated-file tracking and safe stale-file cleanup
+
+`TProjectSpec` owns its commands, and each `TCommandSpec` owns its parameters.
+When parsing JSON, construct an object completely before transferring it to
+its owning list. If parsing raises an exception before that transfer, free the
+partially constructed object in the same routine.
+
+### Adding a Parameter Kind
+
+Use this checklist when the framework gains a new parameter type:
+
+1. Add the enum value and both text mappings in `CliFpGen.Model`.
+2. Add any kind-specific defaults or semantic rules in `CliFpGen.Validate`.
+3. Render the matching framework registration call in
+   `CliFpGen.Renderer.RenderParameterCall`.
+4. If the kind needs new JSON fields, add them symmetrically to load and save
+   in `CliFpGen.SpecIO`; update the project-spec example above.
+5. Add the kind to `tests/codegen-fixtures/golden-basic/clifp.json` and update
+   the expected registry in `tests/codegen-golden/golden-basic/`.
+6. Add focused validation or parsing tests when the kind has unique rules.
+7. Update the supported-kind lists here and in the root README.
+8. Run all Linux scripts under `tests/codegen/` and the Windows
+   `run_all_tests.ps1` script. The compile smoke test confirms that the
+   generated call still matches the current framework units in `src/`.
 
 ## Notes
 

@@ -23,17 +23,80 @@ begin
   Result := Obj.Objects[Name];
 end;
 
+function LoadParameterSpec(const ParamObj: TJSONObject; const CommandIndex,
+  ParameterIndex: Integer): TParameterSpec;
+var
+  ParamKind: TParameterKind;
+begin
+  Result := TParameterSpec.Create;
+  try
+    Result.ShortFlag := ParamObj.Get('short', '');
+    Result.LongFlag := ParamObj.Get('long', '');
+    Result.Description := ParamObj.Get('description', '');
+    if not TryParseParameterKind(ParamObj.Get('kind', 'string'), ParamKind) then
+      raise Exception.CreateFmt(
+        'Invalid parameter kind in commands[%d].parameters[%d]',
+        [CommandIndex, ParameterIndex]);
+    Result.Kind := ParamKind;
+    Result.Required := ParamObj.Get('required', False);
+    Result.DefaultValue := ParamObj.Get('default', '');
+    Result.AllowedValues := ParamObj.Get('allowedValues', '');
+  except
+    Result.Free;
+    Result := nil;
+    raise;
+  end;
+end;
+
+function LoadCommandSpec(const CmdObj: TJSONObject;
+  const CommandIndex: Integer): TCommandSpec;
+var
+  ParamArray: TJSONArray;
+  ParamObj: TJSONObject;
+  Param: TParameterSpec;
+  j: Integer;
+begin
+  Result := TCommandSpec.Create;
+  try
+    Result.Name := CmdObj.Get('name', '');
+    Result.Description := CmdObj.Get('description', '');
+    Result.ParentPath := CmdObj.Get('parent', '');
+    if (CmdObj.Find('parameters') <> nil) and
+      (CmdObj.Arrays['parameters'] is TJSONArray) then
+    begin
+      ParamArray := CmdObj.Arrays['parameters'];
+      for j := 0 to ParamArray.Count - 1 do
+      begin
+        if not (ParamArray.Items[j] is TJSONObject) then
+          raise Exception.CreateFmt(
+            'Invalid spec: commands[%d].parameters[%d] must be an object',
+            [CommandIndex, j]);
+        ParamObj := TJSONObject(ParamArray.Items[j]);
+        Param := LoadParameterSpec(ParamObj, CommandIndex, j);
+        try
+          // Parameters is owning; clear the local only after Add succeeds.
+          Result.Parameters.Add(Param);
+          Param := nil;
+        finally
+          Param.Free;
+        end;
+      end;
+    end;
+  except
+    Result.Free;
+    Result := nil;
+    raise;
+  end;
+end;
+
 function LoadProjectSpec(const SpecFile: string): TProjectSpec;
 var
   Root: TJSONData;
   RootObj, AppObj: TJSONObject;
-  CmdArray, ParamArray: TJSONArray;
+  CmdArray: TJSONArray;
   i: Integer;
-  j: Integer;
-  CmdObj, ParamObj: TJSONObject;
+  CmdObj: TJSONObject;
   Cmd: TCommandSpec;
-  Param: TParameterSpec;
-  ParamKind: TParameterKind;
   JsonText: string;
 begin
   if not FileExists(SpecFile) then
@@ -63,32 +126,14 @@ begin
           if not (CmdArray.Items[i] is TJSONObject) then
             raise Exception.CreateFmt('Invalid spec: commands[%d] must be an object', [i]);
           CmdObj := TJSONObject(CmdArray.Items[i]);
-          Cmd := TCommandSpec.Create;
-          Cmd.Name := CmdObj.Get('name', '');
-          Cmd.Description := CmdObj.Get('description', '');
-          Cmd.ParentPath := CmdObj.Get('parent', '');
-          if (CmdObj.Find('parameters') <> nil) and (CmdObj.Arrays['parameters'] is TJSONArray) then
-          begin
-            ParamArray := CmdObj.Arrays['parameters'];
-            for j := 0 to ParamArray.Count - 1 do
-            begin
-              if not (ParamArray.Items[j] is TJSONObject) then
-                raise Exception.CreateFmt('Invalid spec: commands[%d].parameters[%d] must be an object', [i, j]);
-              ParamObj := TJSONObject(ParamArray.Items[j]);
-              Param := TParameterSpec.Create;
-              Param.ShortFlag := ParamObj.Get('short', '');
-              Param.LongFlag := ParamObj.Get('long', '');
-              Param.Description := ParamObj.Get('description', '');
-              if not TryParseParameterKind(ParamObj.Get('kind', 'string'), ParamKind) then
-                raise Exception.CreateFmt('Invalid parameter kind in commands[%d].parameters[%d]', [i, j]);
-              Param.Kind := ParamKind;
-              Param.Required := ParamObj.Get('required', False);
-              Param.DefaultValue := ParamObj.Get('default', '');
-              Param.AllowedValues := ParamObj.Get('allowedValues', '');
-              Cmd.Parameters.Add(Param);
-            end;
+          Cmd := LoadCommandSpec(CmdObj, i);
+          try
+            // Commands is owning; clear the local only after Add succeeds.
+            Result.Commands.Add(Cmd);
+            Cmd := nil;
+          finally
+            Cmd.Free;
           end;
-          Result.Commands.Add(Cmd);
         end;
       end;
     except

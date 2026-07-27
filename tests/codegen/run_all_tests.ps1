@@ -26,6 +26,7 @@ $FixtureDir = Join-Path $RootDir "tests\codegen-fixtures\golden-basic"
 $GoldenDir = Join-Path $RootDir "tests\codegen-golden\golden-basic"
 $TmpDir = New-TempDir
 $GenExe = Join-Path $TmpDir "cli_fp_gen.exe"
+$LinkGuardJunction = $null
 
 try {
   $GenUnits = Join-Path $TmpDir "gen-units"
@@ -194,9 +195,31 @@ try {
   Assert-True ($LASTEXITCODE -ne 0) "Expected an out-of-project manifest entry to fail cleanup"
   Assert-True (Test-Path $ManifestVictim) "Manifest cleanup deleted a file outside the project directory"
 
+  $LinkGuardProject = Join-Path $TmpDir "link-guard"
+  $LinkGuardOutside = Join-Path $TmpDir "link-guard-outside"
+  & $GenExe init $LinkGuardProject | Out-Null
+  New-Item -ItemType Directory -Path $LinkGuardOutside | Out-Null
+  $LinkGuardVictim = Join-Path $LinkGuardOutside "victim.txt"
+  Set-Content -Path $LinkGuardVictim -Value "protected"
+  $LinkGuardJunction = Join-Path $LinkGuardProject "linked"
+  New-Item -ItemType Junction -Path $LinkGuardJunction -Target $LinkGuardOutside | Out-Null
+
+  $LinkGuardManifestPath = Join-Path $LinkGuardProject "src\generated\.clifp-manifest.json"
+  $LinkGuardManifest = Get-Content -Raw $LinkGuardManifestPath | ConvertFrom-Json
+  $LinkGuardManifest.generatedFiles = @("linked/victim.txt")
+  Write-JsonFile $LinkGuardManifestPath $LinkGuardManifest
+
+  $LinkGuardOutput = (& $GenExe generate --project $LinkGuardProject 2>&1 | Out-String)
+  Assert-True ($LASTEXITCODE -ne 0) "Expected a manifest entry through a junction to fail cleanup"
+  Assert-True ($LinkGuardOutput -match "symbolic link or reparse point") "Generator did not report the linked manifest path"
+  Assert-True (Test-Path $LinkGuardVictim) "Manifest cleanup followed a junction and deleted an external file"
+
   Write-Host "Ops test passed"
 }
 finally {
+  if (($null -ne $LinkGuardJunction) -and (Test-Path -LiteralPath $LinkGuardJunction)) {
+    [System.IO.Directory]::Delete($LinkGuardJunction)
+  }
   if (Test-Path $TmpDir) {
     Remove-Item -Recurse -Force $TmpDir
   }
