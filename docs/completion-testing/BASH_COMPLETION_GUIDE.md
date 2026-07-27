@@ -1,9 +1,9 @@
 # Bash Completion User Guide
 
-**Document Version:** 1.0
-**Last Updated:** 2025-12-29
+**Document Version:** 1.1
+**Last Updated:** 2026-07-27
 **Framework:** cli-fp
-**Applies To:** Bash 3.2+ (Linux, macOS, Git Bash on Windows)
+**Applies To:** Bash 4.0+ (Linux, macOS with a newer Bash, Git Bash on Windows)
 
 ## Overview
 
@@ -75,6 +75,10 @@ $ ./SubCommandDemo.exe --[TAB][TAB]
 
 This behavior is **intentional** and consistent across both Bash and PowerShell completion.
 
+If the application defines a root command, its parameters are also offered when
+the current token starts with `-`. An empty root-level token still suggests named
+commands first.
+
 #### 1. Auto-Completion vs. Showing Options
 
 **Auto-completion** happens when there's only one match:
@@ -107,16 +111,19 @@ $ ./SubCommandDemo.exe repo clone --url https://example.com -[TAB][TAB]
 
 This is standard Bash completion behavior - the shell needs something to complete.
 
-#### 3. Global Flags Appear Everywhere
+#### 3. Application Flags in Command Contexts
 
-Global flags like `--help`, `--version`, `-h`, and `-v` are available at every command level:
+The completion engine offers `--help`, `--version`, `-h`, and `-v` while
+completing flags at a named command:
 
 ```bash
 $ ./SubCommandDemo.exe repo init -[TAB][TAB]
 --bare     --help     --path     --version  -b         -h         -p         -v
 ```
 
-This is **correct behavior** - global flags should always be accessible.
+`--help` and `-h` work at any command level. Version output is currently an
+application-level operation, so `--version` and `-v` must be the executable's
+only argument even though completion also offers them in command contexts.
 
 #### 4. Short Flags Don't Auto-Complete Further
 
@@ -274,7 +281,7 @@ The framework automatically prevents duplicates, but bash may show both short an
 | `./app cmd --value -[TAB]` | Shows available flags | Prefix provided for matching |
 | Short flag like `-b[TAB]` | May show values (true/false) | Flag is complete, offering values |
 | `--vers[TAB]` | Completes to `--version` | Prefix matching |
-| Global flags everywhere | `--help`, `-h`, `--version`, `-v` always shown | Correct - global flags are universal |
+| Flags at a named command | Completion offers help and version flags | Help works at command level; version is standalone only |
 
 ---
 
@@ -288,7 +295,7 @@ The framework automatically prevents duplicates, but bash may show both short an
 
 ❌ **DON'T:**
 - Expect completions after a value without typing `-` or `--`
-- Be surprised when global flags appear everywhere (this is correct!)
+- Treat a suggested command-level `--version` as valid; version is standalone
 - Forget to source the completion script in new shells
 
 For more help, run `./SubCommandDemo.exe --help` or consult the framework documentation.

@@ -109,8 +109,9 @@ When you press TAB at the root level without typing anything, completion shows *
 
 ## ⚠️ Known Limitations
 
-- Custom completion callbacks (`RegisterFlagValueCompletion()`, `RegisterPositionalCompletion()`) are not yet functional due to FPC 3.2.2 limitations with function pointer storage in dynamic arrays
-- These methods are stubbed with TODO comments pending FPC improvements
+- Custom completion callbacks (`RegisterFlagValueCompletion()`,
+  `RegisterPositionalCompletion()`) are not functional; the methods remain
+  stubs after compatibility problems were observed in the original experiment
 - **Note:** Built-in completion for commands, flags, boolean values, and enum values works perfectly
 
 ## 📦 Breaking Changes
@@ -132,17 +133,17 @@ No code changes required. Simply update your framework files:
 
 ### From Earlier Versions
 
-See [CHANGELOG.md](CHANGELOG.md) for migration details from earlier versions.
+See [CHANGELOG.md](../CHANGELOG.md) for migration details from earlier versions.
 
 ## 📚 Documentation
 
-- [README.md](README.md) - Getting started guide
-- [User Manual](docs/user-manual.md) - Complete usage guide
-- [API Reference](docs/api-reference.md) - Detailed API documentation
-- [Technical Documentation](docs/technical-docs.md) - Architecture details
-- [Bash Completion Guide](docs/completion-testing/BASH_COMPLETION_GUIDE.md) - Bash completion user guide
-- [PowerShell Completion Guide](docs/completion-testing/PS_COMPLETION_GUIDE.md) - PowerShell completion user guide
-- [CHANGELOG.md](CHANGELOG.md) - Full version history
+- [README.md](../README.md) - Getting started guide
+- [User Manual](user-manual.md) - Complete usage guide
+- [API Reference](api-reference.md) - Detailed API documentation
+- [Technical Documentation](technical-docs.md) - Architecture details
+- [Bash Completion Guide](completion-testing/BASH_COMPLETION_GUIDE.md) - Bash completion user guide
+- [PowerShell Completion Guide](completion-testing/PS_COMPLETION_GUIDE.md) - PowerShell completion user guide
+- [CHANGELOG.md](../CHANGELOG.md) - Full version history
 
 ## 🙏 Acknowledgments
 
@@ -150,7 +151,7 @@ Special thanks to all contributors and testers who helped make this release poss
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ---
 

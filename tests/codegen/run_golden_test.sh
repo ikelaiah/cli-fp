@@ -31,6 +31,7 @@ compare_file() {
 compare_file "src/GoldenDemo.lpr"
 compare_file "src/generated/GoldenDemo_CommandRegistry_Generated.pas"
 compare_file "src/generated/.clifp-manifest.json"
+compare_file "src/commands/GoldenDemo_RootCommand.pas"
 compare_file "src/commands/GoldenDemo_Command_Greet.pas"
 compare_file "src/commands/GoldenDemo_Command_Repo.pas"
 compare_file "src/commands/GoldenDemo_Command_RepoClone.pas"

@@ -67,6 +67,8 @@ type
     FAppName: string;
     FAppVersion: string;
     FProgramFile: string;
+    FHasRootCommand: Boolean;
+    FRootCommand: TCommandSpec;
     FCommands: TCommandSpecList;
   public
     constructor Create;
@@ -75,6 +77,8 @@ type
     property AppName: string read FAppName write FAppName;
     property AppVersion: string read FAppVersion write FAppVersion;
     property ProgramFile: string read FProgramFile write FProgramFile;
+    property HasRootCommand: Boolean read FHasRootCommand write FHasRootCommand;
+    property RootCommand: TCommandSpec read FRootCommand;
     property Commands: TCommandSpecList read FCommands;
   end;
 
@@ -161,12 +165,17 @@ begin
   inherited Create;
   FSchemaVersion := 1;
   FAppVersion := '0.1.0';
+  FHasRootCommand := False;
+  FRootCommand := TCommandSpec.Create;
+  FRootCommand.Name := '';
+  FRootCommand.ParentPath := '';
   FCommands := TCommandSpecList.Create(True);
 end;
 
 destructor TProjectSpec.Destroy;
 begin
   FCommands.Free;
+  FRootCommand.Free;
   inherited Destroy;
 end;
 

@@ -29,6 +29,7 @@ classDiagram
         +GetRequired(): Boolean
         +GetParamType(): TParameterType
         +GetDefaultValue(): string
+        +GetAllowedValues(): string
     }
     
     class IProgressIndicator {
@@ -41,13 +42,16 @@ classDiagram
     class TCLIApplication {
         -FName: string
         -FVersion: string
+        -FRootCommand: ICommand
         -FCommands: TCommandList
         -FCurrentCommand: ICommand
         -FParsedParams: TStringList
         -FParamStartIndex: Integer
         -FDebugMode: Boolean
+        -FArguments: TStringArray
         +RegisterCommand(Command: ICommand)
         +Execute(): Integer
+        +RootCommand: ICommand
         -ParseCommandLine()
         -ShowHelp()
         -ShowCommandHelp()
@@ -74,7 +78,8 @@ classDiagram
         -FRequired: Boolean
         -FParamType: TParameterType
         -FDefaultValue: string
-        +Create(ShortFlag, LongFlag, Description: string, Required: Boolean, ParamType: TParameterType, DefaultValue: string)
+        -FAllowedValues: string
+        +Create(ShortFlag, LongFlag, Description: string, Required: Boolean, ParamType: TParameterType, DefaultValue: string, AllowedValues: string)
     }
     
     class TProgressIndicator {
@@ -160,12 +165,14 @@ ICommandParameter = interface
   function GetRequired: Boolean;
   function GetParamType: TParameterType;
   function GetDefaultValue: string;
+  function GetAllowedValues: string;
   property ShortFlag: string read GetShortFlag;
   property LongFlag: string read GetLongFlag;
   property Description: string read GetDescription;
   property Required: Boolean read GetRequired;
   property ParamType: TParameterType read GetParamType;
   property DefaultValue: string read GetDefaultValue;
+  property AllowedValues: string read GetAllowedValues;
 end;
 ```
 
@@ -182,6 +189,7 @@ end;
 
 The `TCLIApplication` class is the central component that:
 - Manages command registration
+- Holds an optional executable root command
 - Handles command-line parsing
 - Implements the help system
 - Coordinates command execution
@@ -192,19 +200,37 @@ TCLIApplication = class(TInterfacedObject, ICLIApplication)
 private
   FName: string;
   FVersion: string;
+  FRootCommand: ICommand;
   FCommands: TCommandList;
   FCurrentCommand: ICommand;
   FParsedParams: TStringList;
   FParamStartIndex: Integer;
   FDebugMode: Boolean;
+  FArguments: TStringArray;
 public
   procedure RegisterCommand(const Command: ICommand);
   function Execute: Integer;
   property DebugMode: Boolean read FDebugMode write FDebugMode;
   property Version: string read FVersion;
+  property RootCommand: ICommand read FRootCommand;
   property Commands: TCommandList read GetCommands;
 end;
 ```
+
+Root-command support is introduced through an overload rather than by changing
+`ICLIApplication`, preserving the existing public interface contract:
+
+```pascal
+function CreateCLIApplication(const Name, Version: string): ICLIApplication;
+function CreateCLIApplication(const Name, Version: string;
+  const RootCommand: ICommand): ICLIApplication;
+```
+
+At execution time, an empty argument list selects `FRootCommand` when present.
+A leading option also selects it after terminal global options have been
+handled. A leading non-option token continues through the existing named
+command and subcommand resolver. Both paths converge on the same parameter
+parsing, validation, and exception handling pipeline.
 
 ### 3. Base Classes
 
@@ -239,9 +265,11 @@ private
   FRequired: Boolean;
   FParamType: TParameterType;
   FDefaultValue: string;
+  FAllowedValues: string;
 public
   constructor Create(const AShortFlag, ALongFlag, ADescription: string;
-    ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '');
+    ARequired: Boolean; AParamType: TParameterType;
+    const ADefaultValue: string = ''; const AAllowedValues: string = '');
 end;
 ```
 
@@ -290,7 +318,11 @@ type
   TSpinnerStyle = (
     ssDots,    // ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
     ssLine,    // -\|/
-    ssCircle   // ◐◓◑◒
+    ssCircle,  // ◐◓◑◒
+    ssSquare,  // ◰◳◲◱
+    ssArrow,   // ←↖↑↗→↘↓↙
+    ssBounce,  // ⠁⠂⠄⠂
+    ssBar      // ▏▎▍▌▋▊▉█▊▋▌▍▎▏
   );
 
   TSpinner = class(TProgressIndicator)
@@ -311,6 +343,7 @@ private
   FTotal: Integer;
   FWidth: Integer;
   FLastProgress: Integer;
+  FLastCaption: string;
 public
   constructor Create(const ATotal: Integer; const AWidth: Integer = 10);
   procedure Update(const Progress: Integer; const ACaption: string = ''); override;
@@ -319,7 +352,7 @@ end;
 
 ## Error Handling
 
-The framework implements robust error handling through:
+The framework defines a CLI-specific exception hierarchy:
 
 1. **Exception Classes** (`CLI.Errors`)
 ```pascal
@@ -331,6 +364,12 @@ type
   EInvalidParameterValueException = class(ECLIException);
   ECommandExecutionException = class(ECLIException);
 ```
+
+These exception types are available to application code, but the current
+`TCLIApplication` execution path does not raise them for parser or validation
+failures. It writes those errors and returns exit code `1`; command exceptions
+are caught as `Exception` and reported as execution errors. Duplicate command
+registration currently raises a generic `Exception`.
 
 2. **Parameter Validation**
 - Required parameter checks
@@ -383,7 +422,7 @@ Cmd.AddParameter(
   True,
   ptString,
   'default'
-));
+);
 ```
 
 3. **Progress Indication**
@@ -428,7 +467,9 @@ end;
 
 The framework implements parameter validation in `TCLIApplication.ValidateParameterValue`. Each parameter type has specific validation rules:
 
-> **Note:** Boolean flags (added with `AddFlag`) are always `false` by default and only become `true` if present on the command line. If you set a default value of `'true'`, the flag will be `true` even if not present, which is not standard CLI behavior and not recommended unless you have a specific use case.
+> **Note:** `AddFlag` defaults to the string `'false'`. Presence without a
+> value produces `'true'`. Overriding the default with `'true'` makes an absent
+> flag true, which is generally surprising.
 
 ### Basic Types
 - `ptString`: No validation
@@ -437,12 +478,17 @@ The framework implements parameter validation in `TCLIApplication.ValidateParame
 - `ptBoolean`: Must be 'true' or 'false' (case-insensitive)
 
 ### Complex Types
-- `ptDateTime`: Uses `TryStrToDateTime` with specific format settings:
+- `ptDateTime`: Uses `TryStrToDateTime` with these format settings:
   ```pascal
   FormatSettings.DateSeparator := '-';
   FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
   FormatSettings.LongTimeFormat := 'HH:nn';  // 24-hour format
   ```
+  `YYYY-MM-DD HH:MM` is the recommended portable representation, but
+  `TryStrToDateTime` currently also accepts some date-only values and values
+  containing seconds. `AddDateTimeParameter` still labels generated help with
+  `HH:MM:SS`; this is an implementation inconsistency rather than strict
+  validation.
   
 - `ptEnum`: Validates against pipe-separated allowed values:
   ```pascal
@@ -490,22 +536,27 @@ The CLI framework includes advanced completion script generators for both Bash a
 
 Accessible via the `--completion-file` global flag, this generator outputs a Bash script that provides:
 
-- At the root level, completions include all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`).
-- At all subcommand levels, only `-h` and `--help` are offered as global flags.
-- The script uses a Bash associative array to represent the command/subcommand/parameter tree.
-- Completions are always valid for the current command path; global flags are only available where accepted by the CLI.
+- At the root level, an option prefix includes root-command parameters and all
+  application options: `--help`, `-h`, `--help-complete`, `--version`, `-v`,
+  `--completion-file`, and `--completion-file-pwsh`.
+- At named command levels, an empty token offers subcommands, command
+  parameters, and help; an option prefix currently also offers `--version` and
+  `-v`.
+- The shell function calls the executable's hidden `__complete` entrypoint for
+  live candidates. A static associative tree is still emitted for
+  compatibility but is not read by the generated function.
 - **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 
 ### PowerShell Completion Script Generator
 
 Accessible via the `--completion-file-pwsh` global flag, this generator outputs a PowerShell script that provides:
 
-- Context-aware tab completion for all commands, subcommands, and flags at every level.
-- No file fallback—only valid completions are shown.
+- Command, subcommand, and parameter candidates scoped to the resolved command
+  path, plus the built-in application flags described above.
+- File fallback is suppressed.
 - **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
-- Works in PowerShell 7.5+ (cross-platform).
-
-This design matches the behavior of popular tools like `git` and ensures a robust and user-friendly completion experience.
+- Uses `Register-ArgumentCompleter`; PowerShell 7+ additionally receives
+  native executable registration.
 
 ### Completion System Flow Diagram
 
@@ -569,16 +620,15 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │            DoComplete(Tokens): COMPLETION LOGIC ENGINE                  │
-│                          (lines 1050-1330)                              │
 │                                                                         │
-│  1. ROOT-LEVEL FLAG CHECK (lines 1095-1110)                             │
+│  1. ROOT-LEVEL FLAG CHECK                                               │
 │     ┌─────────────────────────────────────────┐                         │
 │     │ if Tokens[0] starts with '-'            │                         │
-│     │   → Complete global flags               │                         │
-│     │   → Return: --help, --version, etc.     │                         │
+│     │   → Use root command when configured    │                         │
+│     │   → Otherwise complete global options   │                         │
 │     └─────────────────────────────────────────┘                         │
 │                         │                                               │
-│  2. COMMAND RESOLUTION (lines 1112-1123)                                │
+│  2. COMMAND RESOLUTION                                                  │
 │     ┌─────────────────────────────────────────┐                         │
 │     │ Find command matching Tokens[0]         │                         │
 │     │ If not found:                           │                         │
@@ -586,7 +636,7 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │     │   → Return: matching command names      │                         │
 │     └─────────────────────────────────────────┘                         │
 │                         │                                               │
-│  3. SUBCOMMAND WALKING (lines 1125-1143)                                │
+│  3. SUBCOMMAND WALKING                                                  │
 │     ┌─────────────────────────────────────────┐                         │
 │     │ Walk through subcommands                │                         │
 │     │ idx = 1                                 │                         │
@@ -601,7 +651,7 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │     ┌───────────────────┴─┬──────────────────┐                          │
 │     ▼                     ▼                  ▼                          │
 │  FLAG NAME           FLAG VALUE          POSITIONAL                     │
-│  (lines 1159-1201)   (lines 1206-1263)   (lines 1267-1330)              │
+│                                                                         │
 │                                                                         │
 │  Last token          Previous token      Not completing flag            │
 │  starts with '-'     is a flag           or flag value                  │
@@ -642,7 +692,7 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │  • Extract suggestions (all lines before directive)                     │
 │  • Apply directive:                                                     │
 │    - CD_NOFILE (4): Don't fallback to file completion                   │
-│    - CD_NOSPACE (1): Don't add space after completion                   │
+│    - CD_NOSPACE (2): Don't add space after completion                   │
 │  • Set shell completion candidates (COMPREPLY / results array)          │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
@@ -690,30 +740,43 @@ Return: suggestions + ":4" (CD_NOFILE)
 
 ### Completion Feature Matrix
 
-The completion system provides comprehensive built-in support with some planned advanced features:
+The completion system provides built-in static completion; the exposed custom
+callback methods are currently disabled:
 
 | Feature | Status | Implementation Details |
 |---------|--------|----------------------|
-| **Commands** | ✅ Fully functional | Statically generated from registered command tree |
+| **Commands** | ✅ Fully functional | Resolved dynamically from the registered command tree |
 | **Subcommands** | ✅ Fully functional | Multi-level hierarchy support |
 | **Flags (short/long)** | ✅ Fully functional | Context-aware at each command level |
 | **Boolean values** | ✅ Fully functional | Auto-completes with `true`/`false` |
 | **Enum values** | ✅ Fully functional | Auto-completes with allowed values |
-| **Custom callbacks** | ⏳ Planned | Blocked by FPC 3.2.2 function pointer storage limitations |
+| **Custom callbacks** | ⏳ Disabled | Public registration methods are currently stubs |
 
 **Implementation Approach:**
 
-- **Built-in completion** (✅ Working): All completion data is generated statically from the command tree structure and parameter definitions. The `DoComplete()` method in `CLI.Application` traverses the registered commands and parameters to provide completions. No dynamic storage of function pointers required.
+- **Built-in completion** (✅ Working): `DoComplete()` traverses the registered
+  command tree and parameter definitions at runtime. Generated Bash and
+  PowerShell functions call the hidden `__complete` entrypoint; no callback
+  registry is needed for command, flag, boolean, or enum candidates.
 
-- **Custom callbacks** (⏳ Planned): Would allow developers to register custom completion functions (e.g., `RegisterFlagValueCompletion()`, `RegisterPositionalCompletion()`) for dynamic value completion from external sources (files, databases, APIs). Currently blocked by Free Pascal limitations with storing function pointers in dynamic arrays. Methods exist but are stubbed with TODO comments.
+- **Custom callbacks** (⏳ Disabled): The concrete application class exposes
+  `RegisterFlagValueCompletion()` and `RegisterPositionalCompletion()`, but the
+  current methods are stubs. The historical investigation below explains why
+  the earlier storage approach was not enabled.
 
-**Current Capability:** The built-in completion system covers approximately 95% of typical CLI use cases. Custom callbacks would enable advanced scenarios like completing filenames from directories, database records, or API responses.
+Built-in completion covers registered commands, flags, Boolean values, and enum
+values. It cannot currently obtain dynamic candidates from a filesystem,
+database, API, or other application callback.
 
 ---
 
-### Technical Deep-Dive: Why Custom Callbacks Are Not Available
+### Historical Investigation: Disabled Custom Callbacks
 
-**TL;DR:** Custom completion callbacks require storing function pointers in dynamic arrays, which Free Pascal 3.2.2 cannot reliably handle due to memory management limitations.
+> **Current authoritative status:** The public methods exist on
+> `TCLIApplication`, but their bodies are stubs and always perform no
+> registration. The discussion below records the earlier implementation
+> investigation; it is not a general claim that all procedural values in FPC
+> dynamic arrays are unsupported.
 
 #### The Problem
 
@@ -727,9 +790,7 @@ App.RegisterFlagValueCompletion('deploy', '--env',
     Result := ['dev', 'staging', 'prod'];  // Custom completion
   end);
 
-// Later, when shell requests completion:
-App.DoComplete(['deploy', '--env', '']);
-// Should return ['dev', 'staging', 'prod']
+// A later internal DoComplete call would use the registered callback.
 ```
 
 #### What We Tried
@@ -770,42 +831,37 @@ begin
 end;
 ```
 
-#### Why It Fails
+#### Recorded Failure
 
-When retrieving stored function pointers, Free Pascal 3.2.2 exhibits unreliable behavior:
-
-1. **Returns `nil`** - The function pointer becomes null even though it was stored
-2. **Returns corrupted pointers** - Memory address is wrong, leading to crashes
-3. **Scope issues** - Function pointers may go out of scope unexpectedly
-
-**Root causes:**
-
-- **Memory management gaps**: FPC's hybrid memory model (reference counting + manual) doesn't properly track function pointer references in dynamic arrays
-- **Lifetime tracking**: FPC doesn't maintain proper reference counts for function pointers in dynamic structures
-- **ARC limitations**: Automatic Reference Counting doesn't extend to procedural types in all contexts
+The earlier experiment recorded `nil` or invalid callback retrieval under the
+project's FPC 3.2.2 build. No focused reproducer or compiler issue is linked,
+so this document does not attribute that result to a confirmed FPC limitation.
+The current source simply leaves registration and lookup disabled.
 
 #### What Works Instead
 
 Built-in completion avoids dynamic function pointer storage entirely:
 
 ```pascal
-// In DoComplete() - static code paths, no dynamic storage needed
-function TCLIApplication.DoComplete(const Args: TStringArray): TStringArray;
+// Simplified shape of the private implementation
+function TCLIApplication.DoComplete(const Tokens: TStringArray): TStringList;
 begin
   // ... command/flag matching logic ...
 
-  // Boolean parameter completion - direct code, no stored function pointers
+  // Boolean completion uses direct metadata-based logic
   if Param.ParamType = ptBoolean then
   begin
-    Result := TStringArray.Create('true', 'false');
-    Exit;
+    Suggestions.Add('true');
+    Suggestions.Add('false');
   end;
 
-  // Enum parameter completion - read from parameter definition
+  // Enum values are split from Param.AllowedValues, a pipe-separated string
   if Param.ParamType = ptEnum then
   begin
-    Result := Param.GetAllowedValues();  // Values stored as strings, not functions
-    Exit;
+    Vals.Delimiter := '|';
+    Vals.DelimitedText := Param.AllowedValues;
+    for J := 0 to Vals.Count - 1 do
+      Suggestions.Add(Vals[J]);
   end;
 end;
 ```
@@ -816,14 +872,12 @@ end;
 - Parameter metadata (allowed values, types) stored as simple strings/enums
 - No retrieval of function pointers from dynamic arrays
 
-#### Potential Future Solutions
+#### Possible Implementation Directions
 
-When FPC improves, possible approaches:
-
-1. **Better reference counting** - FPC could track function pointer references properly
-2. **Anonymous function support** - Similar to Delphi's implementation
-3. **Alternative storage** - Use object methods instead of function pointers
-4. **Static registration** - Pre-declare all callbacks at compile time (limits flexibility)
+Any future implementation should first add a focused lifetime/retrieval test
+for the project's supported compiler. Object-backed callbacks or named
+procedures with explicitly managed ownership are possible designs; neither is
+part of the current API behavior.
 
 #### Current Workaround
 
@@ -838,39 +892,18 @@ Only advanced scenarios requiring **runtime-dynamic** completions from external 
 
 #### Code Location
 
-The stubbed methods can be found in `src/cli.application.pas`:
+The stubbed methods can be found by name in `src/cli.application.pas`:
 
-- `RegisterFlagValueCompletion()` - Lines ~1007-1011
-- `RegisterPositionalCompletion()` - Lines ~1014-1018
-- `GetRegisteredFlagCompletion()` - Lines ~1021-1025
-- `GetRegisteredPositionalCompletion()` - Lines ~1028-1032
+- `RegisterFlagValueCompletion()`
+- `RegisterPositionalCompletion()`
+- `GetRegisteredFlagCompletion()`
+- `GetRegisteredPositionalCompletion()`
 
 All contain TODO comments: `"Implement when FPC function pointer storage is resolved"`
 
-#### References
+Before enabling the callback API, re-evaluate the design against the project's
+supported compiler and retain regression coverage for callback lifetime and
+retrieval.
 
-- **FPC Feature Announcement (2022)**: "Function References and Anonymous Functions"
-  - Announced by PascalDragon on May 26, 2022
-  - Available in trunk/development versions since 2022
-  - **Not yet in stable releases** (FPC 3.2.2 doesn't have it)
-  - Forum discussion: https://forum.lazarus.freepascal.org/index.php/topic,57649.0.html
-  - Expected in: "next major version" (no specific version or date announced)
-  - **Timeline:** Unknown - announcement said "not yet planned" (could be years away)
-
-- **What the new feature provides:**
-  - Function References: Reference-counted interfaces that can store functions
-  - Anonymous Functions: Unnamed functions that can capture scope
-  - Together: Would enable the exact functionality we need for custom callbacks
-
-- **Why it would solve our problem:**
-  - Function references use interfaces internally (reference-counted)
-  - No manual memory management needed
-  - Proper lifetime tracking for captured variables
-  - Compatible with dynamic storage
-
-- **Current workarounds:**
-  - FPC Issue Tracker: Search for "function pointer" + "dynamic array" issues
-  - Alternative: Use object methods instead of function pointers (heavier weight)
-  - Wait for next FPC major version stable release
-
-**Bottom line:** The feature we need exists in FPC trunk (since 2022) but won't be available in stable releases until the "next major version," which has no announced version number or release date. This could be years away.
+**Bottom line:** Custom callbacks are disabled in the current implementation.
+Built-in command, flag, Boolean, and enum completion does not depend on them.

@@ -8,6 +8,7 @@ This directory contains pre-compiled example executables demonstrating the cli-f
 - **SimpleDemo.exe** - Basic CLI with parameters, spinner, and colored output
 - **ColorDemo.exe** - Professional colored output with decorative formatting
 - **ProgressDemo.exe** - Spinner and progress bar demonstrations
+- **RootCommandDemo.exe** - Command-less root execution with optional named commands
 - **SubCommandDemo.exe** - Hierarchical commands (git-like structure)
 - **ErrorHandlingDemo.exe** - Error handling patterns
 - **LongRunningOpDemo.exe** - Advanced parameter types
@@ -55,6 +56,7 @@ Each example includes `--help` to show usage:
 
 ```bash
 ./SimpleDemo.exe --help
+./RootCommandDemo.exe --name Gus
 ./SubCommandDemo.exe repo --help
 ./ProgressDemo.exe process --help
 ```
@@ -65,6 +67,7 @@ Example source code is located in the `examples/` directory:
 - `examples/SimpleDemo/`
 - `examples/ColorDemo/`
 - `examples/ProgressDemo/`
+- `examples/RootCommandDemo/`
 - `examples/SubCommandDemo/`
 - `examples/ErrorHandlingDemo/`
 - `examples/LongRunningOpDemo/`

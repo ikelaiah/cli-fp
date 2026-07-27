@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -19,27 +19,48 @@ install the included Lazarus package.
 ## Start Here
 
 - **Creating a new CLI application?** Start with the
-  [project generator](#-project-generator). It creates the project structure,
-  command units, and a `clifp.json` specification for you.
+  [project generator](#-project-generator-fastest-start). It creates the
+  project structure, command units, and a `clifp.json` specification for you.
 - **Adding CLI features to an existing Pascal project?** Follow the
-  [manual quick start](#-quick-start).
+  [manual quick start](#manual-quick-start).
 - **Using Lazarus?** Compile `packages/lazarus/cli_fp.lpk`, then add it to your
   project's required packages.
 
 If this is your first Free Pascal project, install FPC first and confirm that
 `fpc -iV` works in your terminal.
 
+## Choose Your CLI Shape
+
+Use a root command for a focused utility, named commands for a `git`-style
+application, or combine both:
+
+| Invocation | What runs | Option ownership |
+| --- | --- | --- |
+| `MyApp` | Root action with its defaults | Root command |
+| `MyApp --name Gus` | Root action | Root command |
+| `MyApp about` | Named `about` command | `about` command |
+| `MyApp about --verbose` | Named `about` command | `about` command |
+| `MyApp --help` | Framework help | Application-global |
+
+Root options belong to the default action; they are not automatically inherited
+by named commands. Standalone application requests such as `--help`,
+`--version`, and completion-script generation take precedence over root
+execution.
+
 ## 📑 Table of Contents
 
 - [Start Here](#start-here)
+- [Choose Your CLI Shape](#choose-your-cli-shape)
 - [✨ Features](#-features)
-- [🚀 Quick Start](#-quick-start)
-- [🧩 Project Generator](#-project-generator)
+- [🧩 Project Generator: Fastest Start](#-project-generator-fastest-start)
+- [Manual Quick Start](#manual-quick-start)
+- [🌱 Root Commands](#-root-commands)
 - [🎯 Parameter Types and Validation](#-parameter-types-and-validation)
   - [Basic Types](#basic-types)
   - [Boolean and Flags](#boolean-and-flags)
   - [Complex Types](#complex-types)
   - [Validation Rules](#validation-rules)
+- [🧩 Shell Completion](#-shell-completion)
 - [📖 Screenshots](#-screenshots)
 - [📖 System Requirements](#-system-requirements)
   - [Tested Environments](#tested-environments)
@@ -51,17 +72,16 @@ If this is your first Free Pascal project, install FPC first and confirm that
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
 - [🙏 Acknowledgments](#-acknowledgments)
-- [🧪 Completion Script Testing](#-completion-script-testing)
-- [🧩 How to Generate Completion Scripts](#-how-to-generate-completion-scripts)
-- [🧩 Bash Completion Script (`--completion-file`)](#-bash-completion-script---completion-file)
-- [🧩 PowerShell Completion Script (`--completion-file-pwsh`)](#-powershell-completion-script---completion-file-pwsh)
 
 ## ✨ Features
 
 - **Commands and subcommands:** Build command trees such as
   `app repo clone`.
-- **Typed parameters:** Validate strings, numbers, paths, URLs, enums,
-  passwords, arrays, booleans, and date/time values.
+- **Optional root commands:** Build command-less applications that run as
+  `app [options]` while retaining named commands when needed.
+- **Typed parameter metadata:** Define strings, numbers, paths, URLs, enums,
+  passwords, arrays, booleans, and date/time values, with type-specific
+  validation where the framework provides it.
 - **Helpful terminal UX:** Generate contextual help, defaults, required-value
   errors, and suggestions for unknown commands.
 - **Shell completion:** Generate Bash and PowerShell completion scripts,
@@ -73,7 +93,79 @@ If this is your first Free Pascal project, install FPC first and confirm that
 - **Pascal-friendly design:** Use strongly typed interfaces and ordinary FPC
   units without a separate runtime dependency.
 
-## 🚀 Quick Start
+## 🧩 Project Generator: Fastest Start
+
+For a new application, the generator provides the shortest path to a compiling
+project. Run these commands from the `cli-fp` repository root.
+
+### Linux/macOS (Bash)
+
+```bash
+fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
+./tools/cli-fp-gen/cli_fp_gen init ./build-temp/myapp --name myapp
+cd build-temp/myapp
+fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
+./src/Myapp greet --help
+```
+
+### Windows (PowerShell)
+
+```powershell
+fpc "-Futools\cli-fp-gen\src" .\tools\cli-fp-gen\cli_fp_gen.lpr
+.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
+Set-Location .\build-temp\myapp
+fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
+.\src\Myapp.exe greet --help
+```
+
+The generated project contains a working `greet` command and a `clifp.json`
+specification. Add commands through the generator, or edit the specification
+and regenerate:
+
+```text
+cli-fp-gen add command status --project <project> --description "Show status"
+cli-fp-gen generate --project <project>
+```
+
+To generate a command-less application, add a top-level `rootCommand` object to
+`clifp.json`:
+
+```json
+{
+  "schemaVersion": 1,
+  "app": {
+    "name": "myapp",
+    "version": "0.1.0",
+    "programFile": "src/Myapp.lpr"
+  },
+  "rootCommand": {
+    "description": "Greet someone",
+    "parameters": [
+      {
+        "kind": "string",
+        "short": "-n",
+        "long": "--name",
+        "description": "Name to greet",
+        "required": false,
+        "default": "World",
+        "allowedValues": ""
+      }
+    ]
+  },
+  "commands": []
+}
+```
+
+Running `generate` creates a user-owned `<App>_RootCommand.pas` implementation
+stub and wires it into the generated application. The object deliberately has
+no `name` or `parent`.
+
+See the [generator guide](docs/codegen.md) for the complete schema, generated
+layout, file-ownership rules, and additional commands. Generated Pascal
+filenames use exact casing, such as `src/Myapp.lpr`; preserve that casing on
+Linux and macOS.
+
+## Manual Quick Start
 
 1. **Get the source**
 
@@ -122,11 +214,11 @@ type
 
   function TGreetCommand.Execute: integer;
   var
-    Name: string;
+    PersonName: string;
   begin
     // Get parameter value using helper method
-    if GetParameterValue('--name', Name) then
-      WriteLn('Hello, ', Name, '!')
+    if GetParameterValue('--name', PersonName) then
+      WriteLn('Hello, ', PersonName, '!')
     else
       WriteLn('Hello, World!');
     Result := 0;
@@ -148,7 +240,7 @@ begin
   App.RegisterCommand(Cmd);
   
   // Execute application
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end.
 ```
 
@@ -185,65 +277,54 @@ Options:
 A runtime-only Lazarus package is provided in `packages/lazarus/cli_fp.lpk`.
 To use it, open the `.lpk` file in Lazarus, click “Compile,” then click “Add” to add it to your project’s required packages.
 
-## 🧩 Project Generator
+## 🌱 Root Commands
 
-This repository also includes `cli-fp-gen`, a scaffold generator for new `cli-fp` applications.
+A root command is the application's unnamed default action. It lets a focused
+utility run with defaults or accept options directly after the executable,
+without inventing a command name solely to hold those options:
 
-Typical workflow:
-
-```powershell
-fpc -Futools\cli-fp-gen\src .\tools\cli-fp-gen\cli_fp_gen.lpr
-.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
-.\tools\cli-fp-gen\cli_fp_gen.exe add command status --project .\build-temp\myapp --description "Show status"
-# Run this after manually editing clifp.json:
-.\tools\cli-fp-gen\cli_fp_gen.exe generate --project .\build-temp\myapp
+```text
+MyApp
+MyApp --name Gus
 ```
 
-`init` creates a working `greet` command, so you can compile the generated
-application immediately. The generated project references the framework units
-from this repository; see the build command in
-[the generator guide](docs/codegen.md#build-generated-app-example).
-
-Full generator documentation, project layout details, and `clifp.json` reference are in [docs/codegen.md](docs/codegen.md).
-
-> **Note:** The generated program file uses PascalCase (e.g. `src/Myapp.lpr`). On Linux/macOS, reference it with the exact same casing in your build scripts. Use `--dry-run` to preview all file operations before committing them.
-
-### Progress Indicator Captions (v1.1.6)
-
-Progress indicators now support inline status text via:
-`Update(const Progress: Integer; const ACaption: string = '')`.
+It is still an ordinary command, so its options use the same parameter,
+validation, help, and completion APIs as named commands. Create it with an
+empty name and pass it to the three-argument application factory:
 
 ```pascal
 var
-  Spinner: IProgressIndicator;
-  Progress: IProgressIndicator;
-  i: Integer;
+  App: ICLIApplication;
+  RootCommand: TGreetCommand;
 begin
-  Spinner := CreateSpinner(ssLine);
-  Spinner.Start;
-  try
-    for i := 1 to 3 do
-    begin
-      Spinner.Update(0, Format('Preparing step %d/3', [i]));
-      Sleep(200);
-    end;
-  finally
-    Spinner.Stop;
-  end;
+  RootCommand := TGreetCommand.Create('', 'Greet someone');
+  RootCommand.AddStringParameter('-n', '--name', 'Name to greet',
+    False, 'World');
 
-  Progress := CreateProgressBar(3, 20);
-  Progress.Start;
-  try
-    for i := 1 to 3 do
-    begin
-      Progress.Update(i, Format('Processed item %d/3', [i]));
-      Sleep(200);
-    end;
-  finally
-    Progress.Stop;
-  end;
-end;
+  App := CreateCLIApplication('MyApp', '1.0.0', RootCommand);
+  Halt(App.Execute);
+end.
 ```
+
+The root command is explicit and optional. Applications using the existing
+two-argument `CreateCLIApplication` continue to show general help when invoked
+without a named command.
+
+With a root command configured, no arguments or a leading root option selects
+the root action. A registered command name still selects that named command.
+Root parameters are not application-global and are not automatically available
+to named commands. The framework does not currently model positional arguments
+or Cobra-style persistent flags.
+
+Named commands can coexist with a root command:
+
+```text
+MyApp --name Gus
+MyApp about
+```
+
+See [`RootCommandDemo`](examples/RootCommandDemo/RootCommandDemo.lpr) for a
+complete example.
 
 ## 🎯 Parameter Types and Validation
 
@@ -292,7 +373,7 @@ Cmd.AddPathParameter('-p', '--path', 'Target path');
 // Array (comma-separated)
 Cmd.AddArrayParameter('-t', '--tags', 'Tag list');
 
-// Password (masked in output)
+// Password (stored as a string; handle it as sensitive data)
 Cmd.AddPasswordParameter('-k', '--api-key', 'API Key');
 ```
 
@@ -305,12 +386,33 @@ Each parameter type has built-in validation:
 - `Float`: Must be a valid floating-point number
 - `Flag`: Presence sets the value; absent flags use their default
 - `Boolean`: Must be 'true' or 'false' (case-insensitive)
-- `DateTime`: Must be in format "YYYY-MM-DD HH:MM" (24-hour)
+- `DateTime`: Parsed with `TryStrToDateTime`; `YYYY-MM-DD HH:MM` is the recommended portable input
 - `Enum`: Must match one of the pipe-separated allowed values
 - `URL`: Must start with http://, https://, git://, or ssh://
 - `Path`: No path-existence validation
 - `Array`: No validation on individual items
-- `Password`: No validation, but value is masked in output
+- `Password`: No validation or automatic output redaction
+
+## 🧩 Shell Completion
+
+Generate a completion script from your application:
+
+```bash
+./yourcli --completion-file > myapp-completion.sh
+```
+
+```powershell
+.\yourcli.exe --completion-file-pwsh > myapp-completion.ps1
+```
+
+Completion is context-aware for root options, commands, subcommands, and their
+parameters. Boolean values complete as `true` or `false`, and enum values use
+their configured choices. At an empty root prompt, named commands are suggested
+first; type `-` or `--` to request root and global options.
+
+See the [user manual](docs/user-manual.md#bash-completion) for safe installation
+instructions and [`docs/completion-testing/`](docs/completion-testing/) for the
+detailed Bash and PowerShell verification guides.
 
 ## 📖 Screenshots
 
@@ -347,8 +449,8 @@ Each parameter type has built-in validation:
 ### Build Requirements
 
 - Free Pascal Compiler (FPC) 3.2.2+
-- Lazarus 3.6+
-- Basic development tools (git, terminal, etc)
+- Lazarus 3.6+ only when using the Lazarus IDE or package
+- Git only when cloning the repository rather than using a release archive
 
 ## 📖 Documentation
 
@@ -389,80 +491,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
 - Thanks to the Free Pascal community for their support and contributions
-
-## 🧪 Completion Script Testing
-
-- **Bash Completion**: Tested on Bash 4.4.23 via Git Bash (Windows)
-  - **30/30 manual test cases passing (100%)**
-  - All root-level, command, subcommand, and flag completions verified
-  - See [BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for user guide
-  - See [BASH_COMPLETION_TESTS.md](docs/completion-testing/BASH_COMPLETION_TESTS.md) for test suite
-
-- **PowerShell Completion**: Tested on PowerShell 7.5.4 (Windows)
-  - **30/30 manual test cases passing (100%)**
-  - All completion features working as designed
-  - See [PS_COMPLETION_GUIDE.md](docs/completion-testing/PS_COMPLETION_GUIDE.md) for user guide
-  - See [PS_COMPLETION_TESTS.md](docs/completion-testing/PS_COMPLETION_TESTS.md) for test suite
-
-> **Full Documentation:** All test documentation, guides, and analysis available in [docs/completion-testing/](docs/completion-testing/)
->
-> **Tip:** To check your PowerShell version, run:
-> ```powershell
-> $PSVersionTable.PSVersion
-> ```
-
-## 🧩 How to Generate Completion Scripts
-
-- **Bash:**
-  ```bash
-  ./yourcli --completion-file > myapp-completion.sh
-  ```
-- **PowerShell:**
-  ```powershell
-  ./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
-  ```
-
-### 💡 Completion Behavior Note
-
-**Commands First Design:** When you press TAB at the root level without typing anything, completion shows **commands only**, not flags. To see flags, type `-` or `--` first:
-
-```bash
-# Shows commands only
-./yourcli [TAB]
-
-# Shows all flags
-./yourcli --[TAB]
-./yourcli -[TAB]
-```
-
-This intentional design keeps the initial suggestions focused on the most common workflow (choosing a command first), while keeping flags easily accessible with a prefix. This behavior is consistent across both Bash and PowerShell.
-
-## 🧩 Bash Completion Script (`--completion-file`)
-
-Generate a Bash completion script for your CLI with:
-
-```bash
-./yourcli --completion-file > myapp-completion.sh
-```
-
-- **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
-- **Subcommands:** Only `-h` and `--help` are offered as global flags.
-- **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
-- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
-
-> This matches the CLI's actual argument parsing and ensures completions are always valid. See the user manual for full details and safe usage instructions.
-
-## 🧩 PowerShell Completion Script (`--completion-file-pwsh`)
-
-Generate a PowerShell completion script for your CLI with:
-
-```powershell
-./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
-```
-
-- **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
-- **No file fallback:** Only valid completions are shown (never files)
-- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
-- **Works in PowerShell 7.5+** (cross-platform)
-
-> See the user manual for setup and usage details.

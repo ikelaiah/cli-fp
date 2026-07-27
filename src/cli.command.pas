@@ -161,7 +161,8 @@ type
     procedure AddArrayParameter(const ShortFlag, LongFlag, Description: string;
       Required: Boolean = False; const DefaultValue: string = '');
     
-    { Helper: Adds a password parameter (value will be masked in help/logs)
+    { Helper: Adds a password parameter (stored as a string; callers must
+      avoid exposing the value in their own output or logs)
       @param ShortFlag Short form flag (e.g., '-k')
       @param LongFlag Long form flag (e.g., '--api-key')
       @param Description Parameter description
@@ -359,7 +360,7 @@ end;
 procedure TBaseCommand.AddPasswordParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean = False);
 begin
-  AddParameter(ShortFlag, LongFlag, Description + ' (value will be masked)', Required, ptPassword, '');
+  AddParameter(ShortFlag, LongFlag, Description, Required, ptPassword, '');
 end;
 
 { AddUrlParameter: Helper to add a URL parameter }

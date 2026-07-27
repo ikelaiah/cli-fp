@@ -44,18 +44,78 @@ begin
   end;
 end;
 
+procedure ValidateParameters(const CommandLabel: string;
+  const Parameters: TParameterSpecList);
+var
+  SeenFlags: TStringList;
+  Param: TParameterSpec;
+  j: Integer;
+begin
+  SeenFlags := TStringList.Create;
+  try
+    SeenFlags.CaseSensitive := False;
+    for j := 0 to Parameters.Count - 1 do
+    begin
+      Param := Parameters[j];
+
+      if Trim(Param.LongFlag) = '' then
+        raise Exception.CreateFmt('%s: parameter %d missing long flag',
+          [CommandLabel, j]);
+      if not StartsWith(Param.LongFlag, '--') then
+        raise Exception.CreateFmt('%s: invalid long flag "%s"',
+          [CommandLabel, Param.LongFlag]);
+      if (Trim(Param.ShortFlag) <> '') and
+        (not StartsWith(Param.ShortFlag, '-')) then
+        raise Exception.CreateFmt('%s: invalid short flag "%s"',
+          [CommandLabel, Param.ShortFlag]);
+      if StartsWith(Param.ShortFlag, '--') then
+        raise Exception.CreateFmt(
+          '%s: short flag must be single-dash style ("%s")',
+          [CommandLabel, Param.ShortFlag]);
+
+      if Trim(Param.Description) = '' then
+        Param.Description := 'TODO: Describe ' + Param.LongFlag;
+
+      if Param.Kind = pkFlag then
+      begin
+        Param.Required := False;
+        if Param.DefaultValue = '' then
+          Param.DefaultValue := 'false';
+      end;
+
+      if (Param.Kind = pkEnum) and
+        (Trim(Param.AllowedValues) = '') then
+        raise Exception.CreateFmt(
+          '%s: enum parameter "%s" requires allowedValues',
+          [CommandLabel, Param.LongFlag]);
+
+      if SeenFlags.IndexOf(AnsiLowerCase(Param.LongFlag)) >= 0 then
+        raise Exception.CreateFmt('%s: duplicate parameter flag "%s"',
+          [CommandLabel, Param.LongFlag]);
+      SeenFlags.Add(AnsiLowerCase(Param.LongFlag));
+
+      if Trim(Param.ShortFlag) <> '' then
+      begin
+        if SeenFlags.IndexOf(AnsiLowerCase(Param.ShortFlag)) >= 0 then
+          raise Exception.CreateFmt('%s: duplicate parameter flag "%s"',
+            [CommandLabel, Param.ShortFlag]);
+        SeenFlags.Add(AnsiLowerCase(Param.ShortFlag));
+      end;
+    end;
+  finally
+    SeenFlags.Free;
+  end;
+end;
+
 procedure ValidateProjectSpec(const Spec: TProjectSpec);
 var
   SeenPaths, SeenGeneratedNames: TStringList;
   i: Integer;
-  j: Integer;
   Cmd: TCommandSpec;
   FullPath, ParentPath: string;
   GeneratedName: string;
   ConflictingCommand: TCommandSpec;
   ConflictIndex: Integer;
-  Param: TParameterSpec;
-  SeenFlags: TStringList;
   ProgramFileNorm: string;
 begin
   if Spec = nil then
@@ -83,6 +143,13 @@ begin
     raise Exception.CreateFmt('Spec app.programFile must live under src/: %s', [Spec.ProgramFile]);
   if LowerCase(ExtractFileExt(ProgramFileNorm)) <> '.lpr' then
     raise Exception.CreateFmt('Spec app.programFile must be an .lpr file: %s', [Spec.ProgramFile]);
+
+  if Spec.HasRootCommand then
+  begin
+    if Trim(Spec.RootCommand.Description) = '' then
+      Spec.RootCommand.Description := 'Default application command';
+    ValidateParameters('Root command', Spec.RootCommand.Parameters);
+  end;
 
   SeenPaths := TStringList.Create;
   SeenGeneratedNames := TStringList.Create;
@@ -134,50 +201,7 @@ begin
       end;
       SeenGeneratedNames.AddObject(GeneratedName, Cmd);
 
-      SeenFlags := TStringList.Create;
-      try
-        SeenFlags.CaseSensitive := False;
-        for j := 0 to Cmd.Parameters.Count - 1 do
-        begin
-          Param := Cmd.Parameters[j];
-
-          if Trim(Param.LongFlag) = '' then
-            raise Exception.CreateFmt('Command "%s": parameter %d missing long flag', [FullPath, j]);
-          if not StartsWith(Param.LongFlag, '--') then
-            raise Exception.CreateFmt('Command "%s": invalid long flag "%s"', [FullPath, Param.LongFlag]);
-          if (Trim(Param.ShortFlag) <> '') and (not StartsWith(Param.ShortFlag, '-')) then
-            raise Exception.CreateFmt('Command "%s": invalid short flag "%s"', [FullPath, Param.ShortFlag]);
-          if StartsWith(Param.ShortFlag, '--') then
-            raise Exception.CreateFmt('Command "%s": short flag must be single-dash style ("%s")', [FullPath, Param.ShortFlag]);
-
-          if Trim(Param.Description) = '' then
-            Param.Description := 'TODO: Describe ' + Param.LongFlag;
-
-          if Param.Kind = pkFlag then
-          begin
-            Param.Required := False;
-            if Param.DefaultValue = '' then
-              Param.DefaultValue := 'false';
-          end;
-
-          if (Param.Kind = pkEnum) and (Trim(Param.AllowedValues) = '') then
-            raise Exception.CreateFmt('Command "%s": enum parameter "%s" requires allowedValues',
-              [FullPath, Param.LongFlag]);
-
-          if SeenFlags.IndexOf(AnsiLowerCase(Param.LongFlag)) >= 0 then
-            raise Exception.CreateFmt('Command "%s": duplicate parameter flag "%s"', [FullPath, Param.LongFlag]);
-          SeenFlags.Add(AnsiLowerCase(Param.LongFlag));
-
-          if Trim(Param.ShortFlag) <> '' then
-          begin
-            if SeenFlags.IndexOf(AnsiLowerCase(Param.ShortFlag)) >= 0 then
-              raise Exception.CreateFmt('Command "%s": duplicate parameter flag "%s"', [FullPath, Param.ShortFlag]);
-            SeenFlags.Add(AnsiLowerCase(Param.ShortFlag));
-          end;
-        end;
-      finally
-        SeenFlags.Free;
-      end;
+      ValidateParameters('Command "' + FullPath + '"', Cmd.Parameters);
     end;
 
     for i := 0 to Spec.Commands.Count - 1 do

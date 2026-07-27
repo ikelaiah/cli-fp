@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-28
+
+### Added
+
+- Added optional root commands through a backward-compatible
+  `CreateCLIApplication(Name, Version, RootCommand)` overload. Root commands
+  execute without a command name and use the existing parameter validation and
+  error-handling pipeline.
+- Added root-command help and dynamic/static completion support, including
+  boolean and enum value completion.
+- Added `RootCommandDemo`, demonstrating root parameters alongside a named
+  command.
+- Added optional schema-v1 `rootCommand` support to `cli-fp-gen`, including a
+  protected user-owned root implementation stub and generated application
+  wiring.
+
+### Changed
+
+- General and complete help now show root descriptions and options when a root
+  command is configured.
+- Application argument handling is internally testable without modifying the
+  process command line, and execution state is reset between runs.
+- Lazarus package metadata and the README version badge now target `1.3.0`.
+
+### Fixed
+
+- Password parameter help no longer claims that values are automatically
+  masked; applications receive raw strings and remain responsible for keeping
+  them out of output and logs.
+- Corrected copy/paste API examples and the case-sensitive generated-program
+  filename in Linux build instructions.
+
+### Testing
+
+- Added focused framework coverage for root creation, no-argument execution,
+  parameter parsing, named-command precedence, global-option precedence,
+  validation, and completion.
+- Extended generator unit, golden-output, and compile-smoke coverage for
+  root-command specifications and generated applications.
+
 ## [1.2.0] - 2026-07-27
 
 ### Added
@@ -292,7 +332,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ikelaiah/cli-fp/compare/v1.1.6...v1.2.0
 [1.0.0]: https://github.com/ikelaiah/cli-fp/releases/tag/v1.0.0
 

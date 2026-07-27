@@ -15,6 +15,7 @@ EXAMPLES=(
   ErrorHandlingDemo
   LongRunningOpDemo
   ProgressDemo
+  RootCommandDemo
   SimpleDemo
   SubCommandDemo
 )

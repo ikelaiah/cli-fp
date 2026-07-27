@@ -1,5 +1,10 @@
 # File Organization Summary
 
+> **Historical snapshot:** This records completion work and results from
+> December 2025. Source line numbers, generated output, file counts, and option
+> lists may differ in v1.3.0. See the
+> [current completion index](README.md) for current behavior.
+
 **Organization Date:** 2025-12-29
 **Organized By:** iwank
 **Purpose:** Clean separation of binaries, docs, and tests

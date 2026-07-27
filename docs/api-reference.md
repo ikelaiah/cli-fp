@@ -3,7 +3,6 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Quick Start](#quick-start)
 - [Units](#units)
   - [CLI.Interfaces](#cliinterfaces)
   - [CLI.Application](#cliapplication)
@@ -40,7 +39,7 @@ TParameterType = (
   ptEnum,     // Enumerated value (e.g., --log-level debug|info|warn|error)
   ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00")
   ptArray,    // Comma-separated list (e.g., --tags tag1,tag2,tag3)
-  ptPassword, // Sensitive value, masked in help/logs (e.g., --api-key ***)
+  ptPassword, // Sensitive value stored as a string; no automatic redaction
   ptUrl       // URL value with format validation (e.g., --repo https://github.com/user/repo)
 );
 ```
@@ -53,14 +52,14 @@ Represents a CLI command or subcommand.
 ICommand = interface
   function GetName: string;
   function GetDescription: string;
-  function GetParameters: TArray<ICommandParameter>;
-  function GetSubCommands: TArray<ICommand>;
+  function GetParameters: specialize TArray<ICommandParameter>;
+  function GetSubCommands: specialize TArray<ICommand>;
   function Execute: Integer;
   
   property Name: string read GetName;
   property Description: string read GetDescription;
-  property Parameters: TArray<ICommandParameter> read GetParameters;
-  property SubCommands: TArray<ICommand> read GetSubCommands;
+  property Parameters: specialize TArray<ICommandParameter> read GetParameters;
+  property SubCommands: specialize TArray<ICommand> read GetSubCommands;
 end;
 ```
 
@@ -82,11 +81,12 @@ procedure AddFloatParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean = False; const DefaultValue: string = '');
 
 // Boolean flag (defaults to false, becomes true when flag is present)
-procedure AddFlag(const ShortFlag, LongFlag, Description: string);
+procedure AddFlag(const ShortFlag, LongFlag, Description: string;
+  const DefaultValue: string = 'false');
 
 // Boolean parameter (explicit true/false)
 procedure AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
-  Required: Boolean = False; const DefaultValue: string = 'false');
+  Required: Boolean; const DefaultValue: string);
 
 // URL parameter
 procedure AddUrlParameter(const ShortFlag, LongFlag, Description: string;
@@ -104,9 +104,9 @@ procedure AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
 procedure AddArrayParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean = False; const DefaultValue: string = '');
 
-// Password parameter (masked in output)
+// Password parameter (no default-value argument)
 procedure AddPasswordParameter(const ShortFlag, LongFlag, Description: string;
-  Required: Boolean = False; const DefaultValue: string = '');
+  Required: Boolean = False);
 
 // Path parameter
 procedure AddPathParameter(const ShortFlag, LongFlag, Description: string;
@@ -119,6 +119,17 @@ Each helper method:
 - Adds the parameter to the command's parameter list
 - Validates values according to the parameter type
 
+`AddDateTimeParameter` labels its help text with
+`YYYY-MM-DD HH:MM:SS`, while validation currently delegates to
+`TryStrToDateTime` with `yyyy-mm-dd` date settings. Consequently, date-only
+values and values with or without seconds may also be accepted. Treat
+`YYYY-MM-DD HH:MM` as the recommended portable input until validation is made
+strict.
+
+`AddPasswordParameter` marks a parameter as sensitive, but retrieved values are
+ordinary strings. The framework does not automatically redact values written
+by application code or external logging.
+
 #### Getting Parameter Values
 
 `TBaseCommand` currently exposes a single `GetParameterValue` overload:
@@ -127,7 +138,11 @@ Each helper method:
 function GetParameterValue(const Flag: string; out Value: string): Boolean;
 ```
 - For non-boolean parameters, it returns `True` when the parameter was provided or a default value exists.
-- For boolean parameters, it writes the string value to `Value` and returns `True` only when the flag/value was explicitly provided.
+- For boolean parameters, it writes `true`, `false`, or the configured default
+  to `Value`. It returns `True` when the parameter was provided or has a
+  non-empty default. Because `AddFlag` defaults to the string `'false'`, an
+  absent standard flag normally still returns `True`; inspect `Value` rather
+  than using the Boolean return to test whether the flag was explicitly typed.
 - Convert string results yourself with helpers such as `TryStrToInt`, `TryStrToFloat`, and `SameText`.
 
 Example usage:
@@ -140,13 +155,13 @@ type
 
 function TTestCommand.Execute: Integer;
 var
-  Name, CountStr, RateStr, Level, VerboseStr, DateStr, Url, Tags, ApiKey: string;
+  PersonName, CountStr, RateStr, Level, VerboseStr, DateStr, Url, Tags, ApiKey: string;
   Count: Integer;
   Rate: Double;
 begin
   // Get parameter values using the string-based helper
-  if GetParameterValue('--name', Name) then
-    WriteLn('Name: ', Name);
+  if GetParameterValue('--name', PersonName) then
+    WriteLn('Name: ', PersonName);
 
   if GetParameterValue('--count', CountStr) and TryStrToInt(CountStr, Count) then
     WriteLn('Count: ', Count);
@@ -170,7 +185,7 @@ begin
     WriteLn('Tags: ', Tags);
 
   if GetParameterValue('--api-key', ApiKey) then
-    WriteLn('API Key: ', ApiKey);
+    WriteLn('API key provided');
 
   Result := 0;
 end;
@@ -189,7 +204,7 @@ begin
   Cmd.AddIntegerParameter('-c', '--count', 'Number of items', True);  // Required
   Cmd.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
   Cmd.AddFlag('-v', '--verbose', 'Enable verbose output');
-  Cmd.AddDateTimeParameter('-d', '--date', 'Start date');  // Format: YYYY-MM-DD HH:MM
+  Cmd.AddDateTimeParameter('-d', '--date', 'Start date');  // Recommended: YYYY-MM-DD HH:MM
   Cmd.AddEnumParameter('-l', '--level', 'Log level', 'debug|info|warn|error');
   Cmd.AddUrlParameter('-u', '--url', 'Repository URL');
   Cmd.AddArrayParameter('-t', '--tags', 'Tag list', False, 'tag1,tag2');
@@ -199,7 +214,7 @@ begin
   App.RegisterCommand(Cmd);
   
   // Execute application
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end;
 ```
 
@@ -213,6 +228,7 @@ ICommandParameter = interface
   function GetRequired: Boolean;
   function GetParamType: TParameterType;
   function GetDefaultValue: string;
+  function GetAllowedValues: string;
   
   property ShortFlag: string read GetShortFlag;
   property LongFlag: string read GetLongFlag;
@@ -220,6 +236,7 @@ ICommandParameter = interface
   property Required: Boolean read GetRequired;
   property ParamType: TParameterType read GetParamType;
   property DefaultValue: string read GetDefaultValue;
+  property AllowedValues: string read GetAllowedValues;
 end;
 ```
 
@@ -257,6 +274,7 @@ TCLIApplication = class(TInterfacedObject, ICLIApplication)
 public
   property DebugMode: Boolean read FDebugMode write FDebugMode;
   property Version: string read FVersion;
+  property RootCommand: ICommand read FRootCommand;
   property Commands: TCommandList read GetCommands;
 end;
 ```
@@ -267,7 +285,33 @@ end;
 Creates a new CLI application instance.
 ```pascal
 function CreateCLIApplication(const Name, Version: string): ICLIApplication;
+function CreateCLIApplication(const Name, Version: string;
+  const RootCommand: ICommand): ICLIApplication;
 ```
+
+The two-argument overload preserves the traditional command-first behavior:
+invoking the executable without arguments displays general help.
+
+The three-argument overload configures an optional executable root command.
+The root command runs when no arguments are supplied or when the first
+argument is a non-global option:
+
+```pascal
+Root := TGreetCommand.Create('', 'Greet someone');
+Root.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+App := CreateCLIApplication('MyApp', '1.0.0', Root);
+```
+
+This supports `MyApp` and `MyApp --name Gus` without requiring a command name.
+Registered named commands still take precedence when the first argument is a
+command token. Root parameters are local to root execution. Positional
+arguments and inherited/persistent root flags are not currently modeled.
+
+Application-level dispatch retains its existing ordering: sole `--help`/`-h`,
+`--help-complete`, and `--version`/`-v` requests are handled before root
+selection; completion-script options are handled when they are the first
+argument; and command help is recognized after a named or root command has
+been selected.
 
 ### CLI.Command
 
@@ -288,8 +332,8 @@ public
   
   property Name: string read GetName;
   property Description: string read GetDescription;
-  property Parameters: TArray<ICommandParameter> read GetParameters;
-  property SubCommands: TArray<ICommand> read GetSubCommands;
+  property Parameters: specialize TArray<ICommandParameter> read GetParameters;
+  property SubCommands: specialize TArray<ICommand> read GetSubCommands;
 end;
 ```
 
@@ -305,7 +349,8 @@ Implements command parameter functionality.
 TCommandParameter = class(TInterfacedObject, ICommandParameter)
 public
   constructor Create(const AShortFlag, ALongFlag, ADescription: string;
-    ARequired: Boolean; AParamType: TParameterType; const ADefaultValue: string = '');
+    ARequired: Boolean; AParamType: TParameterType;
+    const ADefaultValue: string = ''; const AAllowedValues: string = '');
     
   property ShortFlag: string read GetShortFlag;
   property LongFlag: string read GetLongFlag;
@@ -313,6 +358,7 @@ public
   property Required: Boolean read GetRequired;
   property ParamType: TParameterType read GetParamType;
   property DefaultValue: string read GetDefaultValue;
+  property AllowedValues: string read GetAllowedValues;
 end;
 ```
 
@@ -322,7 +368,9 @@ end;
 Creates a new parameter instance.
 ```pascal
 function CreateParameter(const ShortFlag, LongFlag, Description: string;
-  Required: Boolean; ParamType: TParameterType; const DefaultValue: string = ''): ICommandParameter;
+  Required: Boolean; ParamType: TParameterType;
+  const DefaultValue: string = '';
+  const AllowedValues: string = ''): ICommandParameter;
 ```
 
 ### CLI.Progress
@@ -339,7 +387,7 @@ TSpinnerStyle = (
   ssLine,    // -\|/
   ssCircle,  // ◐◓◑◒
   ssSquare,  // ◰◳◲◱
-  ssArrow,   // ←↖↑→↘↓↙
+  ssArrow,   // ←↖↑↗→↘↓↙
   ssBounce,  // ⠁⠂⠄⠂
   ssBar      // ▏▎▍▌▋▊▉█▊▋▌▍▎▏
 );
@@ -442,8 +490,8 @@ Base exception class for all CLI-related errors.
 ```pascal
 ECLIException = class(Exception)
 public
-  constructor Create(const Msg: string); override;
-  constructor CreateFmt(const Msg: string; const Args: array of const); override;
+  constructor Create(const Msg: string);
+  constructor CreateFmt(const Msg: string; const Args: array of const);
 end;
 ```
 
@@ -462,10 +510,10 @@ type
 
 function TGreetCommand.Execute: Integer;
 var
-  Name: string;
+  PersonName: string;
 begin
-  GetParameterValue('--name', Name);
-  TConsole.WriteLn('Hello, ' + Name + '!', ccDefault);
+  GetParameterValue('--name', PersonName);
+  TConsole.WriteLn('Hello, ' + PersonName + '!');
 
   Result := 0;
 end;
@@ -481,7 +529,7 @@ begin
   Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
   
   App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end;
 ```
 
@@ -544,11 +592,11 @@ begin
   Cmd.AddFlag('-f', '--force', 'Overwrite if exists');
   
   App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end;
 ```
 
-#### 1. Handling Boolean Parameters
+#### 3. Handling Boolean Parameters
 
 ```pascal
 type
@@ -596,7 +644,7 @@ begin
   Cmd.AddBooleanParameter('-v', '--verbose', 'Verbose mode', False, 'false');
   
   App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end;
 ```
 
@@ -638,7 +686,7 @@ begin
   GetParameterValue('--verbose', VerboseStr);
   Verbose := SameText(VerboseStr, 'true');
 
-  Progress := CreateProgressBar('Processing files', Count);
+  Progress := CreateProgressBar(Count);
   try
     Progress.Start;
     
@@ -648,7 +696,7 @@ begin
         TConsole.WriteLn(Format('Processing file %d/%d...', [i + 1, Count]), ccCyan);
         
       ProcessFile('file' + IntToStr(i + 1));
-      Progress.Update(i + 1);
+      Progress.Update(i + 1, 'Processing files');
       Sleep(500); // Simulate work
     end;
 
@@ -678,7 +726,7 @@ begin
   Cmd.AddFlag('-v', '--verbose', 'Show detailed progress');
   
   App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end;
 ```
 
@@ -736,7 +784,7 @@ end;
 procedure TValidateCommand.ValidateFile(const FilePath: string);
 begin
   // Demo validation - fail on file9.txt
-  if FilePath.Contains('file9.txt') then
+  if Pos('file9.txt', FilePath) > 0 then
     raise Exception.Create('Demo validation failed for: ' + FilePath);
 end;
 
@@ -753,7 +801,7 @@ begin
   Cmd.AddFlag('-s', '--stop-on-error', 'Stop processing on first error');
   
   App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end;
 ```
 
@@ -766,9 +814,15 @@ The framework can generate robust, context-aware completion scripts for both Bas
   ```bash
   ./yourcli --completion-file > myapp-completion.sh
   ```
-- **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
-- **Subcommands:** Only `-h` and `--help` are offered as global flags.
-- **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
+- **Root level:** Root parameters and all application options are available
+  after an option prefix, including `--help`, `-h`, `--help-complete`,
+  `--version`, `-v`, `--completion-file`, and `--completion-file-pwsh`.
+- **Named command levels:** An empty new token offers subcommands, command
+  parameters, and help. Starting an option prefix also exposes `--version` and
+  `-v`, matching the current completion engine.
+- Command, subcommand, and parameter candidates are scoped to the resolved
+  command path. Built-in application flags follow the behavior described
+  above.
 - **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - **No file completion is ever offered.**
 
@@ -777,9 +831,12 @@ The framework can generate robust, context-aware completion scripts for both Bas
   ```powershell
   ./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
   ```
-- **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
+- **Context-aware command metadata:** Commands, subcommands, and parameters are
+  scoped to the resolved command path; built-in application flags follow the
+  same behavior as Bash completion
 - **No file fallback:** Only valid completions are shown (never files)
 - **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
-- **Works in PowerShell 7.5+** (cross-platform)
+- **PowerShell compatibility:** Uses `Register-ArgumentCompleter`; PowerShell
+  7+ additionally receives native executable registration.
 
 See the user manual for setup, usage, and safe sourcing instructions.

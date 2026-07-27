@@ -1,5 +1,10 @@
 # Quick Test for Root-Level Flag Completion Fix
 
+> **Historical snapshot:** This records completion work and results from
+> December 2025. Source line numbers, generated output, file counts, and option
+> lists may differ in v1.3.0. See the
+> [current Bash guide](BASH_COMPLETION_GUIDE.md) for current behavior.
+
 **Fix Date:** 2025-12-29
 **Issue:** Root-level prefix completion not working
 **File Modified:** src/cli.application.pas (lines 1095-1110)

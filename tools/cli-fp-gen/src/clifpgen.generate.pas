@@ -52,7 +52,8 @@ procedure GenerateProjectFiles(const ProjectDir: string; const Spec: TProjectSpe
 var
   i: Integer;
   Cmd: TCommandSpec;
-  ProgramPath, RegistryPath, CommandUnitPath, CommandsDir, GeneratedDir: string;
+  ProgramPath, RegistryPath, RootCommandUnitPath, CommandUnitPath: string;
+  CommandsDir, GeneratedDir: string;
   PreviousManifest, CurrentGeneratedRel: TStringList;
   RegistryRelPath: string;
 begin
@@ -80,6 +81,19 @@ begin
 
     RegistryPath := PathCombine(ProjectDir, StringReplace(RegistryRelPath, '/', PathDelim, [rfReplaceAll]));
     WriteManagedTextFile(RegistryPath, RenderRegistryUnit(Spec), wkGenerated, Options);
+
+    if Spec.HasRootCommand then
+    begin
+      RootCommandUnitPath := PathCombine(ProjectDir,
+        'src' + PathDelim + 'commands' + PathDelim +
+        MakeRootCommandUnitName(Spec.AppName) + '.pas');
+      WriteManagedTextFile(
+        RootCommandUnitPath,
+        RenderRootCommandUnit(Spec),
+        wkUserStub,
+        Options
+      );
+    end;
 
     for i := 0 to Spec.Commands.Count - 1 do
     begin

@@ -28,6 +28,8 @@ fpc \
   "$TMP_DIR/project/src/GoldenDemo.lpr" >/dev/null
 
 "$TMP_DIR/project/src/GoldenDemo" --help >/dev/null
+"$TMP_DIR/project/src/GoldenDemo" --root-name Gus | grep -q \
+  'TODO: Implement the root command'
 "$TMP_DIR/project/src/GoldenDemo" repo >/dev/null
 
 echo "Compile smoke test passed"

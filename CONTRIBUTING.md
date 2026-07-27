@@ -4,7 +4,7 @@ First off, thank you for considering contributing to CLI Framework for Free Pasc
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+Please be respectful and constructive when participating in this project.
 
 ## How Can I Contribute?
 

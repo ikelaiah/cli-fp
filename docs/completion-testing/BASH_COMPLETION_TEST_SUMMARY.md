@@ -1,5 +1,10 @@
 # Bash Completion Test Summary
 
+> **Historical snapshot:** This records completion work and results from
+> December 2025. Source line numbers, generated output, file counts, and option
+> lists may differ in v1.3.0. See the
+> [current Bash guide](BASH_COMPLETION_GUIDE.md) for current behavior.
+
 **Test Date:** 2025-12-29
 **Analysis Date:** 2025-12-29
 **Application:** SubCommandDemo.exe

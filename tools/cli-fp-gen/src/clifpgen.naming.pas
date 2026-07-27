@@ -17,6 +17,7 @@ function SegmentCount(const CommandPath: string): Integer;
 function MakeProgramIdentifier(const AppName: string): string;
 function MakeProgramFileRelPath(const AppName: string): string;
 function MakeRegistryUnitName(const AppName: string): string;
+function MakeRootCommandUnitName(const AppName: string): string;
 function MakeCommandUnitName(const AppName, CommandPath: string): string;
 function MakeCommandClassName(const CommandPath: string): string;
 function MakeCommandVarName(const CommandPath: string): string;
@@ -200,6 +201,11 @@ end;
 function MakeRegistryUnitName(const AppName: string): string;
 begin
   Result := NormalizeUnitId(TokenToPascalPart(AppName) + '_CommandRegistry_Generated');
+end;
+
+function MakeRootCommandUnitName(const AppName: string): string;
+begin
+  Result := NormalizeUnitId(TokenToPascalPart(AppName) + '_RootCommand');
 end;
 
 function MakeCommandUnitName(const AppName, CommandPath: string): string;
