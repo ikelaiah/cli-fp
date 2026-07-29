@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-07-30
+
+### Fixed
+
+- Removed the hidden `ICommand`-to-`TBaseCommand` downcast during execution.
+  Commands that implement `ICommand` directly can now execute without an
+  invalid type-cast failure.
+- Added the optional `ICommandParameterReceiver` capability used by
+  `TBaseCommand` to receive framework-parsed parameter values without making
+  it a requirement of the base `ICommand` contract.
+
+### Deprecated
+
+- Marked `TCLIApplication.RegisterFlagValueCompletion()` and
+  `RegisterPositionalCompletion()` as deprecated. These methods remain
+  source-compatible no-op stubs for the 1.x line and are planned for removal
+  in v2.0.0.
+
+### Changed
+
+- Added regression coverage for executing a command that implements
+  `ICommand` without inheriting from `TBaseCommand`.
+- Updated the README badge and Lazarus package metadata to `1.3.2`.
+
 ## [1.3.1] - 2026-07-28
 
 ### Documentation
@@ -353,7 +377,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/ikelaiah/cli-fp/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/ikelaiah/cli-fp/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/ikelaiah/cli-fp/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ikelaiah/cli-fp/compare/v1.1.6...v1.2.0

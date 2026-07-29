@@ -18,7 +18,7 @@ type
     - Subcommand support
     - Help text generation
     - Parameter value access }
-  TBaseCommand = class(TInterfacedObject, ICommand)
+  TBaseCommand = class(TInterfacedObject, ICommand, ICommandParameterReceiver)
   private
     FName: string;              // Command name used in CLI
     FDescription: string;       // Command description for help

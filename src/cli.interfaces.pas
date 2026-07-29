@@ -24,6 +24,7 @@ type
 
   { Forward declarations for circular references }
   ICommand = interface;
+  ICommandParameterReceiver = interface;
   ICommandParameter = interface;
   ICLIApplication = interface;
   IProgressIndicator = interface;
@@ -60,6 +61,14 @@ type
     
     { Nested subcommands }
     property SubCommands: specialize TArray<ICommand> read GetSubCommands;
+  end;
+
+  { Optional command capability used to receive parameters parsed by the
+    application. Commands that do not need framework-managed parameter access
+    can implement ICommand without implementing this interface. }
+  ICommandParameterReceiver = interface
+    ['{D6F6D6D3-5C5C-4B5B-9B5B-5B5B5B5B5B5B}']
+    procedure SetParsedParams(const Params: TStringList);
   end;
 
   { Command parameter interface - Represents a single command-line parameter }
