@@ -32,6 +32,7 @@ type
     procedure Test_2_3_SubCommands;
     procedure Test_2_4_CommandExecution;
     procedure Test_2_5_CommandHierarchy;
+    procedure Test_2_6_InterfaceOnlyCommandExecution;
 
     // 3.x - Parameter Tests
     procedure Test_3_1_CreateParameter;
@@ -92,6 +93,19 @@ type
     property LastName: string read FLastName;
   end;
 
+  { ICommand implementation that deliberately does not inherit TBaseCommand. }
+  TInterfaceOnlyCommand = class(TInterfacedObject, ICommand)
+  private
+    FExecuteCount: Integer;
+  public
+    function GetName: string;
+    function GetDescription: string;
+    function GetParameters: specialize TArray<ICommandParameter>;
+    function GetSubCommands: specialize TArray<ICommand>;
+    function Execute: Integer;
+    property ExecuteCount: Integer read FExecuteCount;
+  end;
+
 function TTestCommand.Execute: Integer;
 begin
   Result := 0;
@@ -108,6 +122,32 @@ begin
   if not GetParameterValue('--name', FLastName) then
     FLastName := '';
   Result := 0;
+end;
+
+function TInterfaceOnlyCommand.GetName: string;
+begin
+  Result := 'standalone';
+end;
+
+function TInterfaceOnlyCommand.GetDescription: string;
+begin
+  Result := 'Interface-only command';
+end;
+
+function TInterfaceOnlyCommand.GetParameters: specialize TArray<ICommandParameter>;
+begin
+  Result := nil;
+end;
+
+function TInterfaceOnlyCommand.GetSubCommands: specialize TArray<ICommand>;
+begin
+  Result := nil;
+end;
+
+function TInterfaceOnlyCommand.Execute: Integer;
+begin
+  Inc(FExecuteCount);
+  Result := 23;
 end;
 
 function MakeArgs(const Values: array of string): TStringArray;
@@ -258,6 +298,27 @@ begin
     AssertEquals('Sub1 should have one subcommand', 1, Length(SubCmd1.SubCommands));
   finally
     MainCmd.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_2_6_InterfaceOnlyCommandExecution;
+var
+  App: TCLIApplication;
+  Cmd: TInterfaceOnlyCommand;
+  Command: ICommand;
+begin
+  App := TCLIApplication.Create('TestApp', '1.3.2');
+  Cmd := TInterfaceOnlyCommand.Create;
+  Command := Cmd;
+  try
+    App.RegisterCommand(Command);
+    AssertEquals('Interface-only command exit code should be returned', 23,
+      App.TestExecute(MakeArgs(['standalone'])));
+    AssertEquals('Interface-only command should execute once', 1,
+      Cmd.ExecuteCount);
+  finally
+    App.Free;
+    Command := nil;
   end;
 end;
 

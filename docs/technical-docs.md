@@ -28,6 +28,11 @@ classDiagram
         +GetSubCommands(): TArray<ICommand>
         +Execute(): Integer
     }
+
+    class ICommandParameterReceiver {
+        <<interface>>
+        +SetParsedParams(Params: TStringList)
+    }
     
     class ICommandParameter {
         <<interface>>
@@ -134,6 +139,7 @@ classDiagram
 
     ICLIApplication <|.. TCLIApplication
     ICommand <|.. TBaseCommand
+    ICommandParameterReceiver <|.. TBaseCommand
     ICommandParameter <|.. TCommandParameter
     IProgressIndicator <|.. TProgressIndicator
     TProgressIndicator <|-- TProgressBar
@@ -161,6 +167,20 @@ ICommand = interface
   property Description: string read GetDescription;
   property Parameters: specialize TArray<ICommandParameter> read GetParameters;
   property SubCommands: specialize TArray<ICommand> read GetSubCommands;
+end;
+```
+
+#### `ICommandParameterReceiver`
+
+`ICommandParameterReceiver` is an optional capability, not a requirement for
+all commands. Before validation and execution, `TCLIApplication` uses
+`Supports()` to provide its parsed parameter list when the selected command
+implements this interface. `TBaseCommand` implements it; a standalone
+`ICommand` that does not need framework-managed lookup can execute without it.
+
+```pascal
+ICommandParameterReceiver = interface
+  procedure SetParsedParams(const Params: TStringList);
 end;
 ```
 
@@ -245,7 +265,7 @@ parsing, validation, and exception handling pipeline.
 #### `TBaseCommand` (`CLI.Command`)
 Base implementation for commands with:
 ```pascal
-TBaseCommand = class(TInterfacedObject, ICommand)
+TBaseCommand = class(TInterfacedObject, ICommand, ICommandParameterReceiver)
 private
   FName: string;
   FDescription: string;
@@ -756,7 +776,7 @@ Return: suggestions + ":4" (CD_NOFILE)
 ### Completion Feature Matrix
 
 The completion system provides built-in static completion; the exposed custom
-callback methods are currently disabled:
+callback methods are deprecated and non-functional:
 
 | Feature | Status | Implementation Details |
 |---------|--------|----------------------|
@@ -765,7 +785,7 @@ callback methods are currently disabled:
 | **Flags (short/long)** | ✅ Fully functional | Context-aware at each command level |
 | **Boolean values** | ✅ Fully functional | Auto-completes with `true`/`false` |
 | **Enum values** | ✅ Fully functional | Auto-completes with allowed values |
-| **Custom callbacks** | ⏳ Disabled | Public registration methods are currently stubs |
+| **Custom callbacks** | ⚠️ Deprecated | Registration methods are non-functional stubs and are planned for removal in v2.0.0 |
 
 **Implementation Approach:**
 
@@ -774,10 +794,11 @@ callback methods are currently disabled:
   PowerShell functions call the hidden `__complete` entrypoint; no callback
   registry is needed for command, flag, boolean, or enum candidates.
 
-- **Custom callbacks** (⏳ Disabled): The concrete application class exposes
-  `RegisterFlagValueCompletion()` and `RegisterPositionalCompletion()`, but the
-  current methods are stubs. The historical investigation below explains why
-  the earlier storage approach was not enabled.
+- **Custom callbacks** (⚠️ Deprecated): The concrete application class exposes
+  `RegisterFlagValueCompletion()` and `RegisterPositionalCompletion()` only for
+  1.x source compatibility. The methods are marked deprecated, remain no-op
+  stubs, and are planned for removal in v2.0.0. The historical investigation
+  below explains why the earlier storage approach was not enabled.
 
 Built-in completion covers registered commands, flags, Boolean values, and enum
 values. It cannot currently obtain dynamic candidates from a filesystem,
@@ -787,11 +808,12 @@ database, API, or other application callback.
 
 ### Historical Investigation: Disabled Custom Callbacks
 
-> **Current authoritative status:** The public methods exist on
-> `TCLIApplication`, but their bodies are stubs and always perform no
-> registration. The discussion below records the earlier implementation
-> investigation; it is not a general claim that all procedural values in FPC
-> dynamic arrays are unsupported.
+> **Current authoritative status:** The deprecated public methods remain on
+> `TCLIApplication` for 1.x source compatibility, but their bodies are stubs
+> and always perform no registration. They are planned for removal in v2.0.0.
+> The discussion below records the earlier implementation investigation; it
+> is not a general claim that all procedural values in FPC dynamic arrays are
+> unsupported.
 
 #### The Problem
 
@@ -907,18 +929,21 @@ Only advanced scenarios requiring **runtime-dynamic** completions from external 
 
 #### Code Location
 
-The stubbed methods can be found by name in `src/cli.application.pas`:
+The deprecated public stubs and their private lookup helpers can be found by
+name in `src/cli.application.pas`:
 
 - `RegisterFlagValueCompletion()`
 - `RegisterPositionalCompletion()`
 - `GetRegisteredFlagCompletion()`
 - `GetRegisteredPositionalCompletion()`
 
-All contain TODO comments: `"Implement when FPC function pointer storage is resolved"`
+The public registration methods are deprecated no-ops. The private lookup
+helpers retain TODO markers because no callback registry is active.
 
 Before enabling the callback API, re-evaluate the design against the project's
 supported compiler and retain regression coverage for callback lifetime and
 retrieval.
 
-**Bottom line:** Custom callbacks are disabled in the current implementation.
-Built-in command, flag, Boolean, and enum completion does not depend on them.
+**Bottom line:** Custom callbacks are deprecated and non-functional in the
+current implementation. Built-in command, flag, Boolean, and enum completion
+does not depend on them.

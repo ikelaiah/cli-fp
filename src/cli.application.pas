@@ -182,9 +182,14 @@ type
     property ParsedParams: TStringList read FParsedParams;
     property CurrentCommand: ICommand read FCurrentCommand write FCurrentCommand;
 
-    { Register completion callbacks (opt-in) }
-    procedure RegisterFlagValueCompletion(const CommandPath, FlagName: string; Func: TFlagValueCompletionFunc);
-    procedure RegisterPositionalCompletion(const CommandPath: string; ArgIndex: Integer; Func: TPositionalCompletionFunc);
+    { Deprecated no-op callback registration retained for 1.x source
+      compatibility. Built-in metadata completion is unaffected. }
+    procedure RegisterFlagValueCompletion(const CommandPath, FlagName: string;
+      Func: TFlagValueCompletionFunc);
+      deprecated 'Custom completion callbacks are non-functional and will be removed in v2.0.0';
+    procedure RegisterPositionalCompletion(const CommandPath: string;
+      ArgIndex: Integer; Func: TPositionalCompletionFunc);
+      deprecated 'Custom completion callbacks are non-functional and will be removed in v2.0.0';
     
     { For testing validation }
     function TestValidateCommand: Boolean;
@@ -217,7 +222,7 @@ function CreateCLIApplication(const Name, Version: string;
 implementation
 
 uses
-  StrUtils, CLI.Command, CLI.Console;
+  StrUtils, CLI.Console;
 
 { Constructor: Initializes a new CLI application instance
   @param AName The name of the application
@@ -488,12 +493,12 @@ end;
 { Parses, validates, and executes the selected command. }
 function TCLIApplication.ExecuteCurrentCommand: Integer;
 var
-  Command: TBaseCommand;
+  ParameterReceiver: ICommandParameterReceiver;
 begin
   ParseCommandLine;
 
-  Command := FCurrentCommand as TBaseCommand;
-  Command.SetParsedParams(FParsedParams);
+  if Supports(FCurrentCommand, ICommandParameterReceiver, ParameterReceiver) then
+    ParameterReceiver.SetParsedParams(FParsedParams);
 
   if not ValidateCommand then
     Exit(1);
@@ -1182,15 +1187,13 @@ end;
 { RegisterFlagValueCompletion: Register a callback for flag value completion }
 procedure TCLIApplication.RegisterFlagValueCompletion(const CommandPath, FlagName: string; Func: TFlagValueCompletionFunc);
 begin
-  // TODO: Implement when FPC function pointer storage is resolved
-  // Currently disabled due to FPC compatibility issues
+  // Deprecated no-op retained for 1.x source compatibility.
 end;
 
 { RegisterPositionalCompletion: Register a callback for positional argument completion }
 procedure TCLIApplication.RegisterPositionalCompletion(const CommandPath: string; ArgIndex: Integer; Func: TPositionalCompletionFunc);
 begin
-  // TODO: Implement when FPC function pointer storage is resolved
-  // Currently disabled due to FPC compatibility issues
+  // Deprecated no-op retained for 1.x source compatibility.
 end;
 
 { GetRegisteredFlagCompletion: Helper to retrieve flag completion callback }

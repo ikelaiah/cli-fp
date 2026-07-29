@@ -5,7 +5,7 @@ lower maintenance cost. New convenience APIs should delegate to one underlying
 implementation rather than creating parallel parsing, validation, or execution
 paths.
 
-## v1.3.2 — Correct the Current Contracts
+## v1.3.2 — Correct the Current Contracts (completed 2026-07-30)
 
 - Remove or clearly deprecate the non-functional completion callback APIs.
 - Fix the mismatch between the public `ICommand` contract and the runtime
@@ -46,4 +46,3 @@ can be made and tested independently.
 **Maintenance outcome:** command inputs and ownership are explicit, legacy
 compatibility paths are retired, and the core has one coherent execution
 model.
-

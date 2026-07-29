@@ -9,8 +9,8 @@ with the [user manual](user-manual.md); it supplies complete program context
 that the isolated declarations here intentionally omit.
 
 The excerpts focus on supported application-facing members. Test hooks on
-`TCLIApplication` and the currently disabled custom-completion callback
-registry are documented in the
+`TCLIApplication` and the deprecated, non-functional custom-completion
+callback registry are documented in the
 [technical completion notes](technical-docs.md#historical-investigation-disabled-custom-callbacks).
 The declarations in [`src/`](../src/) remain authoritative.
 
@@ -74,6 +74,19 @@ ICommand = interface
   property Description: string read GetDescription;
   property Parameters: specialize TArray<ICommandParameter> read GetParameters;
   property SubCommands: specialize TArray<ICommand> read GetSubCommands;
+end;
+```
+
+##### `ICommandParameterReceiver`
+
+Optional capability used by the application to supply parsed parameter values
+to commands that want framework-managed lookup. `TBaseCommand` implements this
+interface. A command that implements only `ICommand` remains valid and can
+execute without inheriting from `TBaseCommand`.
+
+```pascal
+ICommandParameterReceiver = interface
+  procedure SetParsedParams(const Params: TStringList);
 end;
 ```
 
@@ -342,7 +355,7 @@ Base command implementation.
 ##### `TBaseCommand`
 Abstract base class for all CLI commands.
 ```pascal
-TBaseCommand = class(TInterfacedObject, ICommand)
+TBaseCommand = class(TInterfacedObject, ICommand, ICommandParameterReceiver)
 protected
   function GetParameterValue(const Flag: string; out Value: string): Boolean;
   procedure ShowHelp;
