@@ -8,6 +8,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 mkdir -p "$TMP_DIR/units"
 
 fpc \
+  -dCLI_FP_TESTING \
   -Fu"$ROOT_DIR/src" \
   -Fu"$ROOT_DIR/tests" \
   -FE"$TMP_DIR" \

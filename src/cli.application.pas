@@ -9,7 +9,8 @@ unit CLI.Application;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, Generics.Defaults, CLI.Interfaces;
+  Classes, SysUtils, Generics.Collections, Generics.Defaults, CLI.Interfaces,
+  CLI.Console;
 
 type
   { List type for storing registered commands }
@@ -53,6 +54,11 @@ type
     FParamStartIndex: Integer;  // Index where command parameters start
     FDebugMode: Boolean;        // Debug output flag
     FArguments: TStringArray;   // Current arguments, excluding the executable
+    FOutputCapture: TStrings;   // Internal help-output capture for tests
+
+    { Writes help output to the console, or to the active test capture. }
+    procedure WriteOutput(const Text: string); overload;
+    procedure WriteOutput(const Text: string; const Color: TConsoleColor); overload;
 
     // Completion registry (simple array-based storage for FPC compatibility)
     // NOTE: Temporarily disabled - appears to cause issues with FPC
@@ -199,6 +205,12 @@ type
 
     { For testing execution without changing the process command line. }
     function TestExecute(const Args: TStringArray): Integer;
+
+    {$IFDEF CLI_FP_TESTING}
+    { Captures output from the normal execution path for framework tests only. }
+    function TestExecuteAndCapture(const Args: TStringArray;
+      const Output: TStrings): Integer;
+    {$ENDIF}
   end;
 
 const
@@ -222,7 +234,7 @@ function CreateCLIApplication(const Name, Version: string;
 implementation
 
 uses
-  StrUtils, CLI.Console;
+  StrUtils;
 
 { Constructor: Initializes a new CLI application instance
   @param AName The name of the application
@@ -240,9 +252,27 @@ begin
   FParsedParams.CaseSensitive := True;  // Parameters are case-sensitive
   FParamStartIndex := 2;                // Skip program name and command name
   FDebugMode := False;                  // Debug output disabled by default
+  FOutputCapture := nil;
   SetLength(FArguments, 0);
 
   // Completion registries are auto-initialized as empty dynamic arrays
+end;
+
+procedure TCLIApplication.WriteOutput(const Text: string);
+begin
+  if Assigned(FOutputCapture) then
+    FOutputCapture.Add(Text)
+  else
+    TConsole.WriteLn(Text);
+end;
+
+procedure TCLIApplication.WriteOutput(const Text: string;
+  const Color: TConsoleColor);
+begin
+  if Assigned(FOutputCapture) then
+    FOutputCapture.Add(Text)
+  else
+    TConsole.WriteLn(Text, Color);
 end;
 
 { Destructor: Cleans up application resources
@@ -761,74 +791,74 @@ var
   RequiredText: string;
 begin
   // Program header
-  TConsole.WriteLn(FName + ' version ' + FVersion);
-  TConsole.WriteLn('');
+  WriteOutput(FName + ' version ' + FVersion);
+  WriteOutput('');
 
   // Basic usage
-  TConsole.WriteLn('Usage:', ccCyan);
+  WriteOutput('Usage:', ccCyan);
   if Assigned(FRootCommand) then
   begin
-    TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' [options]');
+    WriteOutput('  ' + ExtractFileName(ParamStr(0)) + ' [options]');
     if FCommands.Count > 0 then
-      TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) +
+      WriteOutput('  ' + ExtractFileName(ParamStr(0)) +
         ' <command> [options]');
   end
   else
-    TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
-  TConsole.WriteLn('');
+    WriteOutput('  ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
+  WriteOutput('');
 
   if Assigned(FRootCommand) and (FRootCommand.Description <> '') then
   begin
-    TConsole.WriteLn(FRootCommand.Description);
-    TConsole.WriteLn('');
+    WriteOutput(FRootCommand.Description);
+    WriteOutput('');
   end;
 
   if Assigned(FRootCommand) and (Length(FRootCommand.Parameters) > 0) then
   begin
-    TConsole.WriteLn('Options:', ccCyan);
+    WriteOutput('Options:', ccCyan);
     for Param in FRootCommand.Parameters do
     begin
       if Param.Required then
         RequiredText := ' (required)'
       else
         RequiredText := '';
-      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' +
+      WriteOutput('  ' + Param.ShortFlag + ', ' +
         PadRight(Param.LongFlag, 20) + Param.Description + RequiredText);
       if Param.DefaultValue <> '' then
-        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+        WriteOutput('      Default: ' + Param.DefaultValue);
     end;
-    TConsole.WriteLn('');
+    WriteOutput('');
   end;
 
   // Available commands
   if FCommands.Count > 0 then
   begin
-    TConsole.WriteLn('Commands:', ccCyan);
+    WriteOutput('Commands:', ccCyan);
     for Cmd in FCommands do
-      TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
-    TConsole.WriteLn('');
+      WriteOutput('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
+    WriteOutput('');
   end;
 
   // Global options
-  TConsole.WriteLn('Global Options:', ccCyan);
-  TConsole.WriteLn('  -h, --help           Show this help message');
-  TConsole.WriteLn('  --help-complete      Show complete reference for all commands');
-  TConsole.WriteLn('  --completion-file    Output Bash completion script (redirect to a file)');
-  TConsole.WriteLn('  --completion-file-pwsh  Output PowerShell completion script (redirect to a .ps1 file)');
-  TConsole.WriteLn('  -v, --version        Show version information');
-  TConsole.WriteLn('');
+  WriteOutput('Global Options:', ccCyan);
+  WriteOutput('  -h, --help           Show this help message');
+  WriteOutput('  --help-complete      Show complete reference for all commands');
+  WriteOutput('  --completion-file    Output Bash completion script (redirect to a file)');
+  WriteOutput('  --completion-file-pwsh  Output PowerShell completion script (redirect to a .ps1 file)');
+  WriteOutput('  -v, --version        Show version information');
+  WriteOutput('');
 
   // Examples section
   if FCommands.Count > 0 then
   begin
-    TConsole.WriteLn('Examples:', ccCyan);
-    TConsole.WriteLn('  Get help for commands:');
-    TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
-    TConsole.WriteLn('');
-    TConsole.WriteLn('  Available command help:');
+    WriteOutput('Examples:', ccCyan);
+    WriteOutput('  Get help for commands:');
+    WriteOutput('    ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
+    WriteOutput('');
+    WriteOutput('  Available command help:');
     for Cmd in FCommands do
-      TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + Cmd.Name + ' --help');
-    TConsole.WriteLn('');
+      WriteOutput('    ' + ExtractFileName(ParamStr(0)) + ' ' + Cmd.Name + ' --help');
+    WriteOutput('');
   end;
 end;
 
@@ -869,24 +899,24 @@ begin
     CommandPath := Command.Name;
 
   // Show usage and description
-  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
-  TConsole.WriteLn('');
-  TConsole.WriteLn(Command.Description);
+  WriteOutput('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
+  WriteOutput('');
+  WriteOutput(Command.Description);
   
   // List subcommands if any
   if Length(Command.SubCommands) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Commands:', ccCyan);
+    WriteOutput('');
+    WriteOutput('Commands:', ccCyan);
     for SubCmd in Command.SubCommands do
-      TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
+      WriteOutput('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
   end;
   
   // Show parameters if any
   if Length(Command.Parameters) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Options:', ccCyan);
+    WriteOutput('');
+    WriteOutput('Options:', ccCyan);
     for Param in Command.Parameters do
     begin
       if Param.Required then
@@ -894,33 +924,33 @@ begin
       else
         RequiredText := '';
         
-      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
+      WriteOutput('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
         Param.Description + RequiredText);
       
       if Param.DefaultValue <> '' then
-        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+        WriteOutput('      Default: ' + Param.DefaultValue);
     end;
   end;
 
   // Show examples for commands with subcommands
   if Length(Command.SubCommands) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Examples:', ccCyan);
-    TConsole.WriteLn('  Get help for commands:');
-    TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' <command> --help');
-    TConsole.WriteLn('');
-    TConsole.WriteLn('  Available command help:');
+    WriteOutput('');
+    WriteOutput('Examples:', ccCyan);
+    WriteOutput('  Get help for commands:');
+    WriteOutput('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' <command> --help');
+    WriteOutput('');
+    WriteOutput('  Available command help:');
     for SubCmd in Command.SubCommands do
-      TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
-    TConsole.WriteLn('');
+      WriteOutput('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
+    WriteOutput('');
   end;
 end;
 
 { ShowVersion: Displays application version }
 procedure TCLIApplication.ShowVersion;
 begin
-  TConsole.WriteLn(FName + ' version ' + FVersion);
+  WriteOutput(FName + ' version ' + FVersion);
 end;
 
 { ShowCompleteHelp: Displays complete help for all commands
@@ -942,48 +972,48 @@ begin
   if Command = nil then
   begin
     // Show program header and global information
-    TConsole.WriteLn(FName + ' version ' + FVersion);
-    TConsole.WriteLn('');
-    TConsole.WriteLn('DESCRIPTION', ccCyan);
+    WriteOutput(FName + ' version ' + FVersion);
+    WriteOutput('');
+    WriteOutput('DESCRIPTION', ccCyan);
     if Assigned(FRootCommand) and (FRootCommand.Description <> '') then
-      TConsole.WriteLn('  ' + FRootCommand.Description)
+      WriteOutput('  ' + FRootCommand.Description)
     else
-      TConsole.WriteLn('  Complete reference for all commands and options');
-    TConsole.WriteLn('');
+      WriteOutput('  Complete reference for all commands and options');
+    WriteOutput('');
 
     if Assigned(FRootCommand) and (Length(FRootCommand.Parameters) > 0) then
     begin
-      TConsole.WriteLn('ROOT OPTIONS', ccCyan);
+      WriteOutput('ROOT OPTIONS', ccCyan);
       for Param in FRootCommand.Parameters do
       begin
         if Param.Required then
           RequiredText := ' (required)'
         else
           RequiredText := '';
-        TConsole.WriteLn('  ' + Param.ShortFlag + ', ' +
+        WriteOutput('  ' + Param.ShortFlag + ', ' +
           PadRight(Param.LongFlag, 20) + Param.Description + RequiredText);
         if Param.DefaultValue <> '' then
-          TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+          WriteOutput('      Default: ' + Param.DefaultValue);
       end;
-      TConsole.WriteLn('');
+      WriteOutput('');
     end;
 
-    TConsole.WriteLn('GLOBAL OPTIONS', ccCyan);
-    TConsole.WriteLn('  -h, --help           Show command help');
-    TConsole.WriteLn('  --help-complete      Show this complete reference');
-    TConsole.WriteLn('  --completion-file    Output Bash completion script (use --completion-file > myapp-completion.sh)');
-    TConsole.WriteLn('  --completion-file-pwsh  Output PowerShell completion script (use --completion-file-pwsh > myapp-completion.ps1)');
-    TConsole.WriteLn('  -v, --version        Show version information');
+    WriteOutput('GLOBAL OPTIONS', ccCyan);
+    WriteOutput('  -h, --help           Show command help');
+    WriteOutput('  --help-complete      Show this complete reference');
+    WriteOutput('  --completion-file    Output Bash completion script (use --completion-file > myapp-completion.sh)');
+    WriteOutput('  --completion-file-pwsh  Output PowerShell completion script (use --completion-file-pwsh > myapp-completion.ps1)');
+    WriteOutput('  -v, --version        Show version information');
     if FCommands.Count > 0 then
     begin
-      TConsole.WriteLn('');
-      TConsole.WriteLn('COMMANDS', ccCyan);
+      WriteOutput('');
+      WriteOutput('COMMANDS', ccCyan);
 
       // Show all commands recursively
       for i := 0 to FCommands.Count - 1 do
       begin
         if i > 0 then
-          TConsole.WriteLn('');
+          WriteOutput('');
         ShowCompleteHelp(Indent + '  ', FCommands[i]);
       end;
     end;
@@ -991,13 +1021,13 @@ begin
   else
   begin
     // Show command details
-    TConsole.WriteLn(Indent + Command.Name + ' - ' + Command.Description);
+    WriteOutput(Indent + Command.Name + ' - ' + Command.Description);
     
     // Show command parameters
     if Length(Command.Parameters) > 0 then
     begin
-      TConsole.WriteLn('');
-      TConsole.WriteLn(Indent + 'OPTIONS:', ccCyan);
+      WriteOutput('');
+      WriteOutput(Indent + 'OPTIONS:', ccCyan);
       for Param in Command.Parameters do
       begin
         if Param.Required then
@@ -1005,23 +1035,23 @@ begin
         else
           RequiredText := '';
           
-        TConsole.WriteLn(Indent + '  ' + Param.ShortFlag + ', ' + 
+        WriteOutput(Indent + '  ' + Param.ShortFlag + ', ' +
           PadRight(Param.LongFlag, 20) + Param.Description + RequiredText);
         
         if Param.DefaultValue <> '' then
-          TConsole.WriteLn(Indent + '      Default: ' + Param.DefaultValue);
+          WriteOutput(Indent + '      Default: ' + Param.DefaultValue);
       end;
     end;
     
     // Show subcommands recursively
     if Length(Command.SubCommands) > 0 then
     begin
-      TConsole.WriteLn('');
-      TConsole.WriteLn(Indent + 'SUBCOMMANDS:', ccCyan);
+      WriteOutput('');
+      WriteOutput(Indent + 'SUBCOMMANDS:', ccCyan);
       for Cmd in Command.SubCommands do
       begin
         ShowCompleteHelp(Indent + '  ', Cmd);
-        TConsole.WriteLn(''); // Add a blank line after each subcommand for clarity
+        WriteOutput(''); // Add a blank line after each subcommand for clarity
       end;
     end;
   end;
@@ -1029,9 +1059,9 @@ begin
   // Show help usage hint at root level
   if (Command = nil) and (FCommands.Count > 0) then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('For more details on a specific command, use:');
-    TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
+    WriteOutput('');
+    WriteOutput('For more details on a specific command, use:');
+    WriteOutput('  ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
   end;
 end;
 
@@ -1568,6 +1598,22 @@ begin
     FArguments[i] := Args[i];
   Result := ExecuteArguments;
 end;
+
+{$IFDEF CLI_FP_TESTING}
+function TCLIApplication.TestExecuteAndCapture(const Args: TStringArray;
+  const Output: TStrings): Integer;
+begin
+  if not Assigned(Output) then
+    raise EArgumentNilException.Create('Output capture cannot be nil');
+
+  FOutputCapture := Output;
+  try
+    Result := TestExecute(Args);
+  finally
+    FOutputCapture := nil;
+  end;
+end;
+{$ENDIF}
 
 { OutputBashCompletionScript: Outputs a Bash completion script for the application }
 procedure TCLIApplication.OutputBashCompletionScript;

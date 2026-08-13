@@ -637,11 +637,35 @@ end;
 procedure TCLIFrameworkTests.Test_5_1_BasicHelp;
 var
   App: TCLIApplication;
+  Root, Deploy: TTestCommand;
+  Output: TStringList;
 begin
-  App := TCLIApplication.Create('TestApp', '1.0.0');
+  Root := TTestCommand.Create('', 'Run the default action');
+  Root.AddStringParameter('-c', '--config', 'Configuration file', True);
+  Root.AddStringParameter('-f', '--format', 'Output format', False, 'json');
+  Deploy := TTestCommand.Create('deploy', 'Deploy the current release');
+  App := TCLIApplication.Create('TestApp', '1.0.0', Root);
+  Output := TStringList.Create;
   try
-    AssertTrue('Should generate basic help', True);
+    App.RegisterCommand(Deploy);
+    AssertEquals('General help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--help']), Output));
+    AssertTrue('General help should include the application version',
+      Pos('TestApp version 1.0.0', Output.Text) > 0);
+    AssertTrue('General help should include usage',
+      Pos('Usage:', Output.Text) > 0);
+    AssertTrue('General help should include the root description',
+      Pos('Run the default action', Output.Text) > 0);
+    AssertTrue('General help should include the required option',
+      Pos('--config', Output.Text) > 0);
+    AssertTrue('General help should label required options',
+      Pos('(required)', Output.Text) > 0);
+    AssertTrue('General help should include option defaults',
+      Pos('Default: json', Output.Text) > 0);
+    AssertTrue('General help should list command descriptions',
+      Pos('Deploy the current release', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -650,13 +674,26 @@ procedure TCLIFrameworkTests.Test_5_2_CommandHelp;
 var
   App: TCLIApplication;
   Cmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
   Cmd := TTestCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
   try
+    Cmd.AddIntegerParameter('-r', '--retries', 'Retry count', False, '3');
     App.RegisterCommand(Cmd);
-    AssertTrue('Should generate command help', True);
+    AssertEquals('Command help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['test', '--help']), Output));
+    AssertTrue('Command help should include command usage',
+      Pos('test [options]', Output.Text) > 0);
+    AssertTrue('Command help should include the command description',
+      Pos('Test command', Output.Text) > 0);
+    AssertTrue('Command help should include option descriptions',
+      Pos('Retry count', Output.Text) > 0);
+    AssertTrue('Command help should include option defaults',
+      Pos('Default: 3', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -664,11 +701,27 @@ end;
 procedure TCLIFrameworkTests.Test_5_3_CompleteHelp;
 var
   App: TCLIApplication;
+  Cmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
+  Cmd := TTestCommand.Create('report', 'Generate a report');
+  Output := TStringList.Create;
   try
-    AssertTrue('Should generate complete help', True);
+    Cmd.AddStringParameter('-o', '--output', 'Output file', True);
+    App.RegisterCommand(Cmd);
+    AssertEquals('Complete help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--help-complete']), Output));
+    AssertTrue('Complete help should include its heading',
+      Pos('DESCRIPTION', Output.Text) > 0);
+    AssertTrue('Complete help should include global options',
+      Pos('GLOBAL OPTIONS', Output.Text) > 0);
+    AssertTrue('Complete help should include registered commands',
+      Pos('report - Generate a report', Output.Text) > 0);
+    AssertTrue('Complete help should include required options',
+      Pos('--output', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -677,13 +730,24 @@ procedure TCLIFrameworkTests.Test_5_4_HelpExamples;
 var
   App: TCLIApplication;
   Cmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
   Cmd := TTestCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
   try
+    Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
     App.RegisterCommand(Cmd);
-    AssertTrue('Should generate help examples', True);
+    AssertEquals('Command help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['test', '--help']), Output));
+    AssertTrue('Command help should include option flags',
+      Pos('--name', Output.Text) > 0);
+    AssertTrue('Command help should include option descriptions',
+      Pos('Name to greet', Output.Text) > 0);
+    AssertTrue('Command help should include the documented default',
+      Pos('Default: World', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -692,15 +756,25 @@ procedure TCLIFrameworkTests.Test_5_5_SubCommandHelp;
 var
   App: TCLIApplication;
   MainCmd, SubCmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
   MainCmd := TTestCommand.Create('main', 'Main command');
   SubCmd := TTestCommand.Create('sub', 'Sub command');
+  Output := TStringList.Create;
   try
     MainCmd.AddSubCommand(SubCmd);
     App.RegisterCommand(MainCmd);
-    AssertTrue('Should generate subcommand help', True);
+    AssertEquals('Parent command help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['main', '--help']), Output));
+    AssertTrue('Parent help should include a subcommand section',
+      Pos('Commands:', Output.Text) > 0);
+    AssertTrue('Parent help should include subcommand names',
+      Pos('sub', Output.Text) > 0);
+    AssertTrue('Parent help should include subcommand descriptions',
+      Pos('Sub command', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
