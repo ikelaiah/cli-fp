@@ -47,6 +47,8 @@ type
     procedure Test_4_3_EqualsSyntax;
     procedure Test_4_4_BooleanFlags;
     procedure Test_4_5_MultipleParameters;
+    procedure Test_4_6_NegativeNumericValues;
+    procedure Test_4_7_UnknownOptionStillFails;
 
     // 5.x - Help System Tests
     procedure Test_5_1_BasicHelp;
@@ -627,6 +629,55 @@ begin
     
     AssertTrue('Should get verbose value', Cmd.TestGetParameterValue('--verbose', Value));
     AssertEquals('Verbose value should match', 'true', Value);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_4_6_NegativeNumericValues;
+var
+  Cmd: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Cmd := TRecordingCommand.Create('measure', 'Measure a signed value');
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  try
+    Cmd.AddIntegerParameter('-c', '--count', 'Signed count', True);
+    Cmd.AddFloatParameter('-r', '--rate', 'Signed rate', True);
+    App.RegisterCommand(Cmd);
+
+    AssertEquals('Separated negative integer and float values should succeed', 0,
+      App.TestExecute(MakeArgs(['measure', '--count', '-1', '--rate', '-2.5'])));
+    AssertEquals('Separated negative integer should be retained', '-1',
+      App.ParsedParams.Values['--count']);
+    AssertEquals('Separated negative float should be retained', '-2.5',
+      App.ParsedParams.Values['--rate']);
+
+    AssertEquals('Equals-form negative integer and float values should succeed', 0,
+      App.TestExecute(MakeArgs(['measure', '--count=-3', '--rate=-4.75'])));
+    AssertEquals('Equals-form negative integer should be retained', '-3',
+      App.ParsedParams.Values['--count']);
+    AssertEquals('Equals-form negative float should be retained', '-4.75',
+      App.ParsedParams.Values['--rate']);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_4_7_UnknownOptionStillFails;
+var
+  Cmd: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Cmd := TRecordingCommand.Create('measure', 'Measure a signed value');
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  try
+    Cmd.AddIntegerParameter('-c', '--count', 'Signed count', True);
+    App.RegisterCommand(Cmd);
+    AssertEquals('An unknown option must remain an error', 1,
+      App.TestExecute(MakeArgs(['measure', '--count', '-1', '--unknown'])));
+    AssertEquals('Unknown options must prevent command execution', 0,
+      Cmd.ExecuteCount);
   finally
     App.Free;
   end;

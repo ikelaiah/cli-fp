@@ -109,6 +109,10 @@ type
       @param Value Output parameter that receives the value
       @returns True if parameter has value, False otherwise }
     function GetParameterValue(const Param: ICommandParameter; out Value: string): Boolean;
+
+    { Returns True when Candidate is a signed numeric value accepted by Param. }
+    function IsNegativeNumericValue(const Param: string;
+      const Candidate: string): Boolean;
     
     { Shows complete help for all commands
       @param Indent Current indentation level for formatting
@@ -577,7 +581,9 @@ begin
         Value := Copy(Param, Pos('=', Param) + 1, Length(Param));
         Param := Copy(Param, 1, Pos('=', Param) - 1);
       end
-      else if (i < ArgumentCount) and not StartsStr('-', ArgumentAt(i + 1)) then
+      else if (i < ArgumentCount) and
+        (not StartsStr('-', ArgumentAt(i + 1)) or
+         IsNegativeNumericValue(Param, ArgumentAt(i + 1))) then
       begin
         Value := ArgumentAt(i + 1);
         Inc(i);
@@ -590,7 +596,9 @@ begin
     // Handle -p value format
     else if StartsStr('-', Param) then
     begin
-      if (i < ArgumentCount) and not StartsStr('-', ArgumentAt(i + 1)) then
+      if (i < ArgumentCount) and
+        (not StartsStr('-', ArgumentAt(i + 1)) or
+         IsNegativeNumericValue(Param, ArgumentAt(i + 1))) then
       begin
         Value := ArgumentAt(i + 1);
         Inc(i);
@@ -613,6 +621,29 @@ begin
     begin
       TConsole.WriteLn('  ' + FParsedParams.Names[i] + ' = ' + FParsedParams.ValueFromIndex[i], ccCyan);
     end;
+  end;
+end;
+
+function TCLIApplication.IsNegativeNumericValue(const Param: string;
+  const Candidate: string): Boolean;
+var
+  CommandParam: ICommandParameter;
+  IntValue: Integer;
+  FloatValue: Double;
+begin
+  Result := False;
+  if not StartsStr('-', Candidate) then
+    Exit;
+
+  CommandParam := ParamByFlag(FCurrentCommand, Param);
+  if not Assigned(CommandParam) then
+    Exit;
+
+  case CommandParam.ParamType of
+    ptInteger:
+      Result := TryStrToInt(Candidate, IntValue);
+    ptFloat:
+      Result := TryStrToFloat(Candidate, FloatValue);
   end;
 end;
 
