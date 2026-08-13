@@ -1,11 +1,11 @@
 # cli-fp
 
-[![Release v1.3.3](https://img.shields.io/badge/release-v1.3.3-blue.svg)](docs/RELEASE_NOTES_v1.3.3.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1E3A8A.svg)](LICENSE)
+[![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-3B82F6.svg)](https://www.freepascal.org/)
+![Supports Windows](https://img.shields.io/badge/support-Windows-F59E0B?logo=Windows)
+![Supports Linux](https://img.shields.io/badge/support-Linux-F59E0B?logo=Linux)
+[![Version](https://img.shields.io/badge/version-1.3.3-8B5CF6.svg)](CHANGELOG.md)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
-[![Windows compatible](https://img.shields.io/badge/Windows-compatible-0078D4?logo=windows&logoColor=white)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
-[![Linux compatible](https://img.shields.io/badge/Linux-compatible-FCC624?logo=linux&logoColor=black)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
-[![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A small framework for building native command-line applications with Free
 Pascal.
