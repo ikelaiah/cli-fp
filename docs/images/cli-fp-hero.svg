@@ -54,7 +54,9 @@
   <rect width="1983" height="793" fill="url(#purple-depth)"/>
   <rect x="28" y="28" width="1927" height="737" fill="url(#dot-grid)" opacity="0.8"/>
 
-  <path d="M92 646h308v-70h360v70h170" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" opacity="0.82"/>
+  <path d="M92 646h300l68-58h284l76 32h110" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="round" stroke-linejoin="miter" opacity="0.82"/>
+  <circle cx="92" cy="646" r="4" fill="#1675ff" opacity="0.9"/>
+  <circle cx="744" cy="588" r="4" fill="#10bfa2" opacity="0.9"/>
 
   <g>
     <path d="M112 264l91 82-91 82" fill="none" stroke="url(#brand-blue)" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
