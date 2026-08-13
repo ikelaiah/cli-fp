@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-08-13
+
+### Fixed
+
+- Cleanup scripts now remove only generated example build artifacts and retain
+  tracked completion scripts, documentation, and other repository files.
+- Registered integer and float options now accept separated negative values,
+  such as `--count -1` and `--rate -2.5`, in addition to equals syntax.
+
+### Testing
+
+- Replaced placeholder help tests with assertions against generated general,
+  command, complete, and subcommand help output, including usage,
+  descriptions, required options, and defaults.
+- Added Linux and Windows cleanup smoke checks that compile all seven canonical
+  examples, run cleanup, and verify tracked files remain intact.
+- CI now runs the seven-example build and cleanup smoke check on both Windows
+  and Linux.
+
 ## [1.3.2] - 2026-07-30
 
 ### Fixed

@@ -157,9 +157,10 @@ if GetParameterValue('--count', RawCount) and
 ```
 
 `Password` values are stored as strings and are not automatically redacted.
-`Path` values are not checked for existence. If a value starts with `-`, use
-the equals form, such as `--count=-1`, so it is not interpreted as another
-option.
+`Path` values are not checked for existence. Registered integer and float
+options accept negative values in both equals and separated forms, for example
+`--count=-1` and `--count -1`. For other value types that begin with `-`, use
+the equals form so the value is not interpreted as another option.
 
 See the [user manual](docs/user-manual.md#parameter-types-and-validation) for
 the complete registration and validation rules.
@@ -259,6 +260,7 @@ Run the framework tests on Linux or macOS:
 
 ```bash
 bash tests/run_tests.sh
+bash tests/run_cleanup_smoke.sh
 ```
 
 Run the generator suites:
@@ -275,7 +277,13 @@ On Windows:
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1
 powershell -ExecutionPolicy Bypass -File tests\codegen\run_all_tests.ps1
+powershell -ExecutionPolicy Bypass -File tests\run_cleanup_smoke.ps1
 ```
+
+The cleanup smoke check compiles all seven canonical examples in an isolated
+copy, runs the cleanup script, and verifies that generated artifacts are
+removed without changing tracked files. CI runs the equivalent Bash and
+PowerShell checks on Linux and Windows.
 
 CI runs the framework and generator suites on Windows and Linux. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for coding style and pull-request guidance.

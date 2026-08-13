@@ -7,12 +7,18 @@ on:
       - 'tools/cli-fp-gen/**'
       - 'tests/**'
       - 'src/**'
+      - 'examples/**'
+      - 'clean-all-examples.sh'
+      - 'clean-all-examples.ps1'
       - '.github/workflows/tests.yml'
   pull_request:
     paths:
       - 'tools/cli-fp-gen/**'
       - 'tests/**'
       - 'src/**'
+      - 'examples/**'
+      - 'clean-all-examples.sh'
+      - 'clean-all-examples.ps1'
       - '.github/workflows/tests.yml'
 
 permissions:
@@ -31,6 +37,8 @@ jobs:
           sudo apt-get install -y fp-compiler fp-units-fcl python3
       - name: Framework Unit Tests
         run: bash tests/run_tests.sh
+      - name: Example Build and Cleanup Smoke Test
+        run: bash tests/run_cleanup_smoke.sh
       - name: Generator Unit Tests
         run: bash tests/codegen/run_unit_tests.sh
       - name: Golden Output Test
@@ -64,6 +72,9 @@ jobs:
       - name: Framework Unit Tests
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1
+      - name: Example Build and Cleanup Smoke Test
+        shell: powershell
+        run: powershell -ExecutionPolicy Bypass -File tests\run_cleanup_smoke.ps1
       - name: Codegen Test Suite
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File tests\codegen\run_all_tests.ps1

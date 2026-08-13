@@ -46,7 +46,7 @@ for example in "${EXAMPLES[@]}"; do
     test -f "$WORK_ROOT/example-bin/$example.exe"
 done
 
-(cd "$WORK_ROOT" && ./clean-all-examples.sh >/dev/null)
+(cd "$WORK_ROOT" && bash ./clean-all-examples.sh >/dev/null)
 
 for example in "${EXAMPLES[@]}"; do
   test ! -e "$WORK_ROOT/example-bin/$example"

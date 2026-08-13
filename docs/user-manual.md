@@ -776,6 +776,11 @@ The framework supports various parameter formats:
 - Short format: `-p value`
 - Boolean flags: `--flag` or `-f` (false by default, true when present)
 
+Registered integer and float options accept negative values in either long
+form: `--count=-1` and `--count -1` are equivalent. For values of other types
+that begin with `-`, use the equals form so the parser does not treat the value
+as another option.
+
 Example:
 ```bash
 myapp test --flag        # --flag is true
