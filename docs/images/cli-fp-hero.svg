@@ -40,15 +40,6 @@
     <pattern id="dot-grid" width="36" height="36" patternUnits="userSpaceOnUse">
       <circle cx="2" cy="2" r="1.45" fill="#2578dd" opacity="0.72"/>
     </pattern>
-    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur"/>
-      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.01 0 0 0 0 0.03 0 0 0 0 0.12 0 0 0 .9 0" result="shadow"/>
-      <feOffset in="shadow" dy="7" result="offset"/>
-      <feMerge>
-        <feMergeNode in="offset"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
     <filter id="blue-glow" x="-35%" y="-35%" width="170%" height="170%">
       <feGaussianBlur stdDeviation="7" result="glow"/>
       <feMerge>
@@ -65,7 +56,7 @@
 
   <path d="M0 140h84c26 0 48-21 48-48s19-24 45-24" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 9" opacity="0.9"/>
 
-  <g filter="url(#soft-shadow)">
+  <g>
     <path d="M112 264l91 82-91 82" fill="none" stroke="url(#brand-blue)" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
     <path d="M169 455h99" fill="none" stroke="url(#brand-blue)" stroke-width="28"/>
 
