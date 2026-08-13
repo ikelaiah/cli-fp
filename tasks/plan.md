@@ -48,7 +48,7 @@ preserving internal decomposition before the next public API is added.
   unchanged public facade.
 - [x] Task 8: Characterize and extract completion calculation, deleting
   unreachable private callback paths and unused allocations.
-- [ ] Task 9: Decompose application dispatch into focused internal helpers,
+- [x] Task 9: Decompose application dispatch into focused internal helpers,
   then run the complete cross-platform release verification.
 
 ### Checkpoint: Complete

@@ -93,7 +93,7 @@
 **Acceptance criteria:**
 
 - [x] Application dispatch is composed from focused helpers without changing its public facade.
-- [ ] Framework, generator, cleanup, package, and seven-example checks pass.
+- [x] Framework, generator, cleanup, package, and seven-example checks pass.
 
 **Verification:** complete Windows suite and Linux/Windows CI.
 

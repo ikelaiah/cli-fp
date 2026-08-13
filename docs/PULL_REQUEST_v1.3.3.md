@@ -95,7 +95,7 @@ parameter kinds continue to require equals syntax.
   metadata at `1.3.3`.
 - [x] `git diff --check` passes.
 - [x] FPC 3.2.2.
-- [ ] GitHub Actions on Windows and Linux after the PR is opened.
+- [x] GitHub Actions on Windows and Linux after the PR is opened.
 
 ## Release Readiness
 
@@ -103,6 +103,6 @@ parameter kinds continue to require equals syntax.
 - [x] Version metadata updated to `1.3.3`.
 - [x] Changelog and release notes prepared.
 - [x] Pull request notes prepared.
-- [ ] Confirm GitHub Actions on Windows and Linux.
+- [x] Confirm GitHub Actions on Windows and Linux.
 
 After merge, create the `v1.3.3` tag and publish the prepared release notes.
