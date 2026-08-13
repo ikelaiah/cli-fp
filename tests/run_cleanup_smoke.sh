@@ -10,7 +10,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-git -c safe.directory="$SOURCE_ROOT" clone --quiet --no-hardlinks \
+git -c safe.directory="$SOURCE_ROOT/.git" clone --quiet --no-hardlinks \
   "$SOURCE_ROOT" "$WORK_ROOT"
 
 EXAMPLES=(
