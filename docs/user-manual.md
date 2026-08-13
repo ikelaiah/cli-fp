@@ -1059,7 +1059,8 @@ echo "source \"$PWD/myapp-completion.sh\"" >> ~/.bashrc
 
 - The generated shell function forwards the current tokens to the executable's
   hidden `__complete` entrypoint.
-- `DoComplete` resolves the command path and returns one candidate per line,
+- The application delegates candidate calculation to the internal completion
+  engine, which resolves the command path and returns one candidate per line,
   followed by a completion-directive line.
 - The generated script currently also emits a command-tree associative array
   for compatibility, but dynamic completion is driven by `__complete`.

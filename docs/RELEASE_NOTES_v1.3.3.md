@@ -1,6 +1,6 @@
 # Release Notes - cli-fp v1.3.3
 
-**Release Date:** 2026-08-13
+**Release Date:** 2026-08-14
 
 ## Overview
 
@@ -42,11 +42,13 @@ responsible for redacting sensitive values in their own output and logging.
 
 ## Smaller internal responsibilities
 
-Help formatting is now shared by the application and base-command paths.
-Completion calculation and parameter-value handling live in focused internal
-units, and application dispatch is divided into named stages. Unreachable
-private completion callback branches and unused temporary allocations were
-removed.
+Help formatting is now shared by the application and base-command paths in
+`CLI.Internal.Help`. Completion calculation lives in
+`CLI.Internal.Completion`, and lookup and redaction semantics live in
+`CLI.Internal.ParameterValues`. Application dispatch is divided into named
+global-request, command-selection, command-help, and execution stages.
+Unreachable private completion callback branches and unused temporary
+allocations were removed.
 
 The `TCLIApplication` facade, `ICLIApplication` contract, deprecated 1.x
 completion compatibility methods, and all existing command APIs remain
@@ -73,5 +75,14 @@ accepted this way; unknown options remain validation errors.
 
 No migration is required. This release adds no public command API, parameter
 kinds, generator capabilities, completion features, or breaking changes.
+
+## Verification
+
+- Framework suite: 43 tests, 0 errors, 0 failures.
+- Generator unit, golden-output, compile-smoke, and operations suites pass.
+- All seven canonical examples build, and cleanup smoke checks pass.
+- The Lazarus package builds without adding the internal units to its generated
+  public `uses` list.
+- Linux and Windows GitHub Actions pass.
 
 **Full Changelog:** [v1.3.2...v1.3.3](https://github.com/ikelaiah/cli-fp/compare/v1.3.2...v1.3.3)

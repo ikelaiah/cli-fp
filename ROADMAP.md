@@ -18,10 +18,10 @@ paths. Examples are executable documentation and should be verified in CI.
 framework supports, and command execution no longer relies on a hidden unsafe
 downcast.
 
-## v1.3.3 — Stabilize Before Expanding (next)
+## v1.3.3 — Stabilize Before Expanding (implementation complete; release 2026-08-14)
 
-This is a focused stabilization release. It should make the current framework
-safer to maintain before v1.4.0 adds another public entry point.
+This focused stabilization release makes the current framework safer to
+maintain before v1.4.0 adds another public entry point.
 
 ### Safe repository maintenance
 

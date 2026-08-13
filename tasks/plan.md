@@ -1,8 +1,10 @@
 # Implementation Plan: v1.3.3 Stabilization
 
+**Status:** Completed for the 2026-08-14 release.
+
 ## Overview
 
-Deliver the ROADMAP.md v1.3.3 stabilization work only: safe example cleanup,
+Delivered the ROADMAP.md v1.3.3 stabilization work only: safe example cleanup,
 behavioural coverage, hermetic builds, safe diagnostics, and behaviour-
 preserving internal decomposition before the next public API is added.
 

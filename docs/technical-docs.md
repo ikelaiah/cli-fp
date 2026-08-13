@@ -83,6 +83,26 @@ classDiagram
         +Execute(): Integer
         #GetParameterValue(Flag: string, out Value: string): Boolean
     }
+
+    class TCLIHelpRenderer {
+        <<internal>>
+        +ShowGeneral()
+        +ShowCommand()
+        +ShowComplete()
+        +ShowBrief()
+    }
+
+    class TCLICompletionEngine {
+        <<internal>>
+        +Complete(Tokens): TStringList
+    }
+
+    class CLIInternalParameterValues {
+        <<internal unit>>
+        +TryGetParameterValue()
+        +RedactParameterValue()
+        +RedactArgument()
+    }
     
     class TCommandParameter {
         -FShortFlag: string
@@ -146,8 +166,13 @@ classDiagram
     TProgressIndicator <|-- TSpinner
     
     TCLIApplication --> ICommand
+    TCLIApplication ..> TCLIHelpRenderer
+    TCLIApplication ..> TCLICompletionEngine
+    TCLIApplication ..> CLIInternalParameterValues
     TBaseCommand --> ICommandParameter
     TBaseCommand --> ICommand
+    TBaseCommand ..> TCLIHelpRenderer
+    TBaseCommand ..> CLIInternalParameterValues
 ```
 
 
@@ -225,7 +250,8 @@ The `TCLIApplication` class is the central component that:
 `CLI.Internal.ParameterValues` owns parameter lookup semantics shared by
 validation and command execution. These units are internal implementation
 boundaries; the public `TCLIApplication` facade and `ICLIApplication` contract
-are unchanged.
+are unchanged. Lazarus compiles the internal units as package members but does
+not add them to the generated package `uses` surface.
 
 Key methods:
 ```pascal
@@ -240,6 +266,9 @@ private
   FParamStartIndex: Integer;
   FDebugMode: Boolean;
   FArguments: TStringArray;
+  {$IFDEF CLI_FP_TESTING}
+  FOutputCapture: TStrings;
+  {$ENDIF}
 public
   procedure RegisterCommand(const Command: ICommand);
   function Execute: Integer;
@@ -249,6 +278,11 @@ public
   property Commands: TCommandList read GetCommands;
 end;
 ```
+
+`ExecuteArguments` coordinates focused global-request, command-selection,
+command-help, and execution helpers. Output capture state and
+`TestExecuteAndCapture` exist only in builds compiled with
+`CLI_FP_TESTING`; normal runtime units contain neither symbol.
 
 Root-command support is introduced through an overload rather than by changing
 `ICLIApplication`, preserving the existing public interface contract:
@@ -657,7 +691,7 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │    • Write directive as :<number> on last line                          │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
-                                    │ Calls DoComplete()
+                                    │ Wrapper delegates to CompleteCLI()
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │             CompleteCLI(Tokens): COMPLETION LOGIC ENGINE                │
@@ -691,19 +725,17 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │                         │                                               │
 │     ┌───────────────────┴─┬──────────────────┐                          │
 │     ▼                     ▼                  ▼                          │
-│  FLAG NAME           FLAG VALUE          POSITIONAL                     │
+│  FLAG NAME           FLAG VALUE          COMMAND POSITION                │
 │                                                                         │
 │                                                                         │
 │  Last token          Previous token      Not completing flag            │
 │  starts with '-'     is a flag           or flag value                  │
-│  ├─ Complete?        ├─ Boolean?         ├─ Check custom hook           │
-│  │  → --flag-name    │  → true/false     │  (stubbed)                   │
-│  ├─ Exact match?     ├─ Enum?            ├─ argIndex = 0?               │
-│  │  → Complete       │  → allowed vals   │  → Subcommands               │
-│     value (bool/     ├─ Custom hook?     │  → Flags                     │
-│     enum)            │  (stubbed)         ├─ argIndex > 0?              │
-│                      └─ Other types?      │  → Flags only               │
-│                         → No completion   └─ (no file completion)       │
+│  ├─ Prefix match     ├─ Boolean?         ├─ No positional entered?      │
+│  │  → --flag-name    │  → true/false     │  → Subcommands               │
+│  ├─ Exact match?     ├─ Enum?            │  → Command flags             │
+│  │  → Complete       │  → allowed vals   │  → Help flags                │
+│     value (bool/     └─ Other types?      └─ Positional already entered?│
+│     enum)               → No completion      → No candidates            │
 │                                                                         │
 │  5. RETURN SUGGESTIONS + DIRECTIVE                                      │
 │     ┌─────────────────────────────────────────┐                         │
@@ -764,13 +796,13 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 
 Tokens = ["repo", "clone", "--url"]
   ↓
-DoComplete():
+CompleteCLI():
   1. Tokens[0] = "repo" → Find "repo" command
   2. Tokens[1] = "clone" → Find "clone" subcommand
   3. Tokens[2] = "--url" → Last token is a flag
      - Check if "--url" is complete flag
      - Check parameter type
-     - If String: no suggestions (or custom hook)
+     - If String: no suggestions
      - If Boolean: return ["true", "false"]
      - If Enum: return allowed values
   ↓
@@ -896,8 +928,9 @@ begin
 end;
 ```
 
-`CLI.Internal.Completion` performs the metadata-based Boolean and enum
-completion and contains no callback lookup path.
+`DoComplete` is only a facade wrapper over `CLI.Internal.Completion`. The
+internal engine performs metadata-based Boolean and enum completion and
+contains no callback lookup path.
 
 **Why this works:**
 - No function pointers stored dynamically

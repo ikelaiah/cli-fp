@@ -289,6 +289,11 @@ PowerShell checks on Linux and Windows.
 CI runs the framework and generator suites on Windows and Linux. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for coding style and pull-request guidance.
 
+The framework runners force a complete unit rebuild into a temporary output
+directory, so stale non-test `.ppu` files cannot affect the result. Test output
+capture is compiled only when `CLI_FP_TESTING` is defined and is absent from
+normal runtime builds.
+
 ## Repository map
 
 | Path | Purpose |
@@ -324,6 +329,8 @@ sudo apt-get install fp-compiler fp-units-fcl
 - [Generator guide](docs/codegen.md) — use and maintain `cli-fp-gen`
 - [Roadmap](ROADMAP.md) — planned simplification work
 - [Changelog](CHANGELOG.md) — release history
+- [v1.3.3 release notes](docs/RELEASE_NOTES_v1.3.3.md) — stabilization changes
+  dated 2026-08-14
 
 ## Contributing
 

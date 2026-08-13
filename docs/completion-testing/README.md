@@ -5,7 +5,7 @@
 [PowerShell guide](PS_COMPLETION_GUIDE.md)
 
 **Created:** 2025-12-29
-**Last Updated:** 2026-07-28
+**Last Updated:** 2026-08-14
 **Framework:** cli-fp
 **Coverage:** Bash and PowerShell completion documentation
 
@@ -117,11 +117,14 @@ Checked-in generated scripts may be release snapshots. Regenerate them from the
 current executable before installation.
 
 ### Source Code
-- `src/cli.application.pas` - Contains `__complete` implementation and script generators
+- `src/cli.application.pas` - Contains the `__complete` entrypoint, a small
+  completion-engine wrapper, and the shell-script generators
   - `HandleCompletion()` - Main completion handler
-  - `DoComplete()` - Completion logic
+  - `DoComplete()` - Delegates candidate calculation to the internal engine
   - `OutputBashCompletionScript()` - Bash script generator
   - `OutputPowerShellCompletionScript()` - PowerShell script generator
+- `src/cli.internal.completion.pas` - Resolves command paths and calculates
+  command, option, Boolean, and enum candidates
 
 ## Contributing
 

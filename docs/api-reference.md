@@ -312,6 +312,12 @@ public
 end;
 ```
 
+The public facade is unchanged in v1.3.3. Internally, application and command
+help use one renderer, completion calculation is delegated to an internal
+engine, and application validation and command execution use the same
+parameter-value lookup semantics. These internal units are not added to the
+Lazarus package's generated public `uses` list.
+
 #### Functions
 
 ##### `CreateCLIApplication`

@@ -1,5 +1,7 @@
 # v1.3.3 Task Checklist
 
+**Status:** Completed for the 2026-08-14 release.
+
 ## Task 1: Safe example cleanup
 
 **Acceptance criteria:**

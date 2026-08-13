@@ -2,7 +2,7 @@
 
 **Target Release:** v1.3.3
 
-**Release Date:** 2026-08-13
+**Release Date:** 2026-08-14
 
 ## Summary
 
@@ -99,7 +99,7 @@ parameter kinds continue to require equals syntax.
 
 ## Release Readiness
 
-- [x] Release date finalized as 2026-08-13.
+- [x] Release date finalized as 2026-08-14.
 - [x] Version metadata updated to `1.3.3`.
 - [x] Changelog and release notes prepared.
 - [x] Pull request notes prepared.
