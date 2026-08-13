@@ -1,6 +1,9 @@
 # cli-fp
 
+[![Release v1.3.3](https://img.shields.io/badge/release-v1.3.3-blue.svg)](docs/RELEASE_NOTES_v1.3.3.md)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
+[![Windows compatible](https://img.shields.io/badge/Windows-compatible-0078D4?logo=windows&logoColor=white)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
+[![Linux compatible](https://img.shields.io/badge/Linux-compatible-FCC624?logo=linux&logoColor=black)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -12,7 +15,7 @@ Bash and PowerShell completion, colours, spinners, and progress bars. It uses
 standard Free Pascal units and produces a normal native executable with no
 separate runtime to deploy.
 
-## Project priorities
+## 🎯 Project priorities
 
 The runtime library is the heart of `cli-fp`. Its design is guided by four
 priorities:
@@ -25,7 +28,7 @@ priorities:
 
 See the [roadmap](ROADMAP.md) for the work planned around these priorities.
 
-## Quick start
+## 🚀 Quick start
 
 You need Free Pascal 3.2.2. Install it from the
 [official downloads page](https://www.freepascal.org/download.html), or use the
@@ -109,7 +112,7 @@ This example has one application, one root command, and one option. The command
 implements the work, while the framework owns argument parsing, validation,
 help, and exit-code handling.
 
-## Choose a CLI shape
+## 🧭 Choose a CLI shape
 
 Use the smallest shape that fits the program:
 
@@ -127,7 +130,7 @@ global options inherited by named commands.
 The framework does not currently model positional arguments or persistent
 options shared across a command tree.
 
-## Options and validation
+## ⚙️ Options and validation
 
 Commands declare option metadata with focused registration methods:
 
@@ -166,7 +169,7 @@ the equals form so the value is not interpreted as another option.
 See the [user manual](docs/user-manual.md#parameter-types-and-validation) for
 the complete registration and validation rules.
 
-## Built-in behaviour
+## 🧰 Built-in behaviour
 
 Applications receive these framework-level options:
 
@@ -197,7 +200,7 @@ choices. Custom completion callbacks are deprecated and non-functional in the
 1.x API. See the [completion guide](docs/user-manual.md#bash-completion) for
 installation instructions.
 
-## Examples
+## 📚 Examples
 
 Each example is an ordinary Free Pascal program:
 
@@ -223,7 +226,7 @@ In PowerShell, quote the unit search path:
 fpc "-Fu.\src" .\examples\RootCommandDemo\RootCommandDemo.lpr
 ```
 
-## Optional project generator
+## 🏗️ Optional project generator
 
 `cli-fp-gen` is scaffolding for applications with larger command trees. It is
 not required to use the runtime framework, and it is not the shortest way to
@@ -248,14 +251,14 @@ user-owned and are preserved during normal regeneration. Read the
 [generator guide](docs/codegen.md) before changing `clifp.json` or generated
 files.
 
-## Lazarus
+## 🦎 Lazarus
 
 A runtime-only package is provided at
 [`packages/lazarus/cli_fp.lpk`](packages/lazarus/cli_fp.lpk). Open the package
 in Lazarus, compile it, and add it to the project's required packages. Lazarus
 is optional when compiling directly with FPC.
 
-## Developing cli-fp
+## 🛠️ Developing cli-fp
 
 Run the framework tests on Linux or macOS:
 
@@ -294,7 +297,7 @@ directory, so stale non-test `.ppu` files cannot affect the result. Test output
 capture is compiled only when `CLI_FP_TESTING` is defined and is absent from
 normal runtime builds.
 
-## Repository map
+## 🗂️ Repository map
 
 | Path | Purpose |
 | --- | --- |
@@ -305,7 +308,7 @@ normal runtime builds.
 | [`packages/lazarus/`](packages/lazarus/) | Lazarus runtime package |
 | [`docs/`](docs/) | User, API, generator, and technical guides |
 
-## Requirements and dependencies
+## 📋 Requirements and dependencies
 
 - Free Pascal 3.2.2 is the tested compiler version.
 - The runtime framework has no third-party dependencies.
@@ -320,7 +323,7 @@ On Debian and Ubuntu, install the compiler and FCL units with:
 sudo apt-get install fp-compiler fp-units-fcl
 ```
 
-## Documentation
+## 📖 Documentation
 
 - [Documentation home](docs/README.md) — choose a guide by goal
 - [User manual](docs/user-manual.md) — learn the complete framework
@@ -332,12 +335,12 @@ sudo apt-get install fp-compiler fp-units-fcl
 - [v1.3.3 release notes](docs/RELEASE_NOTES_v1.3.3.md) — stabilization changes
   dated 2026-08-14
 
-## Contributing
+## 🤝 Contributing
 
 Bug reports, focused fixes, documentation improvements, and small features are
 welcome. For larger changes, open an issue first so the public API and
 maintenance cost can be discussed before implementation.
 
-## License
+## 📄 License
 
 `cli-fp` is available under the [MIT License](LICENSE).
