@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1983" height="793" viewBox="0 0 1983 793" role="img" aria-labelledby="title description">
+  <title id="title">cli-fp: A CLI framework for Free Pascal</title>
+  <desc id="description">A command prompt and cli-fp wordmark beside a terminal command tree on a deep blue and purple background.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1983" y2="793" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#01050f"/>
+      <stop offset="0.48" stop-color="#06152f"/>
+      <stop offset="0.72" stop-color="#0d1133"/>
+      <stop offset="1" stop-color="#220b3d"/>
+    </linearGradient>
+    <radialGradient id="blue-depth" cx="0" cy="0" r="1" gradientTransform="translate(790 410) rotate(12) scale(825 510)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b2b67" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#0b2b67" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="purple-depth" cx="0" cy="0" r="1" gradientTransform="translate(1810 180) rotate(126) scale(640 490)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#431667" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#431667" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="brand-blue" x1="110" y1="230" x2="970" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2583ff"/>
+      <stop offset="1" stop-color="#0752f2"/>
+    </linearGradient>
+    <linearGradient id="brand-white" x1="320" y1="235" x2="640" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e7ecf5"/>
+    </linearGradient>
+    <linearGradient id="trace" x1="0" y1="72" x2="178" y2="142" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6640d8"/>
+      <stop offset="1" stop-color="#1675ff"/>
+    </linearGradient>
+    <linearGradient id="purple-pill" x1="1410" y1="350" x2="1810" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#522c93" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#32205c" stop-opacity="0.66"/>
+    </linearGradient>
+    <linearGradient id="amber-pill" x1="1410" y1="510" x2="1810" y2="635" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#614018" stop-opacity="0.44"/>
+      <stop offset="1" stop-color="#3b2815" stop-opacity="0.66"/>
+    </linearGradient>
+    <pattern id="dot-grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.45" fill="#2578dd" opacity="0.72"/>
+    </pattern>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.01 0 0 0 0 0.03 0 0 0 0 0.12 0 0 0 .9 0" result="shadow"/>
+      <feOffset in="shadow" dy="7" result="offset"/>
+      <feMerge>
+        <feMergeNode in="offset"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="blue-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="7" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1983" height="793" fill="url(#background)"/>
+  <rect width="1983" height="793" fill="url(#blue-depth)"/>
+  <rect width="1983" height="793" fill="url(#purple-depth)"/>
+  <rect x="28" y="28" width="1927" height="737" fill="url(#dot-grid)" opacity="0.8"/>
+
+  <path d="M0 140h84c26 0 48-21 48-48s19-24 45-24" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 9" opacity="0.9"/>
+
+  <g filter="url(#soft-shadow)">
+    <path d="M112 264l91 82-91 82" fill="none" stroke="url(#brand-blue)" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
+    <path d="M169 455h99" fill="none" stroke="url(#brand-blue)" stroke-width="28"/>
+
+    <text x="302" y="454" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="218" font-weight="750" letter-spacing="-11" transform="translate(302 0) scale(1.34 1) translate(-302 0)">
+      <tspan fill="url(#brand-white)">cli-</tspan><tspan fill="url(#brand-blue)">fp</tspan>
+    </text>
+    <text x="110" y="554" fill="#9fcfff" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="34" font-weight="500" letter-spacing="5.4">A CLI FRAMEWORK FOR FREE PASCAL</text>
+  </g>
+
+  <g>
+    <rect x="1155" y="77" width="760" height="615" rx="29" fill="#03112c" fill-opacity="0.87" stroke="#1670ff" stroke-width="4"/>
+    <circle cx="1208" cy="112" r="11" fill="#ef535e"/>
+    <circle cx="1246" cy="112" r="11" fill="#f7b719"/>
+    <circle cx="1284" cy="112" r="11" fill="#16b98a"/>
+
+    <path d="M1248 215v425" fill="none" stroke="#1775ff" stroke-width="5"/>
+    <path d="M1248 373h89M1248 538h89" fill="none" stroke="#1775ff" stroke-width="4"/>
+    <circle cx="1248" cy="215" r="43" fill="#1263ef" filter="url(#blue-glow)"/>
+    <path d="M1237 196l20 19-20 20" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="square"/>
+    <circle cx="1248" cy="373" r="11" fill="#1473ff"/>
+    <circle cx="1248" cy="538" r="11" fill="#1473ff"/>
+    <circle cx="1248" cy="640" r="14" fill="#14ae7c"/>
+
+    <g fill="none" stroke="#1670ff" stroke-width="4">
+      <path d="M1291 232h44c41 0 46-26 78-26h59"/>
+      <path d="M1335 232v23c0 16 12 27 28 27h109"/>
+    </g>
+    <circle cx="1336" cy="232" r="11" fill="#1670ff"/>
+
+    <g>
+      <rect x="1472" y="178" width="338" height="59" rx="29.5" fill="#071942" stroke="#1670ff" stroke-width="3"/>
+      <circle cx="1511" cy="207.5" r="15" fill="#1767ed"/>
+      <rect x="1548" y="199" width="204" height="17" rx="8.5" fill="#1767ed"/>
+      <rect x="1472" y="251" width="338" height="59" rx="29.5" fill="#071942" stroke="#1670ff" stroke-width="3"/>
+      <circle cx="1511" cy="280.5" r="15" fill="#1767ed"/>
+      <rect x="1548" y="272" width="204" height="17" rx="8.5" fill="#1767ed"/>
+    </g>
+
+    <g fill="none" stroke="#8a61f5" stroke-width="4">
+      <path d="M1337 373h75c21 0 28 0 60 0"/>
+      <path d="M1413 373v44c0 16 13 28 29 28h30"/>
+    </g>
+    <circle cx="1337" cy="373" r="11" fill="#8a61f5"/>
+    <g>
+      <rect x="1472" y="343" width="338" height="59" rx="29.5" fill="url(#purple-pill)" stroke="#8a61f5" stroke-width="3"/>
+      <circle cx="1511" cy="372.5" r="15" fill="#8063f3"/>
+      <rect x="1548" y="364" width="204" height="17" rx="8.5" fill="#7657dc"/>
+      <rect x="1472" y="416" width="338" height="59" rx="29.5" fill="url(#purple-pill)" stroke="#8a61f5" stroke-width="3"/>
+      <circle cx="1511" cy="445.5" r="15" fill="#8063f3"/>
+      <rect x="1548" y="437" width="204" height="17" rx="8.5" fill="#7657dc"/>
+    </g>
+
+    <g fill="none" stroke="#f59e0b" stroke-width="4">
+      <path d="M1337 538h75c21 0 28 0 60 0"/>
+      <path d="M1413 538v44c0 16 13 28 29 28h30"/>
+    </g>
+    <circle cx="1337" cy="538" r="11" fill="#f59e0b"/>
+    <g>
+      <rect x="1472" y="508" width="338" height="59" rx="29.5" fill="url(#amber-pill)" stroke="#f59e0b" stroke-width="3"/>
+      <circle cx="1511" cy="537.5" r="15" fill="#ffad16"/>
+      <rect x="1548" y="529" width="204" height="17" rx="8.5" fill="#b77913"/>
+      <rect x="1472" y="581" width="338" height="59" rx="29.5" fill="url(#amber-pill)" stroke="#f59e0b" stroke-width="3"/>
+      <circle cx="1511" cy="610.5" r="15" fill="#ffad16"/>
+      <rect x="1548" y="602" width="204" height="17" rx="8.5" fill="#b77913"/>
+    </g>
+  </g>
+</svg>
