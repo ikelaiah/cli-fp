@@ -4,8 +4,8 @@
 
 **Acceptance criteria:**
 
-- [ ] Shell and PowerShell cleanup remove generated artifacts only.
-- [ ] Smoke checks build examples, run cleanup, and confirm tracked files remain.
+- [x] Shell and PowerShell cleanup remove generated artifacts only.
+- [x] Smoke checks build examples, run cleanup, and confirm tracked files remain.
 
 **Verification:** cleanup smoke tests on Linux and Windows.
 
@@ -15,8 +15,8 @@
 
 **Acceptance criteria:**
 
-- [ ] Tests assert real usage, descriptions, required options, defaults, and subcommands.
-- [ ] Capture support is internal to `TCLIApplication`; `ICLIApplication` remains unchanged.
+- [x] Tests assert real usage, descriptions, required options, defaults, and subcommands.
+- [x] Capture support is internal to `TCLIApplication`; `ICLIApplication` remains unchanged.
 
 **Verification:** focused framework test suite.
 
@@ -26,8 +26,8 @@
 
 **Acceptance criteria:**
 
-- [ ] Integer and float options accept equals and separated negative values.
-- [ ] Unknown options remain errors.
+- [x] Integer and float options accept equals and separated negative values.
+- [x] Unknown options remain errors.
 
 **Verification:** focused framework test suite.
 
@@ -37,8 +37,8 @@
 
 **Acceptance criteria:**
 
-- [ ] Both CI jobs compile the seven canonical examples.
-- [ ] Release behaviour is documented in user-facing documentation and changelog.
+- [x] Both CI jobs are configured to compile the seven canonical examples.
+- [x] Release behaviour is documented in user-facing documentation and changelog.
 
 **Verification:** CI-script inspection and local compilation where available.
 

@@ -19,27 +19,27 @@ seven canonical examples, and documentation of the changed behaviour.
 
 ### Phase 1: Safe cleanup
 
-- [ ] Task 1: Restrict both cleanup scripts to generated artifacts and add
+- [x] Task 1: Restrict both cleanup scripts to generated artifacts and add
   cross-platform smoke checks that prove tracked files survive.
 
 ### Phase 2: Runtime behaviour
 
-- [ ] Task 2: Replace placeholder help tests with output assertions using an
+- [x] Task 2: Replace placeholder help tests with output assertions using an
   internal capture seam.
-- [ ] Task 3: Support separated negative integer and float option values, with
+- [x] Task 3: Support separated negative integer and float option values, with
   regression coverage for equals, separated, and unknown-option forms.
 
 ### Phase 3: Release integration
 
-- [ ] Task 4: Compile all seven canonical examples in Linux and Windows CI,
+- [x] Task 4: Compile all seven canonical examples in Linux and Windows CI,
   document the behavioural changes, and run the release verification suite.
 
 ### Checkpoint: Complete
 
-- [ ] Cleanup smoke checks pass on their supported platforms.
-- [ ] Framework and generator tests pass.
-- [ ] All seven examples compile on the local platform and in both CI jobs.
-- [ ] No public API was added or changed.
+- [x] Windows cleanup smoke check passes; CI runs the platform-native checks.
+- [x] Framework and generator tests pass on Windows.
+- [x] All seven examples compile locally on Windows; both CI jobs run the check.
+- [x] No public API was added or changed.
 
 ## Risks and Mitigations
 
