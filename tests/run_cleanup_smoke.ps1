@@ -13,7 +13,7 @@ function Assert-LastExitCode([string]$Message) {
 }
 
 try {
-  git clone --quiet --no-hardlinks $SourceRoot $WorkRoot
+  git -c "safe.directory=$SourceRoot" clone --quiet --no-hardlinks $SourceRoot $WorkRoot
   Assert-LastExitCode "Failed to create isolated cleanup-smoke repository"
 
   $Examples = @(
