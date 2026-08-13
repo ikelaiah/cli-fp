@@ -35,13 +35,13 @@ for sentinel in "${SENTINELS[@]}"; do
   test -f "$WORK_ROOT/$sentinel"
 done
 
-mkdir -p "$TMP_DIR/units"
 for example in "${EXAMPLES[@]}"; do
+  mkdir -p "$TMP_DIR/units/$example"
   fpc \
     -Fu"$WORK_ROOT/src" \
     -FE"$WORK_ROOT/example-bin" \
     -FU"$TMP_DIR/units/$example" \
-    "$WORK_ROOT/examples/$example/$example.lpr" >/dev/null
+    "$WORK_ROOT/examples/$example/$example.lpr"
 
   test -f "$WORK_ROOT/example-bin/$example" ||
     test -f "$WORK_ROOT/example-bin/$example.exe"
