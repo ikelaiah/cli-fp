@@ -69,7 +69,7 @@
     <path d="M112 264l91 82-91 82" fill="none" stroke="url(#brand-blue)" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
     <path d="M169 455h99" fill="none" stroke="url(#brand-blue)" stroke-width="28"/>
 
-    <text x="302" y="454" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="218" font-weight="750" letter-spacing="-11" transform="translate(302 0) scale(1.34 1) translate(-302 0)">
+    <text x="288" y="454" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="218" font-weight="750" letter-spacing="-11" transform="translate(288 505) scale(1.34 1.25) translate(-288 -505)">
       <tspan fill="url(#brand-white)">cli-</tspan><tspan fill="url(#brand-blue)">fp</tspan>
     </text>
     <text x="110" y="554" fill="#9fcfff" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="34" font-weight="500" letter-spacing="5.4">A CLI FRAMEWORK FOR FREE PASCAL</text>
