@@ -53,7 +53,7 @@ TParameterType = (
   ptEnum,     // Enumerated value (e.g., --log-level debug|info|warn|error)
   ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00")
   ptArray,    // Comma-separated list (e.g., --tags tag1,tag2,tag3)
-  ptPassword, // Sensitive value stored as a string; no automatic redaction
+  ptPassword, // Sensitive string; framework debug output redacts its value
   ptUrl       // URL value with format validation (e.g., --repo https://github.com/user/repo)
 );
 ```
@@ -154,8 +154,8 @@ values and values with or without seconds may also be accepted. Treat
 strict.
 
 `AddPasswordParameter` records `ptPassword` metadata, but retrieved values are
-ordinary strings. The framework does not automatically redact values written
-by application code or external logging.
+ordinary strings. Framework debug diagnostics redact these values; application
+code and external logging remain responsible for their own redaction.
 
 #### Getting Parameter Values
 
@@ -311,6 +311,12 @@ public
   property Commands: TCommandList read GetCommands;
 end;
 ```
+
+The public facade is unchanged in v1.3.3. Internally, application and command
+help use one renderer, completion calculation is delegated to an internal
+engine, and application validation and command execution use the same
+parameter-value lookup semantics. These internal units are not added to the
+Lazarus package's generated public `uses` list.
 
 #### Functions
 

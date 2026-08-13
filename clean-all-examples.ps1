@@ -1,16 +1,9 @@
 # clean-all-examples.ps1
-# Remove all built example binaries and unit output
+# Remove generated example build artifacts while preserving tracked files.
 
-$exampleBin = "example-bin"
-if (Test-Path $exampleBin) {
-    Write-Host "🧹 Removing example-bin/ directory..." -ForegroundColor Yellow
-    Remove-Item $exampleBin -Recurse -Force
-    Write-Host "✅ example-bin/ cleaned." -ForegroundColor Green
-} else {
-    Write-Host "ℹ️  example-bin/ does not exist. Nothing to clean." -ForegroundColor Gray
-}
+$RootDir = Split-Path -Parent $PSCommandPath
 
-$examples = @(
+$Examples = @(
     'ColorDemo',
     'ErrorHandlingDemo',
     'LongRunningOpDemo',
@@ -19,28 +12,35 @@ $examples = @(
     'SimpleDemo',
     'SubCommandDemo'
 )
-
-foreach ($ex in $examples) {
-    $libPath = "examples/$ex/lib"
-    if (Test-Path $libPath) {
-        Write-Host "🧹 Removing old lib/ from examples/$ex..." -ForegroundColor Yellow
-        Remove-Item $libPath -Recurse -Force
-    }
-    $win64Path = "examples/$ex/x86_64-win64"
-    if (Test-Path $win64Path) {
-        Write-Host "🧹 Removing old x86_64-win64/ from examples/$ex..." -ForegroundColor Yellow
-        Remove-Item $win64Path -Recurse -Force
-    }
-    $linuxPath = "examples/$ex/x86_64-linux"
-    if (Test-Path $linuxPath) {
-        Write-Host "🧹 Removing old x86_64-linux/ from examples/$ex..." -ForegroundColor Yellow
-        Remove-Item $linuxPath -Recurse -Force
-    }
-    $backupPath = "examples/$ex/backup"
-    if (Test-Path $backupPath) {
-        Write-Host "🧹 Cleaning backup/ in examples/$ex..." -ForegroundColor Yellow
-        Get-ChildItem $backupPath -Include *.exe,*.dbg,*.o,*.ppu -Recurse | Remove-Item -Force
-    }
+$GeneratedExtensions = @(
+    '.o', '.ppu', '.compiled', '.or', '.a', '.rst', '.res', '.dbg', '.tds', '.lps'
+)
+$GeneratedFileNames = @('link.res')
+foreach ($Example in $Examples) {
+    $GeneratedFileNames += $Example
+    $GeneratedFileNames += "$Example.exe"
 }
 
-Write-Host "`n✅ Cleanup complete." -ForegroundColor Green
+function Remove-GeneratedArtifacts([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return
+    }
+
+    Get-ChildItem -LiteralPath $Path -File -Recurse -Force |
+        Where-Object {
+            ($GeneratedExtensions -contains $_.Extension.ToLowerInvariant()) -or
+            ($_.Name -like '*.lps.bak') -or
+            ($GeneratedFileNames -contains $_.Name)
+        } |
+        ForEach-Object {
+            Write-Host "🧹 Removing generated artifact: $($_.FullName)" -ForegroundColor Yellow
+            Remove-Item -LiteralPath $_.FullName -Force
+        }
+}
+
+Remove-GeneratedArtifacts (Join-Path $RootDir 'example-bin')
+foreach ($Example in $Examples) {
+    Remove-GeneratedArtifacts (Join-Path $RootDir "examples\$Example")
+}
+
+Write-Host "✅ Generated example build artifacts removed." -ForegroundColor Green

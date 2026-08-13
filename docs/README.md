@@ -1,7 +1,8 @@
 # cli-fp Documentation
 
 [Project README](../README.md) · [Examples](../examples/) ·
-[Changelog](../CHANGELOG.md)
+[Changelog](../CHANGELOG.md) ·
+[v1.3.3 release notes](RELEASE_NOTES_v1.3.3.md)
 
 Use this page to choose the shortest path to the information you need. If this
 is your first Free Pascal command-line project, begin with the
@@ -19,6 +20,7 @@ is your first Free Pascal command-line project, begin with the
 | See small programs that compile | [Examples](../examples/) |
 | Test generated shell completion | [Completion testing guides](completion-testing/) |
 | Review changes between releases | [Changelog](../CHANGELOG.md) |
+| Review the v1.3.3 release | [v1.3.3 release notes](RELEASE_NOTES_v1.3.3.md) |
 
 ## New to Free Pascal?
 
@@ -73,6 +75,11 @@ fpc "-Fu.\src" .\examples\RootCommandDemo\RootCommandDemo.lpr
 
 The README, user manual, code-generator guide, API reference, and technical
 documentation describe the current source tree.
+
+The v1.3.3 implementation is complete and its release is dated 2026-08-14. It
+introduces hermetic test compilation, password-safe framework diagnostics, and
+internal boundaries for help rendering, completion calculation, and
+parameter-value semantics without changing the public application facade.
 
 Files named `PULL_REQUEST_v*.md` and `RELEASE_NOTES_v*.md` are snapshots of a
 particular release. `test-output.md` records the test environment and results

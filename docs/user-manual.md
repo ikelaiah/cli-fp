@@ -614,8 +614,8 @@ AddPasswordParameter('-k', '--api-key', 'API Key');
 ```
 
 Password parameters are returned to command code as ordinary strings. The
-framework does not automatically redact values written by your application or
-external logging.
+framework redacts them from its own `DebugMode` diagnostics, but it does not
+redact values written by your application or external logging.
 
 ### Parameter Validation
 
@@ -634,7 +634,8 @@ The framework validates all parameters before executing a command. Each paramete
 - **Enum**: Must match one of the pipe-separated allowed values
 - **URL**: Must start with http://, https://, git://, or ssh://
 - **Array**: No validation on individual items
-- **Password**: No validation or automatic output redaction
+- **Password**: No validation; framework debug diagnostics are redacted, but
+  application and external logging output is not
 
 ### Error Messages
 
@@ -776,6 +777,11 @@ The framework supports various parameter formats:
 - Short format: `-p value`
 - Boolean flags: `--flag` or `-f` (false by default, true when present)
 
+Registered integer and float options accept negative values in either long
+form: `--count=-1` and `--count -1` are equivalent. For values of other types
+that begin with `-`, use the equals form so the parser does not treat the value
+as another option.
+
 Example:
 ```bash
 myapp test --flag        # --flag is true
@@ -797,7 +803,8 @@ myapp test               # --flag is false
      ```
      `DebugMode` is a `TCLIApplication` property and is not exposed by the
      `ICLIApplication` returned from the factory. Manage the concrete
-     instance's lifetime normally.
+     instance's lifetime normally. Values belonging to parameters registered
+     with `AddPasswordParameter` are shown as `[REDACTED]`.
 
 2. **Parameter Errors**
    - Check parameter format:
@@ -1052,7 +1059,8 @@ echo "source \"$PWD/myapp-completion.sh\"" >> ~/.bashrc
 
 - The generated shell function forwards the current tokens to the executable's
   hidden `__complete` entrypoint.
-- `DoComplete` resolves the command path and returns one candidate per line,
+- The application delegates candidate calculation to the internal completion
+  engine, which resolves the command path and returns one candidate per line,
   followed by a completion-directive line.
 - The generated script currently also emits a command-tree associative array
   for compatibility, but dynamic completion is driven by `__complete`.

@@ -36,11 +36,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. "/>
-    <Version Major="1" Minor="3" Release="2"/>
+    <Version Major="1" Minor="3" Release="3"/>
     <Files>
       <Item>
         <Filename Value="..\..\src\cli.application.pas"/>
         <UnitName Value="CLI.Application"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\src\cli.internal.completion.pas"/>
+        <UnitName Value="CLI.Internal.Completion"/>
+        <AddToUsesPkgSection Value="False"/>
       </Item>
       <Item>
         <Filename Value="..\..\src\cli.command.pas"/>
@@ -55,12 +60,22 @@ SOFTWARE. "/>
         <UnitName Value="CLI.Errors"/>
       </Item>
       <Item>
+        <Filename Value="..\..\src\cli.internal.help.pas"/>
+        <UnitName Value="CLI.Internal.Help"/>
+        <AddToUsesPkgSection Value="False"/>
+      </Item>
+      <Item>
         <Filename Value="..\..\src\cli.interfaces.pas"/>
         <UnitName Value="CLI.Interfaces"/>
       </Item>
       <Item>
         <Filename Value="..\..\src\cli.parameter.pas"/>
         <UnitName Value="CLI.Parameter"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\src\cli.internal.parametervalues.pas"/>
+        <UnitName Value="CLI.Internal.ParameterValues"/>
+        <AddToUsesPkgSection Value="False"/>
       </Item>
       <Item>
         <Filename Value="..\..\src\cli.progress.pas"/>

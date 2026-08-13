@@ -18,10 +18,10 @@ paths. Examples are executable documentation and should be verified in CI.
 framework supports, and command execution no longer relies on a hidden unsafe
 downcast.
 
-## v1.3.3 — Stabilize Before Expanding (next)
+## v1.3.3 — Stabilize Before Expanding (implementation complete; release 2026-08-14)
 
-This is a focused stabilization release. It should make the current framework
-safer to maintain before v1.4.0 adds another public entry point.
+This focused stabilization release makes the current framework safer to
+maintain before v1.4.0 adds another public entry point.
 
 ### Safe repository maintenance
 
@@ -48,6 +48,28 @@ safer to maintain before v1.4.0 adds another public entry point.
 - Preserve unknown-option detection and add regression coverage for both
   numeric forms.
 
+### Hermetic tests and safe diagnostics
+
+- Make the Windows and Linux framework test runners rebuild the unit graph
+  with the test define into an isolated output directory. A previous normal
+  build must not leave a stale `.ppu` that changes whether the tests compile.
+- Keep output-capture state and entry points out of normal runtime builds while
+  retaining one production execution and help-rendering path.
+- Redact values for registered password parameters from debug output and add a
+  regression test proving credentials are never printed.
+
+### Internal maintenance boundaries
+
+- Move help formatting into one internal renderer shared by the application
+  and base-command paths.
+- Move completion calculation into a focused internal engine and delete
+  unreachable private callback branches and unused temporary allocations,
+  while retaining the deprecated public 1.x no-op methods.
+- Single-source parameter lookup and password redaction for validation,
+  execution, and diagnostics.
+- Decompose application dispatch into focused stages without changing the
+  `TCLIApplication` facade or `ICLIApplication` contract.
+
 ### Release acceptance criteria
 
 - Cleanup scripts leave all tracked files intact.
@@ -55,18 +77,27 @@ safer to maintain before v1.4.0 adds another public entry point.
   Linux.
 - Help tests fail when required help content is removed or changed incorrectly.
 - Negative integer and float values work in equals and separated forms.
+- Framework tests pass after a normal non-test build has produced reusable
+  units in the source tree or another configured unit-search directory.
+- Normal runtime builds contain no test-output capture state or entry points.
+- Debug output never prints values supplied to password parameters.
+- Help rendering, completion calculation, and parameter-value semantics each
+  have one internal implementation covered by characterization tests.
 - Every behaviour changed in v1.3.3 is documented and has automated coverage.
 
 ### Non-goals
 
 - No new public command API or breaking API changes.
 - No new parameter kinds, generator capabilities, or completion features.
-- No broad `TCLIApplication` split; that remains planned for v1.5.0.
+- No replacement of the `TCLIApplication` facade or execution-state contract.
+- No removal of public compatibility APIs or broad completion/help cleanup;
+  those changes remain planned for v1.5.0 and v2.0.0.
 - No large historical-documentation cleanup mixed into the behavioural fixes.
 
 **Maintenance outcome:** the repository can be cleaned safely, examples remain
-buildable, and the test suite provides a dependable safety net for the v1.4.0
-ergonomics work.
+buildable, test results do not depend on stale compiler units, diagnostics do
+not expose password values, and the test suite provides a dependable safety
+net for the v1.4.0 ergonomics work.
 
 ## v1.4.0 — Make Simple CLIs Simple
 
@@ -83,13 +114,14 @@ ergonomics work.
 **Maintenance outcome:** beginner-oriented ergonomics improve without creating
 a second framework to maintain.
 
-## v1.5.0 — Split the Application Core
+## v1.5.0 — Finish the Application Core Boundaries
 
 - Separate command selection and execution orchestration from parsing and
   validation.
-- Extract help rendering from `TCLIApplication` behind the output seam proven
-  in v1.3.3.
-- Separate completion calculation from Bash and PowerShell script rendering.
+- Extract Bash and PowerShell script rendering from `TCLIApplication`, building
+  on the completion engine introduced in v1.3.3.
+- Strengthen the internal help and completion boundaries introduced in v1.3.3
+  without exposing them as new public APIs.
 - Preserve existing observable behaviour with the v1.3.3 characterization
   tests and focused tests around each extracted component.
 - Keep these internal changes behind the stable public facade.

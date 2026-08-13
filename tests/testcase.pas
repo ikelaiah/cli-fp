@@ -47,6 +47,9 @@ type
     procedure Test_4_3_EqualsSyntax;
     procedure Test_4_4_BooleanFlags;
     procedure Test_4_5_MultipleParameters;
+    procedure Test_4_6_NegativeNumericValues;
+    procedure Test_4_7_UnknownOptionStillFails;
+    procedure Test_4_8_DebugOutputRedactsPasswords;
 
     // 5.x - Help System Tests
     procedure Test_5_1_BasicHelp;
@@ -71,6 +74,7 @@ type
     procedure Test_7_6_InvalidRootParameterDoesNotExecute;
     procedure Test_7_7_CompleteRootParameters;
     procedure Test_7_8_NoRootPreservesEmptyArgumentBehavior;
+    procedure Test_7_9_CompletionBehaviour;
   end;
 
 implementation
@@ -632,16 +636,130 @@ begin
   end;
 end;
 
+procedure TCLIFrameworkTests.Test_4_6_NegativeNumericValues;
+var
+  Cmd: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Cmd := TRecordingCommand.Create('measure', 'Measure a signed value');
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  try
+    Cmd.AddIntegerParameter('-c', '--count', 'Signed count', True);
+    Cmd.AddFloatParameter('-r', '--rate', 'Signed rate', True);
+    App.RegisterCommand(Cmd);
+
+    AssertEquals('Separated negative integer and float values should succeed', 0,
+      App.TestExecute(MakeArgs(['measure', '--count', '-1', '--rate', '-2.5'])));
+    AssertEquals('Separated negative integer should be retained', '-1',
+      App.ParsedParams.Values['--count']);
+    AssertEquals('Separated negative float should be retained', '-2.5',
+      App.ParsedParams.Values['--rate']);
+
+    AssertEquals('Equals-form negative integer and float values should succeed', 0,
+      App.TestExecute(MakeArgs(['measure', '--count=-3', '--rate=-4.75'])));
+    AssertEquals('Equals-form negative integer should be retained', '-3',
+      App.ParsedParams.Values['--count']);
+    AssertEquals('Equals-form negative float should be retained', '-4.75',
+      App.ParsedParams.Values['--rate']);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_4_7_UnknownOptionStillFails;
+var
+  Cmd: TRecordingCommand;
+  App: TCLIApplication;
+begin
+  Cmd := TRecordingCommand.Create('measure', 'Measure a signed value');
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  try
+    Cmd.AddIntegerParameter('-c', '--count', 'Signed count', True);
+    App.RegisterCommand(Cmd);
+    AssertEquals('An unknown option must remain an error', 1,
+      App.TestExecute(MakeArgs(['measure', '--count', '-1', '--unknown'])));
+    AssertEquals('Unknown options must prevent command execution', 0,
+      Cmd.ExecuteCount);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_4_8_DebugOutputRedactsPasswords;
+var
+  Cmd: TRecordingCommand;
+  App: TCLIApplication;
+  Output: TStringList;
+begin
+  Cmd := TRecordingCommand.Create('login', 'Authenticate a user');
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  Output := TStringList.Create;
+  try
+    Cmd.AddStringParameter('-u', '--user', 'User name', True);
+    Cmd.AddPasswordParameter('-p', '--password', 'Password', True);
+    App.RegisterCommand(Cmd);
+    App.DebugMode := True;
+
+    AssertEquals('Separated password execution should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs([
+        'login', '--user', 'visible-user', '--password', 'separated-secret'
+      ]), Output));
+    AssertTrue('Debug output should retain ordinary parameter values',
+      Pos('visible-user', Output.Text) > 0);
+    AssertTrue('Debug output should mark a redacted password',
+      Pos('[REDACTED]', Output.Text) > 0);
+    AssertEquals('Separated password must not appear in debug output', 0,
+      Pos('separated-secret', Output.Text));
+
+    Output.Clear;
+    AssertEquals('Equals-form password execution should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs([
+        'login', '--user=visible-user', '--password=equals-secret'
+      ]), Output));
+    AssertTrue('Equals-form password should also be marked as redacted',
+      Pos('--password=[REDACTED]', Output.Text) > 0);
+    AssertEquals('Equals-form password must not appear in debug output', 0,
+      Pos('equals-secret', Output.Text));
+  finally
+    Output.Free;
+    App.Free;
+  end;
+end;
+
 // 5.x - Help System Tests
 
 procedure TCLIFrameworkTests.Test_5_1_BasicHelp;
 var
   App: TCLIApplication;
+  Root, Deploy: TTestCommand;
+  Output: TStringList;
 begin
-  App := TCLIApplication.Create('TestApp', '1.0.0');
+  Root := TTestCommand.Create('', 'Run the default action');
+  Root.AddStringParameter('-c', '--config', 'Configuration file', True);
+  Root.AddStringParameter('-f', '--format', 'Output format', False, 'json');
+  Deploy := TTestCommand.Create('deploy', 'Deploy the current release');
+  App := TCLIApplication.Create('TestApp', '1.0.0', Root);
+  Output := TStringList.Create;
   try
-    AssertTrue('Should generate basic help', True);
+    App.RegisterCommand(Deploy);
+    AssertEquals('General help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--help']), Output));
+    AssertTrue('General help should include the application version',
+      Pos('TestApp version 1.0.0', Output.Text) > 0);
+    AssertTrue('General help should include usage',
+      Pos('Usage:', Output.Text) > 0);
+    AssertTrue('General help should include the root description',
+      Pos('Run the default action', Output.Text) > 0);
+    AssertTrue('General help should include the required option',
+      Pos('--config', Output.Text) > 0);
+    AssertTrue('General help should label required options',
+      Pos('(required)', Output.Text) > 0);
+    AssertTrue('General help should include option defaults',
+      Pos('Default: json', Output.Text) > 0);
+    AssertTrue('General help should list command descriptions',
+      Pos('Deploy the current release', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -650,13 +768,26 @@ procedure TCLIFrameworkTests.Test_5_2_CommandHelp;
 var
   App: TCLIApplication;
   Cmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
   Cmd := TTestCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
   try
+    Cmd.AddIntegerParameter('-r', '--retries', 'Retry count', False, '3');
     App.RegisterCommand(Cmd);
-    AssertTrue('Should generate command help', True);
+    AssertEquals('Command help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['test', '--help']), Output));
+    AssertTrue('Command help should include command usage',
+      Pos('test [options]', Output.Text) > 0);
+    AssertTrue('Command help should include the command description',
+      Pos('Test command', Output.Text) > 0);
+    AssertTrue('Command help should include option descriptions',
+      Pos('Retry count', Output.Text) > 0);
+    AssertTrue('Command help should include option defaults',
+      Pos('Default: 3', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -664,11 +795,27 @@ end;
 procedure TCLIFrameworkTests.Test_5_3_CompleteHelp;
 var
   App: TCLIApplication;
+  Cmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
+  Cmd := TTestCommand.Create('report', 'Generate a report');
+  Output := TStringList.Create;
   try
-    AssertTrue('Should generate complete help', True);
+    Cmd.AddStringParameter('-o', '--output', 'Output file', True);
+    App.RegisterCommand(Cmd);
+    AssertEquals('Complete help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--help-complete']), Output));
+    AssertTrue('Complete help should include its heading',
+      Pos('DESCRIPTION', Output.Text) > 0);
+    AssertTrue('Complete help should include global options',
+      Pos('GLOBAL OPTIONS', Output.Text) > 0);
+    AssertTrue('Complete help should include registered commands',
+      Pos('report - Generate a report', Output.Text) > 0);
+    AssertTrue('Complete help should include required options',
+      Pos('--output', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -677,13 +824,24 @@ procedure TCLIFrameworkTests.Test_5_4_HelpExamples;
 var
   App: TCLIApplication;
   Cmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
   Cmd := TTestCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
   try
+    Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
     App.RegisterCommand(Cmd);
-    AssertTrue('Should generate help examples', True);
+    AssertEquals('Command help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['test', '--help']), Output));
+    AssertTrue('Command help should include option flags',
+      Pos('--name', Output.Text) > 0);
+    AssertTrue('Command help should include option descriptions',
+      Pos('Name to greet', Output.Text) > 0);
+    AssertTrue('Command help should include the documented default',
+      Pos('Default: World', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -692,15 +850,25 @@ procedure TCLIFrameworkTests.Test_5_5_SubCommandHelp;
 var
   App: TCLIApplication;
   MainCmd, SubCmd: TTestCommand;
+  Output: TStringList;
 begin
   App := TCLIApplication.Create('TestApp', '1.0.0');
   MainCmd := TTestCommand.Create('main', 'Main command');
   SubCmd := TTestCommand.Create('sub', 'Sub command');
+  Output := TStringList.Create;
   try
     MainCmd.AddSubCommand(SubCmd);
     App.RegisterCommand(MainCmd);
-    AssertTrue('Should generate subcommand help', True);
+    AssertEquals('Parent command help should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['main', '--help']), Output));
+    AssertTrue('Parent help should include a subcommand section',
+      Pos('Commands:', Output.Text) > 0);
+    AssertTrue('Parent help should include subcommand names',
+      Pos('sub', Output.Text) > 0);
+    AssertTrue('Parent help should include subcommand descriptions',
+      Pos('Sub command', Output.Text) > 0);
   finally
+    Output.Free;
     App.Free;
   end;
 end;
@@ -945,6 +1113,70 @@ begin
       App.TestExecute(MakeArgs([])));
     AssertFalse('No command should be selected without a root command',
       Assigned(App.CurrentCommand));
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_9_CompletionBehaviour;
+var
+  App: TCLIApplication;
+  Deploy, Target: TTestCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  Deploy := TTestCommand.Create('deploy', 'Deploy an application');
+  Target := TTestCommand.Create('target', 'Manage deployment targets');
+  try
+    Deploy.AddFlag('-v', '--verbose', 'Verbose output');
+    Deploy.AddEnumParameter('-m', '--mode', 'Deployment mode',
+      'safe|fast');
+    Deploy.AddSubCommand(Target);
+    App.RegisterCommand(Deploy);
+
+    Candidates := App.TestComplete(MakeArgs([]));
+    try
+      AssertTrue('Empty completion should list top-level commands',
+        Candidates.IndexOf('deploy') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['de']));
+    try
+      AssertTrue('Command prefixes should be completed',
+        Candidates.IndexOf('deploy') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '--v']));
+    try
+      AssertTrue('Command flags should be completed',
+        Candidates.IndexOf('--verbose') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '--mode', '']));
+    try
+      AssertTrue('Enum values should be completed',
+        Candidates.IndexOf('safe') >= 0);
+      AssertTrue('Completion should include a directive',
+        Candidates.IndexOf(':' + IntToStr(CD_NOFILE)) >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '']));
+    try
+      AssertTrue('Subcommands should be completed',
+        Candidates.IndexOf('target') >= 0);
+      AssertTrue('Available flags should accompany subcommands',
+        Candidates.IndexOf('--mode') >= 0);
+    finally
+      Candidates.Free;
+    end;
   finally
     App.Free;
   end;

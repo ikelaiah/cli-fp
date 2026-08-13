@@ -18,7 +18,7 @@ type
     ptEnum,     // Enumerated value (e.g., --log-level debug|info|warn|error)
     ptDateTime, // Date/time value (e.g., --start "2024-01-01 12:00")
     ptArray,    // Comma-separated list (e.g., --tags tag1,tag2,tag3)
-    ptPassword, // Sensitive value stored as a string; no automatic redaction
+    ptPassword, // Sensitive string; framework debug output redacts its value
     ptUrl       // URL value with format validation (e.g., --repo https://github.com/user/repo)
   );
 
