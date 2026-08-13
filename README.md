@@ -1,4 +1,4 @@
-![cli-fp: A CLI framework for Free Pascal](docs/images/cli-fp-hero-v2.png)
+![cli-fp: A CLI framework for Free Pascal](docs/images/cli-fp-hero-v3.png)
 
 # ⚡ cli-fp: Native CLIs for Free Pascal
 
