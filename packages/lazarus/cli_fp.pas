@@ -8,7 +8,7 @@ unit cli_fp;
 interface
 
 uses
-  CLI.Application, CLI.Command, CLI.Console, CLI.Errors, CLI.Interfaces, 
+  CLI.Application, CLI.Command, CLI.Console, CLI.Errors, CLI.Interfaces,
   CLI.Parameter, CLI.Progress;
 
 implementation

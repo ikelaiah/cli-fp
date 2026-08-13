@@ -156,7 +156,8 @@ if GetParameterValue('--count', RawCount) and
   WriteLn('Count: ', Count);
 ```
 
-`Password` values are stored as strings and are not automatically redacted.
+`Password` values are stored as strings. Framework debug diagnostics redact
+them, but output produced by your command or external logging does not.
 `Path` values are not checked for existence. Registered integer and float
 options accept negative values in both equals and separated forms, for example
 `--count=-1` and `--count -1`. For other value types that begin with `-`, use

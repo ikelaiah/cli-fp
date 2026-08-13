@@ -16,6 +16,7 @@ try {
   New-Item -ItemType Directory -Force -Path $UnitDir | Out-Null
 
   fpc `
+    -B `
     -dCLI_FP_TESTING `
     "-Fu$RootDir\src" `
     "-Fu$RootDir\tests" `

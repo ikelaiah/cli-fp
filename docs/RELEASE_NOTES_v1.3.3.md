@@ -5,8 +5,9 @@
 ## Overview
 
 Version `1.3.3` is a stabilization release. It improves cleanup safety,
-behavioural test coverage, and parser correctness without adding a public API
-or changing existing command contracts.
+behavioural test coverage, parser correctness, diagnostic safety, and internal
+maintenance boundaries without adding a public API or changing existing
+command contracts.
 
 ## Safe example cleanup
 
@@ -27,6 +28,29 @@ descriptions, required options, defaults, complete help, and subcommands.
 
 The capture seam is not included in normal builds and does not add a method to
 the public `ICLIApplication` API.
+
+The framework test runners also force an isolated unit rebuild. Existing
+non-test `.ppu` files can no longer bypass the test define or affect whether
+the suite compiles.
+
+## Safer diagnostics
+
+`DebugMode` continues to show parsing details, but values associated with
+registered password parameters are now written as `[REDACTED]`. This covers
+both `--password value` and `--password=value` forms. Applications remain
+responsible for redacting sensitive values in their own output and logging.
+
+## Smaller internal responsibilities
+
+Help formatting is now shared by the application and base-command paths.
+Completion calculation and parameter-value handling live in focused internal
+units, and application dispatch is divided into named stages. Unreachable
+private completion callback branches and unused temporary allocations were
+removed.
+
+The `TCLIApplication` facade, `ICLIApplication` contract, deprecated 1.x
+completion compatibility methods, and all existing command APIs remain
+unchanged.
 
 ## Negative numeric options
 

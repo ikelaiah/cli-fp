@@ -51,6 +51,8 @@ type
     { Shows help text for this command
       Displays usage, description, parameters, and examples }
     procedure ShowHelp;
+    procedure WriteHelpLine(const Text: string; const Color: TConsoleColor;
+      const UseColor: Boolean);
   public
     { Creates new command instance
       @param AName Command name as used in CLI
@@ -207,6 +209,9 @@ type
   end;
 
 implementation
+
+uses
+  CLI.Internal.ParameterValues, CLI.Internal.Help;
 
 { Constructor: Creates new command instance
   @param AName Command name as used in CLI
@@ -392,8 +397,6 @@ end;
 function TBaseCommand.GetParameterValue(const Flag: string; out Value: string): Boolean;
 var
   Param: ICommandParameter;
-  idx: Integer;
-  paramVal: string;
 begin
   Result := False;
   if not Assigned(FParsedParams) then
@@ -404,59 +407,8 @@ begin
   begin
     if (Param.LongFlag = Flag) or (Param.ShortFlag = Flag) then
     begin
-      // Special handling for boolean flags
-      if Param.ParamType = ptBoolean then
-      begin
-        idx := FParsedParams.IndexOfName(Param.LongFlag);
-        if idx = -1 then
-          idx := FParsedParams.IndexOfName(Param.ShortFlag);
-        if idx <> -1 then
-        begin
-          paramVal := FParsedParams.ValueFromIndex[idx];
-          if (paramVal = '') then
-          begin
-            Value := 'true'; // flag present, no value
-            Result := True;
-            Exit;
-          end
-          else if SameText(paramVal, 'true') or SameText(paramVal, 'false') then
-          begin
-            Value := paramVal;
-            Result := True;
-            Exit;
-          end
-          else
-          begin
-            Value := paramVal;
-            Result := True;
-            Exit;
-          end;
-        end
-        else if Param.DefaultValue <> '' then
-        begin
-          Value := Param.DefaultValue;
-          Result := True;
-          Exit;
-        end
-        else
-        begin
-          Value := 'false';
-          Result := False;
-          Exit;
-        end;
-      end;
-      // Check both long and short flags in parsed parameters
-      Value := FParsedParams.Values[Param.LongFlag];
-      if Value = '' then
-        Value := FParsedParams.Values[Param.ShortFlag];
-      if Value <> '' then
-        Exit(True)
-      else if Param.DefaultValue <> '' then
-      begin
-        Value := Param.DefaultValue;
-        Exit(True);
-      end;
-      Break;
+      Result := TryGetParameterValue(Param, FParsedParams, Value);
+      Exit;
     end;
   end;
 end;
@@ -470,15 +422,11 @@ end;
   - Examples }
 procedure TBaseCommand.ShowHelp;
 var
-  Param: ICommandParameter;
-  SubCmd: ICommand;
-  RequiredText: string;
-  ExeName: string;
   CommandPath: string;
   i: Integer;
+  Renderer: TCLIHelpRenderer;
+  Commands: TCommandArray;
 begin
-  ExeName := ExtractFileName(ParamStr(0));
-  
   // Build full command path
   CommandPath := '';
   for i := 1 to ParamCount do
@@ -491,47 +439,25 @@ begin
   end;
   if CommandPath = '' then
     CommandPath := Name;
-  
-  // Show usage and description
-  TConsole.WriteLn('Usage: ' + ExeName + ' ' + CommandPath + ' [options]');
-  TConsole.WriteLn('');
-  TConsole.WriteLn(Description);
-  
-  // Show subcommands if any
-  if Length(SubCommands) > 0 then
-  begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Commands:', ccCyan);
-    for SubCmd in SubCommands do
-      TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
-      
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Examples:', ccCyan);
-    TConsole.WriteLn('  ' + ExeName + ' ' + CommandPath + ' <command> --help');
-    TConsole.WriteLn('    Show help for a specific command');
-    for SubCmd in SubCommands do
-      TConsole.WriteLn('  ' + ExeName + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
+
+  Commands := nil;
+  Renderer := TCLIHelpRenderer.Create('', '', ExtractFileName(ParamStr(0)),
+    nil, Commands, @WriteHelpLine);
+  try
+    Renderer.ShowCommandDetails(Description, Parameters, SubCommands,
+      CommandPath, chsCommand);
+  finally
+    Renderer.Free;
   end;
-  
-  // Show parameters if any
-  if Length(Parameters) > 0 then
-  begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Options:', ccCyan);
-    for Param in Parameters do
-    begin
-      if Param.Required then
-        RequiredText := ' (required)'
-      else
-        RequiredText := '';
-        
-      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
-        Param.Description + RequiredText);
-      
-      if Param.DefaultValue <> '' then
-        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
-    end;
-  end;
+end;
+
+procedure TBaseCommand.WriteHelpLine(const Text: string;
+  const Color: TConsoleColor; const UseColor: Boolean);
+begin
+  if UseColor then
+    TConsole.WriteLn(Text, Color)
+  else
+    TConsole.WriteLn(Text);
 end;
 
 

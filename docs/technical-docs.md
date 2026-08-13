@@ -218,9 +218,14 @@ end;
 The `TCLIApplication` class is the central component that:
 - Manages command registration
 - Holds an optional executable root command
-- Handles command-line parsing
-- Implements the help system
-- Coordinates command execution
+- Coordinates command-line parsing and execution through focused stages
+- Delegates help formatting to `CLI.Internal.Help`
+- Delegates completion calculation to `CLI.Internal.Completion`
+
+`CLI.Internal.ParameterValues` owns parameter lookup semantics shared by
+validation and command execution. These units are internal implementation
+boundaries; the public `TCLIApplication` facade and `ICLIApplication` contract
+are unchanged.
 
 Key methods:
 ```pascal
@@ -634,7 +639,8 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
                                     │ Executes: myapp __complete [tokens...]
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     CLI APPLICATION (src/cli.application.pas)           │
+│              CLI APPLICATION + COMPLETION ENGINE                        │
+│  (src/cli.application.pas and src/cli.internal.completion.pas)          │
 │                                                                         │
 │  TCLIApplication.Execute():                                             │
 │    ┌──────────────────────────────────────────────────┐                 │
@@ -646,7 +652,7 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │                         ▼                                               │
 │  HandleCompletion():                                                    │
 │    • Collect tokens from ParamStr(2..ParamCount)                        │
-│    • Call DoComplete(Tokens)                                            │
+│    • Delegate through DoComplete(Tokens) to CompleteCLI()               │
 │    • Write suggestions to stdout (one per line)                         │
 │    • Write directive as :<number> on last line                          │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -654,7 +660,7 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
                                     │ Calls DoComplete()
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│            DoComplete(Tokens): COMPLETION LOGIC ENGINE                  │
+│             CompleteCLI(Tokens): COMPLETION LOGIC ENGINE                │
 │                                                                         │
 │  1. ROOT-LEVEL FLAG CHECK                                               │
 │     ┌─────────────────────────────────────────┐                         │
@@ -789,10 +795,12 @@ callback methods are deprecated and non-functional:
 
 **Implementation Approach:**
 
-- **Built-in completion** (✅ Working): `DoComplete()` traverses the registered
-  command tree and parameter definitions at runtime. Generated Bash and
-  PowerShell functions call the hidden `__complete` entrypoint; no callback
-  registry is needed for command, flag, boolean, or enum candidates.
+- **Built-in completion** (✅ Working): `CLI.Internal.Completion.CompleteCLI()`
+  traverses the registered command tree and parameter definitions at runtime.
+  The application retains a small `DoComplete()` compatibility wrapper.
+  Generated Bash and PowerShell functions call the hidden `__complete`
+  entrypoint; no callback registry is needed for command, flag, Boolean, or
+  enum candidates.
 
 - **Custom callbacks** (⚠️ Deprecated): The concrete application class exposes
   `RegisterFlagValueCompletion()` and `RegisterPositionalCompletion()` only for
@@ -873,39 +881,27 @@ end;
 The earlier experiment recorded `nil` or invalid callback retrieval under the
 project's FPC 3.2.2 build. No focused reproducer or compiler issue is linked,
 so this document does not attribute that result to a confirmed FPC limitation.
-The current source simply leaves registration and lookup disabled.
+The current source retains only the deprecated public registration no-ops;
+unreachable private lookup and callback branches were removed in v1.3.3.
 
 #### What Works Instead
 
 Built-in completion avoids dynamic function pointer storage entirely:
 
 ```pascal
-// Simplified shape of the private implementation
+// Compatibility wrapper in CLI.Application
 function TCLIApplication.DoComplete(const Tokens: TStringArray): TStringList;
 begin
-  // ... command/flag matching logic ...
-
-  // Boolean completion uses direct metadata-based logic
-  if Param.ParamType = ptBoolean then
-  begin
-    Suggestions.Add('true');
-    Suggestions.Add('false');
-  end;
-
-  // Enum values are split from Param.AllowedValues, a pipe-separated string
-  if Param.ParamType = ptEnum then
-  begin
-    Vals.Delimiter := '|';
-    Vals.DelimitedText := Param.AllowedValues;
-    for J := 0 to Vals.Count - 1 do
-      Suggestions.Add(Vals[J]);
-  end;
+  Result := CompleteCLI(Tokens, FRootCommand, CommandSnapshot);
 end;
 ```
 
+`CLI.Internal.Completion` performs the metadata-based Boolean and enum
+completion and contains no callback lookup path.
+
 **Why this works:**
 - No function pointers stored dynamically
-- All logic is statically coded in `DoComplete()`
+- Completion logic is statically coded in the internal completion engine
 - Parameter metadata (allowed values, types) stored as simple strings/enums
 - No retrieval of function pointers from dynamic arrays
 
@@ -929,16 +925,13 @@ Only advanced scenarios requiring **runtime-dynamic** completions from external 
 
 #### Code Location
 
-The deprecated public stubs and their private lookup helpers can be found by
-name in `src/cli.application.pas`:
+The deprecated public stubs remain in `src/cli.application.pas`:
 
 - `RegisterFlagValueCompletion()`
 - `RegisterPositionalCompletion()`
-- `GetRegisteredFlagCompletion()`
-- `GetRegisteredPositionalCompletion()`
 
-The public registration methods are deprecated no-ops. The private lookup
-helpers retain TODO markers because no callback registry is active.
+The built-in engine is in `src/cli.internal.completion.pas`. There are no
+private callback lookup helpers or dormant callback branches.
 
 Before enabling the callback API, re-evaluate the design against the project's
 supported compiler and retain regression coverage for callback lifetime and

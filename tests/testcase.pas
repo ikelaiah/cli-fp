@@ -49,6 +49,7 @@ type
     procedure Test_4_5_MultipleParameters;
     procedure Test_4_6_NegativeNumericValues;
     procedure Test_4_7_UnknownOptionStillFails;
+    procedure Test_4_8_DebugOutputRedactsPasswords;
 
     // 5.x - Help System Tests
     procedure Test_5_1_BasicHelp;
@@ -73,6 +74,7 @@ type
     procedure Test_7_6_InvalidRootParameterDoesNotExecute;
     procedure Test_7_7_CompleteRootParameters;
     procedure Test_7_8_NoRootPreservesEmptyArgumentBehavior;
+    procedure Test_7_9_CompletionBehaviour;
   end;
 
 implementation
@@ -683,6 +685,47 @@ begin
   end;
 end;
 
+procedure TCLIFrameworkTests.Test_4_8_DebugOutputRedactsPasswords;
+var
+  Cmd: TRecordingCommand;
+  App: TCLIApplication;
+  Output: TStringList;
+begin
+  Cmd := TRecordingCommand.Create('login', 'Authenticate a user');
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  Output := TStringList.Create;
+  try
+    Cmd.AddStringParameter('-u', '--user', 'User name', True);
+    Cmd.AddPasswordParameter('-p', '--password', 'Password', True);
+    App.RegisterCommand(Cmd);
+    App.DebugMode := True;
+
+    AssertEquals('Separated password execution should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs([
+        'login', '--user', 'visible-user', '--password', 'separated-secret'
+      ]), Output));
+    AssertTrue('Debug output should retain ordinary parameter values',
+      Pos('visible-user', Output.Text) > 0);
+    AssertTrue('Debug output should mark a redacted password',
+      Pos('[REDACTED]', Output.Text) > 0);
+    AssertEquals('Separated password must not appear in debug output', 0,
+      Pos('separated-secret', Output.Text));
+
+    Output.Clear;
+    AssertEquals('Equals-form password execution should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs([
+        'login', '--user=visible-user', '--password=equals-secret'
+      ]), Output));
+    AssertTrue('Equals-form password should also be marked as redacted',
+      Pos('--password=[REDACTED]', Output.Text) > 0);
+    AssertEquals('Equals-form password must not appear in debug output', 0,
+      Pos('equals-secret', Output.Text));
+  finally
+    Output.Free;
+    App.Free;
+  end;
+end;
+
 // 5.x - Help System Tests
 
 procedure TCLIFrameworkTests.Test_5_1_BasicHelp;
@@ -1070,6 +1113,70 @@ begin
       App.TestExecute(MakeArgs([])));
     AssertFalse('No command should be selected without a root command',
       Assigned(App.CurrentCommand));
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_7_9_CompletionBehaviour;
+var
+  App: TCLIApplication;
+  Deploy, Target: TTestCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  Deploy := TTestCommand.Create('deploy', 'Deploy an application');
+  Target := TTestCommand.Create('target', 'Manage deployment targets');
+  try
+    Deploy.AddFlag('-v', '--verbose', 'Verbose output');
+    Deploy.AddEnumParameter('-m', '--mode', 'Deployment mode',
+      'safe|fast');
+    Deploy.AddSubCommand(Target);
+    App.RegisterCommand(Deploy);
+
+    Candidates := App.TestComplete(MakeArgs([]));
+    try
+      AssertTrue('Empty completion should list top-level commands',
+        Candidates.IndexOf('deploy') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['de']));
+    try
+      AssertTrue('Command prefixes should be completed',
+        Candidates.IndexOf('deploy') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '--v']));
+    try
+      AssertTrue('Command flags should be completed',
+        Candidates.IndexOf('--verbose') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '--mode', '']));
+    try
+      AssertTrue('Enum values should be completed',
+        Candidates.IndexOf('safe') >= 0);
+      AssertTrue('Completion should include a directive',
+        Candidates.IndexOf(':' + IntToStr(CD_NOFILE)) >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '']));
+    try
+      AssertTrue('Subcommands should be completed',
+        Candidates.IndexOf('target') >= 0);
+      AssertTrue('Available flags should accompany subcommands',
+        Candidates.IndexOf('--mode') >= 0);
+    finally
+      Candidates.Free;
+    end;
   finally
     App.Free;
   end;

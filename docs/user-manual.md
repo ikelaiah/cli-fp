@@ -614,8 +614,8 @@ AddPasswordParameter('-k', '--api-key', 'API Key');
 ```
 
 Password parameters are returned to command code as ordinary strings. The
-framework does not automatically redact values written by your application or
-external logging.
+framework redacts them from its own `DebugMode` diagnostics, but it does not
+redact values written by your application or external logging.
 
 ### Parameter Validation
 
@@ -634,7 +634,8 @@ The framework validates all parameters before executing a command. Each paramete
 - **Enum**: Must match one of the pipe-separated allowed values
 - **URL**: Must start with http://, https://, git://, or ssh://
 - **Array**: No validation on individual items
-- **Password**: No validation or automatic output redaction
+- **Password**: No validation; framework debug diagnostics are redacted, but
+  application and external logging output is not
 
 ### Error Messages
 
@@ -802,7 +803,8 @@ myapp test               # --flag is false
      ```
      `DebugMode` is a `TCLIApplication` property and is not exposed by the
      `ICLIApplication` returned from the factory. Manage the concrete
-     instance's lifetime normally.
+     instance's lifetime normally. Values belonging to parameters registered
+     with `AddPasswordParameter` are shown as `[REDACTED]`.
 
 2. **Parameter Errors**
    - Check parameter format:

@@ -43,6 +43,11 @@ SOFTWARE. "/>
         <UnitName Value="CLI.Application"/>
       </Item>
       <Item>
+        <Filename Value="..\..\src\cli.internal.completion.pas"/>
+        <UnitName Value="CLI.Internal.Completion"/>
+        <AddToUsesPkgSection Value="False"/>
+      </Item>
+      <Item>
         <Filename Value="..\..\src\cli.command.pas"/>
         <UnitName Value="CLI.Command"/>
       </Item>
@@ -55,12 +60,22 @@ SOFTWARE. "/>
         <UnitName Value="CLI.Errors"/>
       </Item>
       <Item>
+        <Filename Value="..\..\src\cli.internal.help.pas"/>
+        <UnitName Value="CLI.Internal.Help"/>
+        <AddToUsesPkgSection Value="False"/>
+      </Item>
+      <Item>
         <Filename Value="..\..\src\cli.interfaces.pas"/>
         <UnitName Value="CLI.Interfaces"/>
       </Item>
       <Item>
         <Filename Value="..\..\src\cli.parameter.pas"/>
         <UnitName Value="CLI.Parameter"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\src\cli.internal.parametervalues.pas"/>
+        <UnitName Value="CLI.Internal.ParameterValues"/>
+        <AddToUsesPkgSection Value="False"/>
       </Item>
       <Item>
         <Filename Value="..\..\src\cli.progress.pas"/>

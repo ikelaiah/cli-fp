@@ -8,8 +8,9 @@
 
 This PR delivers the focused `v1.3.3` roadmap milestone. It makes example
 cleanup safe, replaces placeholder help tests with behavioural assertions,
-accepts separated negative integer and float values, and keeps all seven
-canonical examples buildable in Windows and Linux CI.
+accepts separated negative integer and float values, protects password debug
+values, reduces internal application complexity, and keeps all seven canonical
+examples buildable in Windows and Linux CI.
 
 The release adds no public command API, parameter kind, generator capability,
 or completion feature.
@@ -48,6 +49,19 @@ or completion feature.
 - [x] Confirm unknown options still fail validation and prevent command
   execution.
 
+## Internal Maintenance and Diagnostics
+
+- [x] Force isolated framework unit rebuilds on Windows and Linux.
+- [x] Exclude capture-specific state and entry points from normal builds.
+- [x] Redact separated and equals-form password values in framework debug
+  output.
+- [x] Share one parameter-value implementation across validation and command
+  execution.
+- [x] Consolidate application and base-command help formatting.
+- [x] Extract completion calculation and remove unreachable private callback
+  paths and unused temporary allocations.
+- [x] Decompose application dispatch while preserving the public facade.
+
 ## CI, Documentation, and Versioning
 
 - [x] Configure the example build-and-cleanup smoke check in Windows and Linux CI.
@@ -71,13 +85,13 @@ parameter kinds continue to require equals syntax.
 
 ## Verification
 
-- [x] Framework suite: 41 tests, 0 errors, 0 failures.
+- [x] Framework suite: 43 tests, 0 errors, 0 failures.
 - [x] Separated and equals-form negative integer and float regression coverage.
 - [x] Unknown-option regression coverage.
 - [x] Windows example build-and-cleanup smoke check covering all seven examples.
 - [x] Windows generator unit, golden-output, compile-smoke, and operations
   suites.
-- [x] Lazarus runtime package build in an isolated clean clone with version
+- [x] Lazarus runtime package build in an isolated clean source copy with version
   metadata at `1.3.3`.
 - [x] `git diff --check` passes.
 - [x] FPC 3.2.2.
