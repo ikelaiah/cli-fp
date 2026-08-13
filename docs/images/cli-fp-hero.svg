@@ -25,9 +25,9 @@
       <stop stop-color="#ffffff"/>
       <stop offset="1" stop-color="#e7ecf5"/>
     </linearGradient>
-    <linearGradient id="trace" x1="0" y1="72" x2="178" y2="142" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#6640d8"/>
-      <stop offset="1" stop-color="#1675ff"/>
+    <linearGradient id="trace" x1="92" y1="626" x2="930" y2="666" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1675ff"/>
+      <stop offset="1" stop-color="#10bfa2"/>
     </linearGradient>
     <linearGradient id="purple-pill" x1="1410" y1="350" x2="1810" y2="470" gradientUnits="userSpaceOnUse">
       <stop stop-color="#522c93" stop-opacity="0.42"/>
@@ -54,7 +54,9 @@
   <rect width="1983" height="793" fill="url(#purple-depth)"/>
   <rect x="28" y="28" width="1927" height="737" fill="url(#dot-grid)" opacity="0.8"/>
 
-  <path d="M0 140h84c26 0 48-21 48-48s19-24 45-24" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 9" opacity="0.9"/>
+  <path d="M92 646h292c28 0 42-20 42-42s14-28 38-28h260c26 0 40 18 40 40s14 30 40 30h166" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 9" opacity="0.82"/>
+  <circle cx="426" cy="604" r="7" fill="#1985ef" opacity="0.9"/>
+  <circle cx="724" cy="616" r="7" fill="#10bfa2" opacity="0.9"/>
 
   <g>
     <path d="M112 264l91 82-91 82" fill="none" stroke="url(#brand-blue)" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
