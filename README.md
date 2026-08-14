@@ -1,51 +1,24 @@
-# cli-fp
+![cli-fp: A CLI framework for Free Pascal](docs/images/cli-fp-hero.svg)
+
+# ⚡ cli-fp: Native CLIs for Free Pascal
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-1E3A8A.svg)](LICENSE)
-[![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-3B82F6.svg)](https://www.freepascal.org/)
+[![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2+-3B82F6.svg)](https://www.freepascal.org/)
+[![Lazarus](https://img.shields.io/badge/Lazarus-package-60A5FA.svg)](packages/lazarus/cli_fp.lpk)
 ![Supports Windows](https://img.shields.io/badge/support-Windows-F59E0B?logo=Windows)
 ![Supports Linux](https://img.shields.io/badge/support-Linux-F59E0B?logo=Linux)
 [![Version](https://img.shields.io/badge/version-1.3.3-8B5CF6.svg)](CHANGELOG.md)
+[![No Dependencies](https://img.shields.io/badge/dependencies-none-10B981.svg)](#-requirements-and-dependencies)
+[![Documentation](https://img.shields.io/badge/Docs-Available-brightgreen.svg)](docs/)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
+[![Status](https://img.shields.io/badge/Status-Stable-brightgreen.svg)](ROADMAP.md)
 
-A small framework for building native command-line applications with Free
-Pascal.
+`cli-fp` is a lightweight framework for building polished native command-line
+applications in Free Pascal—with command trees, typed option validation,
+generated help and shell completion, colours, spinners, and progress bars, but
+no third-party runtime dependencies.
 
-`cli-fp` provides commands and subcommands, option validation, generated help,
-Bash and PowerShell completion, colours, spinners, and progress bars. It uses
-standard Free Pascal units and produces a normal native executable with no
-separate runtime to deploy.
-
-## 🎯 Project priorities
-
-The runtime library is the heart of `cli-fp`. Its design is guided by four
-priorities:
-
-- A useful CLI should be easy to create and run.
-- The smallest example should teach the framework without hiding it.
-- Parsing, validation, help, completion, and execution should have one coherent
-  implementation.
-- Advanced tooling, including project generation, should remain optional.
-
-See the [roadmap](ROADMAP.md) for the work planned around these priorities.
-
-## 🚀 Quick start
-
-You need Free Pascal 3.2.2. Install it from the
-[official downloads page](https://www.freepascal.org/download.html), or use the
-compiler supplied with Lazarus. Check that it is available:
-
-```text
-fpc -iV
-```
-
-Clone the repository:
-
-```bash
-git clone https://github.com/ikelaiah/cli-fp.git
-cd cli-fp
-```
-
-Create `HelloCLI.lpr` in the repository root:
+A complete small CLI:
 
 ```pascal
 program HelloCLI;
@@ -69,7 +42,6 @@ var
 begin
   if not GetParameterValue('--name', PersonName) then
     PersonName := 'World';
-
   WriteLn('Hello, ', PersonName, '!');
   Result := 0;
 end;
@@ -80,11 +52,54 @@ var
 begin
   Main := THelloCommand.Create('', 'Print a greeting');
   Main.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
-
   App := CreateCLIApplication('hello', '1.0.0', Main);
   Halt(App.Execute);
 end.
 ```
+
+```console
+$ ./HelloCLI --name Ada
+Hello, Ada!
+```
+
+## ✨ Why cli-fp?
+
+`cli-fp` keeps the common parts of a command-line application coherent without
+hiding the native Pascal program underneath:
+
+- Build one action, named commands, or deeply nested command trees.
+- Validate strings, integers, floats, booleans, dates, enumerations, and custom
+  values before execution.
+- Generate consistent help plus Bash and PowerShell completion from the same
+  command definitions.
+- Add terminal polish with colours, spinners, progress bars, and debug logging.
+- Compile to normal Windows and Linux executables using standard Free Pascal
+  units only.
+- Use the optional project generator when it helps, or work directly with the
+  runtime library.
+
+The public facade remains deliberately small; parsing, validation, help,
+completion, and dispatch share the same internal model. See the
+[roadmap](ROADMAP.md) for current scope and future work.
+
+## 🚀 Quick start
+
+You need Free Pascal 3.2.2. Install it from the
+[official downloads page](https://www.freepascal.org/download.html), or use the
+compiler supplied with Lazarus. Check that it is available:
+
+```text
+fpc -iV
+```
+
+Clone the repository:
+
+```bash
+git clone https://github.com/ikelaiah/cli-fp.git
+cd cli-fp
+```
+
+Save the complete example above as `HelloCLI.lpr` in the repository root.
 
 Compile and run it on Linux or macOS:
 
