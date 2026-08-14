@@ -1,128 +1,580 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1983" height="793" viewBox="0 0 1983 793" role="img" aria-labelledby="title description">
-  <title id="title">cli-fp: A CLI framework for Free Pascal</title>
-  <desc id="description">A command prompt and cli-fp wordmark beside a terminal command tree on a deep blue and purple background.</desc>
-
-  <defs>
-    <linearGradient id="background" x1="0" y1="0" x2="1983" y2="793" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#01050f"/>
-      <stop offset="0.48" stop-color="#06152f"/>
-      <stop offset="0.72" stop-color="#0d1133"/>
-      <stop offset="1" stop-color="#220b3d"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1983"
+   height="793"
+   viewBox="0 0 1983 793"
+   role="img"
+   aria-labelledby="title description"
+   version="1.1"
+   id="svg45"
+   sodipodi:docname="cli-fp-hero.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview45"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.91578417"
+     inkscape:cx="518.68117"
+     inkscape:cy="396.92759"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg45" />
+  <title
+     id="title">cli-fp: A CLI framework for Free Pascal</title>
+  <desc
+     id="description">A command prompt and cli-fp wordmark beside a terminal command tree on a deep blue and purple background.</desc>
+  <defs
+     id="defs19">
+    <linearGradient
+       id="background"
+       x1="0"
+       y1="0"
+       x2="1983"
+       y2="793"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#01050f"
+         id="stop1" />
+      <stop
+         offset="0.48"
+         stop-color="#06152f"
+         id="stop2" />
+      <stop
+         offset="0.72"
+         stop-color="#0d1133"
+         id="stop3" />
+      <stop
+         offset="1"
+         stop-color="#220b3d"
+         id="stop4" />
     </linearGradient>
-    <radialGradient id="blue-depth" cx="0" cy="0" r="1" gradientTransform="translate(790 410) rotate(12) scale(825 510)" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0b2b67" stop-opacity="0.32"/>
-      <stop offset="1" stop-color="#0b2b67" stop-opacity="0"/>
+    <radialGradient
+       id="blue-depth"
+       cx="0"
+       cy="0"
+       r="1"
+       gradientTransform="translate(790 410) rotate(12) scale(825 510)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#0b2b67"
+         stop-opacity="0.32"
+         id="stop5" />
+      <stop
+         offset="1"
+         stop-color="#0b2b67"
+         stop-opacity="0"
+         id="stop6" />
     </radialGradient>
-    <radialGradient id="purple-depth" cx="0" cy="0" r="1" gradientTransform="translate(1810 180) rotate(126) scale(640 490)" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#431667" stop-opacity="0.32"/>
-      <stop offset="1" stop-color="#431667" stop-opacity="0"/>
+    <radialGradient
+       id="purple-depth"
+       cx="0"
+       cy="0"
+       r="1"
+       gradientTransform="translate(1810 180) rotate(126) scale(640 490)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#431667"
+         stop-opacity="0.32"
+         id="stop7" />
+      <stop
+         offset="1"
+         stop-color="#431667"
+         stop-opacity="0"
+         id="stop8" />
     </radialGradient>
-    <linearGradient id="brand-blue" x1="110" y1="230" x2="970" y2="500" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2583ff"/>
-      <stop offset="1" stop-color="#0752f2"/>
+    <linearGradient
+       id="brand-blue"
+       x1="110"
+       y1="230"
+       x2="970"
+       y2="500"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#2583ff"
+         id="stop9" />
+      <stop
+         offset="1"
+         stop-color="#0752f2"
+         id="stop10" />
     </linearGradient>
-    <linearGradient id="brand-white" x1="320" y1="235" x2="640" y2="490" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#e7ecf5"/>
+    <linearGradient
+       id="brand-white"
+       x1="320"
+       y1="235"
+       x2="640"
+       y2="490"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#ffffff"
+         id="stop11" />
+      <stop
+         offset="1"
+         stop-color="#e7ecf5"
+         id="stop12" />
     </linearGradient>
-    <linearGradient id="trace" x1="92" y1="626" x2="930" y2="666" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1675ff"/>
-      <stop offset="1" stop-color="#10bfa2"/>
+    <linearGradient
+       id="trace"
+       x1="92"
+       y1="626"
+       x2="930"
+       y2="666"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#1675ff"
+         id="stop13" />
+      <stop
+         offset="1"
+         stop-color="#10bfa2"
+         id="stop14" />
     </linearGradient>
-    <linearGradient id="purple-pill" x1="1410" y1="350" x2="1810" y2="470" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#522c93" stop-opacity="0.42"/>
-      <stop offset="1" stop-color="#32205c" stop-opacity="0.66"/>
+    <linearGradient
+       id="purple-pill"
+       x1="1410"
+       y1="350"
+       x2="1810"
+       y2="470"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#522c93"
+         stop-opacity="0.42"
+         id="stop15" />
+      <stop
+         offset="1"
+         stop-color="#32205c"
+         stop-opacity="0.66"
+         id="stop16" />
     </linearGradient>
-    <linearGradient id="amber-pill" x1="1410" y1="510" x2="1810" y2="635" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#614018" stop-opacity="0.44"/>
-      <stop offset="1" stop-color="#3b2815" stop-opacity="0.66"/>
+    <linearGradient
+       id="amber-pill"
+       x1="1410"
+       y1="510"
+       x2="1810"
+       y2="635"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#614018"
+         stop-opacity="0.44"
+         id="stop17" />
+      <stop
+         offset="1"
+         stop-color="#3b2815"
+         stop-opacity="0.66"
+         id="stop18" />
     </linearGradient>
-    <pattern id="dot-grid" width="36" height="36" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1.45" fill="#2578dd" opacity="0.72"/>
+    <pattern
+       id="dot-grid"
+       width="36"
+       height="36"
+       patternUnits="userSpaceOnUse">
+      <circle
+         cx="2"
+         cy="2"
+         r="1.45"
+         fill="#2578dd"
+         opacity="0.72"
+         id="circle18" />
     </pattern>
-    <filter id="blue-glow" x="-35%" y="-35%" width="170%" height="170%">
-      <feGaussianBlur stdDeviation="7" result="glow"/>
-      <feMerge>
-        <feMergeNode in="glow"/>
-        <feMergeNode in="SourceGraphic"/>
+    <filter
+       id="blue-glow"
+       x="-0.19534884"
+       y="-0.19534884"
+       width="1.3906977"
+       height="1.3906977">
+      <feGaussianBlur
+         stdDeviation="7"
+         result="glow"
+         id="feGaussianBlur18" />
+      <feMerge
+         id="feMerge19">
+        <feMergeNode
+           in="glow"
+           id="feMergeNode18" />
+        <feMergeNode
+           in="SourceGraphic"
+           id="feMergeNode19" />
       </feMerge>
     </filter>
   </defs>
-
-  <rect width="1983" height="793" fill="url(#background)"/>
-  <rect width="1983" height="793" fill="url(#blue-depth)"/>
-  <rect width="1983" height="793" fill="url(#purple-depth)"/>
-  <rect x="28" y="28" width="1927" height="737" fill="url(#dot-grid)" opacity="0.8"/>
-
-  <path d="M92 646h300l68-58h284l76 32h110" fill="none" stroke="url(#trace)" stroke-width="3" stroke-linecap="round" stroke-linejoin="miter" opacity="0.82"/>
-  <circle cx="92" cy="646" r="4" fill="#1675ff" opacity="0.9"/>
-  <circle cx="744" cy="588" r="4" fill="#10bfa2" opacity="0.9"/>
-
-  <g>
-    <path d="M112 264l91 82-91 82" fill="none" stroke="url(#brand-blue)" stroke-width="48" stroke-linecap="square" stroke-linejoin="miter"/>
-    <path d="M169 455h99" fill="none" stroke="url(#brand-blue)" stroke-width="28"/>
-
-    <text x="288" y="454" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="218" font-weight="750" letter-spacing="-11" transform="translate(288 505) scale(1.34 1.25) translate(-288 -505)">
-      <tspan fill="url(#brand-white)">cli-</tspan><tspan fill="url(#brand-blue)">fp</tspan>
-    </text>
-    <text x="110" y="554" fill="#9fcfff" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="34" font-weight="500" letter-spacing="5.4">A CLI FRAMEWORK FOR FREE PASCAL</text>
+  <rect
+     width="1983"
+     height="793"
+     fill="url(#background)"
+     id="rect19" />
+  <rect
+     width="1983"
+     height="793"
+     fill="url(#blue-depth)"
+     id="rect20" />
+  <rect
+     width="1983"
+     height="793"
+     fill="url(#purple-depth)"
+     id="rect21" />
+  <rect
+     x="28"
+     y="28"
+     width="1927"
+     height="737"
+     fill="url(#dot-grid)"
+     opacity="0.8"
+     id="rect22" />
+  <path
+     d="m 92,646 h 300 l 68,-58 h 284"
+     fill="none"
+     stroke="url(#trace)"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-linejoin="miter"
+     opacity="0.82"
+     id="path22"
+     sodipodi:nodetypes="cccc" />
+  <circle
+     cx="92"
+     cy="646"
+     r="4"
+     fill="#1675ff"
+     opacity="0.9"
+     id="circle22" />
+  <circle
+     cx="744"
+     cy="588"
+     r="4"
+     fill="#10bfa2"
+     opacity="0.9"
+     id="circle23" />
+  <g
+     id="g26">
+    <path
+       d="M112 264l91 82-91 82"
+       fill="none"
+       stroke="url(#brand-blue)"
+       stroke-width="48"
+       stroke-linecap="square"
+       stroke-linejoin="miter"
+       id="path23" />
+    <path
+       d="M169 455h99"
+       fill="none"
+       stroke="url(#brand-blue)"
+       stroke-width="28"
+       id="path24" />
+    <text
+       x="288"
+       y="454"
+       font-family="Segoe UI, Inter, Arial, sans-serif"
+       font-size="218"
+       font-weight="750"
+       letter-spacing="-11"
+       transform="translate(288 505) scale(1.34 1.25) translate(-288 -505)"
+       id="text25"><tspan
+         fill="url(#brand-white)"
+         id="tspan24">cli-</tspan><tspan
+         fill="url(#brand-blue)"
+         id="tspan25">fp</tspan></text>
+    <text
+       x="110"
+       y="554"
+       fill="#9fcfff"
+       font-family="Segoe UI, Inter, Arial, sans-serif"
+       font-size="34"
+       font-weight="500"
+       letter-spacing="5.4"
+       id="text26">A CLI FRAMEWORK FOR FREE PASCAL</text>
   </g>
-
-  <g>
-    <rect x="1155" y="77" width="760" height="615" rx="29" fill="#03112c" fill-opacity="0.87" stroke="#1670ff" stroke-width="4"/>
-    <circle cx="1208" cy="112" r="11" fill="#ef535e"/>
-    <circle cx="1246" cy="112" r="11" fill="#f7b719"/>
-    <circle cx="1284" cy="112" r="11" fill="#16b98a"/>
-
-    <path d="M1248 215v425" fill="none" stroke="#1775ff" stroke-width="5"/>
-    <path d="M1248 373h89M1248 538h89" fill="none" stroke="#1775ff" stroke-width="4"/>
-    <circle cx="1248" cy="215" r="43" fill="#1263ef" filter="url(#blue-glow)"/>
-    <path d="M1237 196l20 19-20 20" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="square"/>
-    <circle cx="1248" cy="373" r="11" fill="#1473ff"/>
-    <circle cx="1248" cy="538" r="11" fill="#1473ff"/>
-    <circle cx="1248" cy="640" r="14" fill="#14ae7c"/>
-
-    <g fill="none" stroke="#1670ff" stroke-width="4">
-      <path d="M1291 232h44c41 0 46-26 78-26h59"/>
-      <path d="M1335 232v23c0 16 12 27 28 27h109"/>
+  <g
+     id="g45">
+    <rect
+       x="1155"
+       y="77"
+       width="760"
+       height="615"
+       rx="29"
+       fill="#03112c"
+       fill-opacity="0.87"
+       stroke="#1670ff"
+       stroke-width="4"
+       id="rect26" />
+    <circle
+       cx="1208"
+       cy="112"
+       r="11"
+       fill="#ef535e"
+       id="circle26" />
+    <circle
+       cx="1246"
+       cy="112"
+       r="11"
+       fill="#f7b719"
+       id="circle27" />
+    <circle
+       cx="1284"
+       cy="112"
+       r="11"
+       fill="#16b98a"
+       id="circle28" />
+    <path
+       d="M1248 215v425"
+       fill="none"
+       stroke="#1775ff"
+       stroke-width="5"
+       id="path28" />
+    <path
+       d="M1248 373h89M1248 538h89"
+       fill="none"
+       stroke="#1775ff"
+       stroke-width="4"
+       id="path29" />
+    <circle
+       cx="1248"
+       cy="215"
+       r="43"
+       fill="#1263ef"
+       filter="url(#blue-glow)"
+       id="circle29" />
+    <path
+       d="M1237 196l20 19-20 20"
+       fill="none"
+       stroke="#fff"
+       stroke-width="10"
+       stroke-linecap="square"
+       id="path30" />
+    <circle
+       cx="1248"
+       cy="373"
+       r="11"
+       fill="#1473ff"
+       id="circle30" />
+    <circle
+       cx="1248"
+       cy="538"
+       r="11"
+       fill="#1473ff"
+       id="circle31" />
+    <circle
+       cx="1248"
+       cy="640"
+       r="14"
+       fill="#14ae7c"
+       id="circle32" />
+    <g
+       fill="none"
+       stroke="#1670ff"
+       stroke-width="4"
+       id="g33">
+      <path
+         d="M1291 232h44c41 0 46-26 78-26h59"
+         id="path32" />
+      <path
+         d="M1335 232v23c0 16 12 27 28 27h109"
+         id="path33" />
     </g>
-    <circle cx="1336" cy="232" r="11" fill="#1670ff"/>
-
-    <g>
-      <rect x="1472" y="178" width="338" height="59" rx="29.5" fill="#071942" stroke="#1670ff" stroke-width="3"/>
-      <circle cx="1511" cy="207.5" r="15" fill="#1767ed"/>
-      <rect x="1548" y="199" width="204" height="17" rx="8.5" fill="#1767ed"/>
-      <rect x="1472" y="251" width="338" height="59" rx="29.5" fill="#071942" stroke="#1670ff" stroke-width="3"/>
-      <circle cx="1511" cy="280.5" r="15" fill="#1767ed"/>
-      <rect x="1548" y="272" width="204" height="17" rx="8.5" fill="#1767ed"/>
+    <circle
+       cx="1336"
+       cy="232"
+       r="11"
+       fill="#1670ff"
+       id="circle33" />
+    <g
+       id="g36">
+      <rect
+         x="1472"
+         y="178"
+         width="338"
+         height="59"
+         rx="29.5"
+         fill="#071942"
+         stroke="#1670ff"
+         stroke-width="3"
+         id="rect33" />
+      <circle
+         cx="1511"
+         cy="207.5"
+         r="15"
+         fill="#1767ed"
+         id="circle34" />
+      <rect
+         x="1548"
+         y="199"
+         width="204"
+         height="17"
+         rx="8.5"
+         fill="#1767ed"
+         id="rect34" />
+      <rect
+         x="1472"
+         y="251"
+         width="338"
+         height="59"
+         rx="29.5"
+         fill="#071942"
+         stroke="#1670ff"
+         stroke-width="3"
+         id="rect35" />
+      <circle
+         cx="1511"
+         cy="280.5"
+         r="15"
+         fill="#1767ed"
+         id="circle35" />
+      <rect
+         x="1548"
+         y="272"
+         width="204"
+         height="17"
+         rx="8.5"
+         fill="#1767ed"
+         id="rect36" />
     </g>
-
-    <g fill="none" stroke="#8a61f5" stroke-width="4">
-      <path d="M1337 373h75c21 0 28 0 60 0"/>
-      <path d="M1413 373v44c0 16 13 28 29 28h30"/>
+    <g
+       fill="none"
+       stroke="#8a61f5"
+       stroke-width="4"
+       id="g37">
+      <path
+         d="M1337 373h75c21 0 28 0 60 0"
+         id="path36" />
+      <path
+         d="M1413 373v44c0 16 13 28 29 28h30"
+         id="path37" />
     </g>
-    <circle cx="1337" cy="373" r="11" fill="#8a61f5"/>
-    <g>
-      <rect x="1472" y="343" width="338" height="59" rx="29.5" fill="url(#purple-pill)" stroke="#8a61f5" stroke-width="3"/>
-      <circle cx="1511" cy="372.5" r="15" fill="#8063f3"/>
-      <rect x="1548" y="364" width="204" height="17" rx="8.5" fill="#7657dc"/>
-      <rect x="1472" y="416" width="338" height="59" rx="29.5" fill="url(#purple-pill)" stroke="#8a61f5" stroke-width="3"/>
-      <circle cx="1511" cy="445.5" r="15" fill="#8063f3"/>
-      <rect x="1548" y="437" width="204" height="17" rx="8.5" fill="#7657dc"/>
+    <circle
+       cx="1337"
+       cy="373"
+       r="11"
+       fill="#8a61f5"
+       id="circle37" />
+    <g
+       id="g40">
+      <rect
+         x="1472"
+         y="343"
+         width="338"
+         height="59"
+         rx="29.5"
+         fill="url(#purple-pill)"
+         stroke="#8a61f5"
+         stroke-width="3"
+         id="rect37" />
+      <circle
+         cx="1511"
+         cy="372.5"
+         r="15"
+         fill="#8063f3"
+         id="circle38" />
+      <rect
+         x="1548"
+         y="364"
+         width="204"
+         height="17"
+         rx="8.5"
+         fill="#7657dc"
+         id="rect38" />
+      <rect
+         x="1472"
+         y="416"
+         width="338"
+         height="59"
+         rx="29.5"
+         fill="url(#purple-pill)"
+         stroke="#8a61f5"
+         stroke-width="3"
+         id="rect39" />
+      <circle
+         cx="1511"
+         cy="445.5"
+         r="15"
+         fill="#8063f3"
+         id="circle39" />
+      <rect
+         x="1548"
+         y="437"
+         width="204"
+         height="17"
+         rx="8.5"
+         fill="#7657dc"
+         id="rect40" />
     </g>
-
-    <g fill="none" stroke="#f59e0b" stroke-width="4">
-      <path d="M1337 538h75c21 0 28 0 60 0"/>
-      <path d="M1413 538v44c0 16 13 28 29 28h30"/>
+    <g
+       fill="none"
+       stroke="#f59e0b"
+       stroke-width="4"
+       id="g41">
+      <path
+         d="M1337 538h75c21 0 28 0 60 0"
+         id="path40" />
+      <path
+         d="M1413 538v44c0 16 13 28 29 28h30"
+         id="path41" />
     </g>
-    <circle cx="1337" cy="538" r="11" fill="#f59e0b"/>
-    <g>
-      <rect x="1472" y="508" width="338" height="59" rx="29.5" fill="url(#amber-pill)" stroke="#f59e0b" stroke-width="3"/>
-      <circle cx="1511" cy="537.5" r="15" fill="#ffad16"/>
-      <rect x="1548" y="529" width="204" height="17" rx="8.5" fill="#b77913"/>
-      <rect x="1472" y="581" width="338" height="59" rx="29.5" fill="url(#amber-pill)" stroke="#f59e0b" stroke-width="3"/>
-      <circle cx="1511" cy="610.5" r="15" fill="#ffad16"/>
-      <rect x="1548" y="602" width="204" height="17" rx="8.5" fill="#b77913"/>
+    <circle
+       cx="1337"
+       cy="538"
+       r="11"
+       fill="#f59e0b"
+       id="circle41" />
+    <g
+       id="g44">
+      <rect
+         x="1472"
+         y="508"
+         width="338"
+         height="59"
+         rx="29.5"
+         fill="url(#amber-pill)"
+         stroke="#f59e0b"
+         stroke-width="3"
+         id="rect41" />
+      <circle
+         cx="1511"
+         cy="537.5"
+         r="15"
+         fill="#ffad16"
+         id="circle42" />
+      <rect
+         x="1548"
+         y="529"
+         width="204"
+         height="17"
+         rx="8.5"
+         fill="#b77913"
+         id="rect42" />
+      <rect
+         x="1472"
+         y="581"
+         width="338"
+         height="59"
+         rx="29.5"
+         fill="url(#amber-pill)"
+         stroke="#f59e0b"
+         stroke-width="3"
+         id="rect43" />
+      <circle
+         cx="1511"
+         cy="610.5"
+         r="15"
+         fill="#ffad16"
+         id="circle43" />
+      <rect
+         x="1548"
+         y="602"
+         width="204"
+         height="17"
+         rx="8.5"
+         fill="#b77913"
+         id="rect44" />
     </g>
   </g>
 </svg>
