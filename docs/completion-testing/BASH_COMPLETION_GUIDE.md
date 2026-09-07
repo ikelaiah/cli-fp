@@ -1,6 +1,6 @@
 # Bash Completion User Guide
 
-[Documentation home](../README.md) · [Completion index](README.md) ·
+[Documentation home](../../README.md) · [User manual](../user-manual.md) ·
 [PowerShell guide](PS_COMPLETION_GUIDE.md)
 
 **Document Version:** 1.1

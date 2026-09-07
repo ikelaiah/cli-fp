@@ -1,6 +1,6 @@
 # CLI Project Generator
 
-[Documentation home](README.md) · [Project README](../README.md) ·
+[Documentation home](../README.md) · [Project README](../README.md) ·
 [User manual](user-manual.md) · [API reference](api-reference.md)
 
 `cli-fp-gen` turns a small JSON command specification into a native Free
@@ -10,7 +10,7 @@ separate.
 
 Use the generator when you want a working project layout immediately or expect
 the command tree to evolve. For a single-file integration into an existing
-program, the [manual quick start](../README.md#manual-quick-start) may be
+program, the [README quick start](../README.md#quick-start) may be
 simpler.
 
 ## Quick Start
@@ -70,7 +70,7 @@ project and use the runtime package separately.
 
 ## Location
 
-- Tool source: [`tools/cli-fp-gen/`](../tools/cli-fp-gen/)
+- Tool source: [`tools/cli-fp-gen/`](https://github.com/ikelaiah/cli-fp/tree/main/tools/cli-fp-gen)
 
 ## Commands
 
@@ -212,13 +212,13 @@ user-owned command stubs. It does not bypass manifest path safety checks.
 
 From the generated project directory, compile with the framework source path plus local generated/unit paths.
 
-### Linux/macOS (Bash)
+### Verify on Linux/macOS (Bash)
 
 ```bash
 fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
 ```
 
-### Windows (PowerShell)
+### Verify on Windows (PowerShell)
 
 ```powershell
 fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
@@ -229,7 +229,7 @@ Adjust the first `-Fu` path (`../../src` or `..\..\src`) to point at the
 
 ## Verification
 
-### Linux/macOS (Bash)
+### Run checks on Linux/macOS (Bash)
 
 The repository includes focused codegen checks under `tests/codegen/`:
 
@@ -238,7 +238,7 @@ The repository includes focused codegen checks under `tests/codegen/`:
 - `run_compile_smoke.sh`
 - `run_ops_test.sh`
 
-### Windows (PowerShell)
+### Run checks on Windows (PowerShell)
 
 Use the Windows-native verification script from the repository root:
 

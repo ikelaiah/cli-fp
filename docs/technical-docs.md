@@ -1,6 +1,6 @@
 # CLI Framework Technical Documentation
 
-[Documentation home](README.md) · [Project README](../README.md) ·
+[Documentation home](../README.md) · [Project README](../README.md) ·
 [User manual](user-manual.md) · [API reference](api-reference.md)
 
 This is a maintainer-level guide to parser flow, object ownership, help and

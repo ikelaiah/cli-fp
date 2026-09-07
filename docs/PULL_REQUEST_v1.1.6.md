@@ -144,7 +144,7 @@ end;
 ## 📖 Documentation
 
 - [Release Notes](RELEASE_NOTES_v1.1.6.md)
-- [Changelog](../CHANGELOG.md)
+- [Changelog](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
 - [README](../README.md)
 - [API Reference](api-reference.md)
 - [Technical Docs](technical-docs.md)

@@ -1,6 +1,6 @@
 # CLI Framework User Manual
 
-[Documentation home](README.md) · [Project README](../README.md) ·
+[Documentation home](../README.md) · [Project README](../README.md) ·
 [Code generator](codegen.md) · [API reference](api-reference.md)
 
 ## Overview
@@ -12,8 +12,7 @@ indicators.
 
 This guide starts with complete programs and then explains individual
 features. For the shortest first success, generate and compile the
-[README tutorial project](../README.md#build-your-first-generated-cli) before
-returning here.
+[README quick start](../README.md#quick-start) before returning here.
 
 ## Before You Begin
 
@@ -29,7 +28,7 @@ points to this repository's `src` directory. `-Fu` adds a unit-search path;
 units named in a Pascal `uses` clause are found there.
 
 If `.lpr`, `.pas`, `uses`, or `{$mode objfpc}` are new to you, read
-[Free Pascal in two minutes](../README.md#free-pascal-in-two-minutes).
+[README requirements](../README.md#requirements-and-dependencies).
 
 ## Choose a Learning Path
 
@@ -1133,4 +1132,4 @@ PS> ./SubCommandDemo.exe repo <Tab>
 - Look up exact signatures in the [API reference](api-reference.md).
 - Read the [technical documentation](technical-docs.md) when changing parser,
   ownership, help, or completion internals.
-- Explore the focused [example programs](../examples/).
+- Explore the focused [example programs](examples.md).

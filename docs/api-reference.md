@@ -1,6 +1,6 @@
 # CLI Framework API Reference
 
-[Documentation home](README.md) · [Project README](../README.md) ·
+[Documentation home](../README.md) · [Project README](../README.md) ·
 [User manual](user-manual.md) · [Technical documentation](technical-docs.md)
 
 Use this page when you already know the framework concept and need its public
@@ -12,7 +12,7 @@ The excerpts focus on supported application-facing members. Test hooks on
 `TCLIApplication` and the deprecated, non-functional custom-completion
 callback registry are documented in the
 [technical completion notes](technical-docs.md#historical-investigation-disabled-custom-callbacks).
-The declarations in [`src/`](../src/) remain authoritative.
+The declarations in [`src/`](https://github.com/ikelaiah/cli-fp/tree/main/src) remain authoritative.
 
 ## Table of Contents
 
@@ -39,7 +39,7 @@ The Free Pascal CLI Framework provides a comprehensive set of units for building
 
 Core interfaces that define the framework's contract.
 
-#### Types
+#### Interface types
 
 ##### `TParameterType`
 Enum defining parameter types:
@@ -291,7 +291,7 @@ end;
 
 Core application functionality implementation.
 
-#### Types
+#### Application types
 
 ##### `TCLIApplication`
 Main application class implementing `ICLIApplication`.
@@ -318,7 +318,7 @@ engine, and application validation and command execution use the same
 parameter-value lookup semantics. These internal units are not added to the
 Lazarus package's generated public `uses` list.
 
-#### Functions
+#### Application functions
 
 ##### `CreateCLIApplication`
 Creates a new CLI application instance.
@@ -356,7 +356,7 @@ been selected.
 
 Base command implementation.
 
-#### Types
+#### Command types
 
 ##### `TBaseCommand`
 Abstract base class for all CLI commands.
@@ -391,7 +391,7 @@ The type-specific `Add*Parameter` methods are listed in
 
 Parameter handling implementation.
 
-#### Types
+#### Parameter types
 
 ##### `TCommandParameter`
 Implements command parameter functionality.
@@ -412,7 +412,7 @@ public
 end;
 ```
 
-#### Functions
+#### Parameter functions
 
 ##### `CreateParameter`
 Creates a new parameter instance.
@@ -427,7 +427,7 @@ function CreateParameter(const ShortFlag, LongFlag, Description: string;
 
 Progress indicator implementations.
 
-#### Types
+#### Progress types
 
 ##### `TSpinnerStyle`
 Enum defining spinner animation styles:
@@ -474,7 +474,7 @@ public
 end;
 ```
 
-#### Functions
+#### Progress functions
 
 ##### `CreateSpinner`
 Creates a new spinner progress indicator.
@@ -494,7 +494,7 @@ function CreateProgressBar(const Total: Integer; const Width: Integer = 10): IPr
 
 Console output functionality with color support.
 
-#### Types
+#### Console types
 
 ##### `TConsoleColor`
 Enum defining console colors:
@@ -533,7 +533,7 @@ end;
 
 Exception hierarchy for error handling.
 
-#### Types
+#### Error types
 
 ##### `ECLIException`
 Base exception class for all CLI-related errors.
