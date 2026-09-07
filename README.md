@@ -2,16 +2,16 @@
 
 # ⚡ cli-fp: Native CLIs for Free Pascal
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-1E3A8A.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1E3A8A.svg)](https://github.com/ikelaiah/cli-fp/blob/main/LICENSE)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2+-3B82F6.svg)](https://www.freepascal.org/)
-[![Lazarus](https://img.shields.io/badge/Lazarus-package-60A5FA.svg)](packages/lazarus/cli_fp.lpk)
+[![Lazarus](https://img.shields.io/badge/Lazarus-package-60A5FA.svg)](https://github.com/ikelaiah/cli-fp/blob/main/packages/lazarus/cli_fp.lpk)
 ![Supports Windows](https://img.shields.io/badge/support-Windows-F59E0B?logo=Windows)
 ![Supports Linux](https://img.shields.io/badge/support-Linux-F59E0B?logo=Linux)
-[![Version](https://img.shields.io/badge/version-1.3.3-8B5CF6.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.3-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
 [![No Dependencies](https://img.shields.io/badge/dependencies-none-10B981.svg)](#-requirements-and-dependencies)
-[![Documentation](https://img.shields.io/badge/Docs-Available-brightgreen.svg)](docs/)
+[![Documentation](https://img.shields.io/badge/Docs-Website-brightgreen.svg)](https://ikelaiah.github.io/cli-fp/)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
-[![Status](https://img.shields.io/badge/Status-Stable-brightgreen.svg)](ROADMAP.md)
+[![Status](https://img.shields.io/badge/Status-Stable-brightgreen.svg)](https://github.com/ikelaiah/cli-fp/blob/main/ROADMAP.md)
 
 `cli-fp` is a lightweight framework for building polished native command-line
 applications in Free Pascal—with command trees, typed option validation,
@@ -80,7 +80,7 @@ hiding the native Pascal program underneath:
 
 The public facade remains deliberately small; parsing, validation, help,
 completion, and dispatch share the same internal model. See the
-[roadmap](ROADMAP.md) for current scope and future work.
+[roadmap](https://github.com/ikelaiah/cli-fp/blob/main/ROADMAP.md) for current scope and future work.
 
 ## 🚀 Quick start
 
@@ -133,9 +133,9 @@ Use the smallest shape that fits the program:
 
 | Shape | Example | Start with |
 | --- | --- | --- |
-| One default action | `hello --name Ada` | [RootCommandDemo](examples/RootCommandDemo/RootCommandDemo.lpr) |
-| Named commands | `tool greet --name Ada` | [SimpleDemo](examples/SimpleDemo/SimpleDemo.lpr) |
-| Nested commands | `tool repo remote add` | [SubCommandDemo](examples/SubCommandDemo/SubCommandDemo.lpr) |
+| One default action | `hello --name Ada` | [RootCommandDemo](https://github.com/ikelaiah/cli-fp/blob/main/examples/RootCommandDemo/RootCommandDemo.lpr) |
+| Named commands | `tool greet --name Ada` | [SimpleDemo](https://github.com/ikelaiah/cli-fp/blob/main/examples/SimpleDemo/SimpleDemo.lpr) |
+| Nested commands | `tool repo remote add` | [SubCommandDemo](https://github.com/ikelaiah/cli-fp/blob/main/examples/SubCommandDemo/SubCommandDemo.lpr) |
 
 A root command is an unnamed default action. Named commands are registered with
 `App.RegisterCommand`, and subcommands are attached to another command with
@@ -221,13 +221,13 @@ Each example is an ordinary Free Pascal program:
 
 | Example | Demonstrates |
 | --- | --- |
-| [RootCommandDemo](examples/RootCommandDemo/) | A focused utility with a default action |
-| [SimpleDemo](examples/SimpleDemo/) | Named commands, options, output, and a spinner |
-| [SubCommandDemo](examples/SubCommandDemo/) | Nested command trees |
-| [ColorDemo](examples/ColorDemo/) | Colours and terminal presentation |
-| [ProgressDemo](examples/ProgressDemo/) | Spinners and progress bars |
-| [LongRunningOpDemo](examples/LongRunningOpDemo/) | Longer operations and cleanup |
-| [ErrorHandlingDemo](examples/ErrorHandlingDemo/) | Errors and exit behaviour |
+| [RootCommandDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/RootCommandDemo) | A focused utility with a default action |
+| [SimpleDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/SimpleDemo) | Named commands, options, output, and a spinner |
+| [SubCommandDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/SubCommandDemo) | Nested command trees |
+| [ColorDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/ColorDemo) | Colours and terminal presentation |
+| [ProgressDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/ProgressDemo) | Spinners and progress bars |
+| [LongRunningOpDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/LongRunningOpDemo) | Longer operations and cleanup |
+| [ErrorHandlingDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/ErrorHandlingDemo) | Errors and exit behaviour |
 
 Compile an example from the repository root:
 
@@ -269,7 +269,7 @@ files.
 ## 🦎 Lazarus
 
 A runtime-only package is provided at
-[`packages/lazarus/cli_fp.lpk`](packages/lazarus/cli_fp.lpk). Open the package
+[`packages/lazarus/cli_fp.lpk`](https://github.com/ikelaiah/cli-fp/blob/main/packages/lazarus/cli_fp.lpk). Open the package
 in Lazarus, compile it, and add it to the project's required packages. Lazarus
 is optional when compiling directly with FPC.
 
@@ -305,7 +305,7 @@ removed without changing tracked files. CI runs the equivalent Bash and
 PowerShell checks on Linux and Windows.
 
 CI runs the framework and generator suites on Windows and Linux. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for coding style and pull-request guidance.
+[CONTRIBUTING.md](https://github.com/ikelaiah/cli-fp/blob/main/CONTRIBUTING.md) for coding style and pull-request guidance.
 
 The framework runners force a complete unit rebuild into a temporary output
 directory, so stale non-test `.ppu` files cannot affect the result. Test output
@@ -316,12 +316,12 @@ normal runtime builds.
 
 | Path | Purpose |
 | --- | --- |
-| [`src/`](src/) | Runtime framework units |
-| [`examples/`](examples/) | Focused, runnable applications |
-| [`tests/`](tests/) | Framework and generator tests |
-| [`tools/cli-fp-gen/`](tools/cli-fp-gen/) | Optional JSON-driven project generator |
-| [`packages/lazarus/`](packages/lazarus/) | Lazarus runtime package |
-| [`docs/`](docs/) | User, API, generator, and technical guides |
+| [`src/`](https://github.com/ikelaiah/cli-fp/tree/main/src) | Runtime framework units |
+| [`examples/`](https://github.com/ikelaiah/cli-fp/tree/main/examples) | Focused, runnable applications |
+| [`tests/`](https://github.com/ikelaiah/cli-fp/tree/main/tests) | Framework and generator tests |
+| [`tools/cli-fp-gen/`](https://github.com/ikelaiah/cli-fp/tree/main/tools/cli-fp-gen) | Optional JSON-driven project generator |
+| [`packages/lazarus/`](https://github.com/ikelaiah/cli-fp/tree/main/packages/lazarus) | Lazarus runtime package |
+| [`docs/`](https://ikelaiah.github.io/cli-fp/) | User, API, generator, and technical guides |
 
 ## 📋 Requirements and dependencies
 
@@ -340,14 +340,14 @@ sudo apt-get install fp-compiler fp-units-fcl
 
 ## 📖 Documentation
 
-- [Documentation home](docs/README.md) — choose a guide by goal
+- [Documentation site](https://ikelaiah.github.io/cli-fp/) — choose a guide by goal
 - [User manual](docs/user-manual.md) — learn the complete framework
 - [API reference](docs/api-reference.md) — look up public types and methods
 - [Technical documentation](docs/technical-docs.md) — understand the internals
 - [Generator guide](docs/codegen.md) — use and maintain `cli-fp-gen`
-- [Roadmap](ROADMAP.md) — planned simplification work
-- [Changelog](CHANGELOG.md) — release history
-- [v1.3.3 release notes](docs/RELEASE_NOTES_v1.3.3.md) — stabilization changes
+- [Roadmap](https://github.com/ikelaiah/cli-fp/blob/main/ROADMAP.md) — planned simplification work
+- [Changelog](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md) — release history
+- [v1.3.3 release notes](https://github.com/ikelaiah/cli-fp/blob/main/docs/RELEASE_NOTES_v1.3.3.md) — stabilization changes
   dated 2026-08-14
 
 ## 🤝 Contributing
@@ -358,7 +358,7 @@ maintenance cost can be discussed before implementation.
 
 ## 📄 License
 
-`cli-fp` is available under the [MIT License](LICENSE).
+`cli-fp` is available under the [MIT License](https://github.com/ikelaiah/cli-fp/blob/main/LICENSE).
 
 ## 🙏 Acknowledgments
 

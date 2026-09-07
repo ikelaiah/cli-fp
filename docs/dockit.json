@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "cli-fp",
+    "description": "A small, native CLI framework for Free Pascal.",
+    "repository_url": "https://github.com/ikelaiah/cli-fp",
+    "site_url": "https://ikelaiah.github.io/cli-fp/"
+  },
+  "theme": {
+    "preset": "purple",
+    "style": "classic"
+  },
+  "homepage": {
+    "capabilities": [
+      {
+        "title": "Start small",
+        "description": "Build one useful root command with the class-based API."
+      },
+      {
+        "title": "Grow cleanly",
+        "description": "Add named and nested commands when the CLI needs them."
+      },
+      {
+        "title": "Stay consistent",
+        "description": "Share validation, help, completion and terminal output."
+      },
+      {
+        "title": "Generate when useful",
+        "description": "Use cli-fp-gen for larger command trees, not for your first step."
+      }
+    ],
+    "sections": {
+      "release_context": true
+    }
+  }
+}

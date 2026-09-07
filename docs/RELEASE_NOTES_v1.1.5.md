@@ -133,7 +133,7 @@ No code changes required. Simply update your framework files:
 
 ### From Earlier Versions
 
-See [CHANGELOG.md](../CHANGELOG.md) for migration details from earlier versions.
+See [CHANGELOG.md](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md) for migration details from earlier versions.
 
 ## 📚 Documentation
 
@@ -143,7 +143,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for migration details from earlier versions.
 - [Technical Documentation](technical-docs.md) - Architecture details
 - [Bash Completion Guide](completion-testing/BASH_COMPLETION_GUIDE.md) - Bash completion user guide
 - [PowerShell Completion Guide](completion-testing/PS_COMPLETION_GUIDE.md) - PowerShell completion user guide
-- [CHANGELOG.md](../CHANGELOG.md) - Full version history
+- [CHANGELOG.md](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md) - Full version history
 
 ## 🙏 Acknowledgments
 
@@ -151,7 +151,7 @@ Special thanks to all contributors and testers who helped make this release poss
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/ikelaiah/cli-fp/blob/main/LICENSE) file for details.
 
 ---
 

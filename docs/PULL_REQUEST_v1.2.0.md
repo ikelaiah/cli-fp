@@ -86,7 +86,7 @@ are built.
 ## Documentation
 
 - [Release notes](RELEASE_NOTES_v1.2.0.md)
-- [Changelog](../CHANGELOG.md)
+- [Changelog](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
 - [Generator guide](codegen.md)
 - [README](../README.md)
-- [Contributing](../CONTRIBUTING.md)
+- [Contributing](https://github.com/ikelaiah/cli-fp/blob/main/CONTRIBUTING.md)

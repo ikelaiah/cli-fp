@@ -115,7 +115,7 @@ workflow reference.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](../LICENSE).
+This project is licensed under the MIT License. See [LICENSE](https://github.com/ikelaiah/cli-fp/blob/main/LICENSE).
 
 ---
 

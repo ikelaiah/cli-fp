@@ -1,6 +1,6 @@
 # PowerShell Completion User Guide
 
-[Documentation home](../README.md) · [Completion index](README.md) ·
+[Documentation home](../../README.md) · [User manual](../user-manual.md) ·
 [Bash guide](BASH_COMPLETION_GUIDE.md)
 
 **Document Version:** 1.1
@@ -352,8 +352,8 @@ Key points to remember:
 
 ## See Also
 
-- [PowerShell Completion Test Results](PS_COMPLETION_TESTS.md) - Full test suite
-- [PowerShell Completion Analysis](PS_COMPLETION_SUMMARY.md) - Technical analysis
+- [PowerShell Completion Test Results](https://github.com/ikelaiah/cli-fp/blob/main/docs/completion-testing/PS_COMPLETION_TESTS.md) - Historical full test suite
+- [PowerShell Completion Analysis](https://github.com/ikelaiah/cli-fp/blob/main/docs/completion-testing/PS_COMPLETION_SUMMARY.md) - Historical technical analysis
 - [Bash Completion Guide](BASH_COMPLETION_GUIDE.md) - Bash version
 
 ---

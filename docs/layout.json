@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "home": {
+    "path": "README.md",
+    "source": "root"
+  },
+  "unlisted": "exclude",
+  "navigation": [
+    {
+      "title": "Overview",
+      "pages": [
+        {
+          "title": "Overview",
+          "path": "README.md",
+          "source": "root"
+        }
+      ]
+    },
+    {
+      "title": "Getting started",
+      "pages": [
+        {
+          "title": "User manual",
+          "path": "user-manual.md"
+        },
+        {
+          "title": "Runnable examples",
+          "path": "examples.md"
+        }
+      ]
+    },
+    {
+      "title": "Guides",
+      "pages": [
+        {
+          "title": "Bash completion",
+          "path": "completion-testing/BASH_COMPLETION_GUIDE.md"
+        },
+        {
+          "title": "PowerShell completion",
+          "path": "completion-testing/PS_COMPLETION_GUIDE.md"
+        }
+      ]
+    },
+    {
+      "title": "Code generator",
+      "pages": [
+        {
+          "title": "cli-fp-gen",
+          "path": "codegen.md"
+        }
+      ]
+    },
+    {
+      "title": "API reference",
+      "pages": [
+        {
+          "title": "Public API",
+          "path": "api-reference.md"
+        }
+      ]
+    },
+    {
+      "title": "Advanced and technical",
+      "pages": [
+        {
+          "title": "Technical design",
+          "path": "technical-docs.md"
+        }
+      ]
+    },
+    {
+      "title": "Project",
+      "pages": [
+        {
+          "title": "Contributing and support",
+          "path": "project.md"
+        }
+      ]
+    }
+  ]
+}
