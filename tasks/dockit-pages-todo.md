@@ -4,7 +4,7 @@
 - [x] Add explicit `docs/layout.json` with root README home and curated pages.
 - [x] Repair current documentation links and anchors found by DocKit audit.
 - [x] Add the Docs badge/link to the root README after deployment config exists.
-- [x] Add the DocKit-managed Pages workflow pinned to `v0.18.0`.
+- [x] Add the DocKit-managed Pages workflow pinned to `v1.0.0`.
 - [x] Run `dockit-fp check`.
 - [x] Run `dockit-fp audit --strict`.
 - [x] Build and preview the site locally; inspect generated assets and routes.

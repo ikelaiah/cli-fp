@@ -1,7 +1,0 @@
-/* Keep the README hero inside DocKit's content column at every viewport width. */
-.prose[data-homepage="true"] > p:first-of-type > img:only-child {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-}
