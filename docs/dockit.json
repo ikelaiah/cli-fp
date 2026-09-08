@@ -8,8 +8,7 @@
   },
   "theme": {
     "preset": "purple",
-    "style": "classic",
-    "custom_css": "docs/assets/custom.css"
+    "style": "classic"
   },
   "homepage": {
     "capabilities": [
