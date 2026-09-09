@@ -8,6 +8,11 @@ complete program below is also the repository's
 [QuickStartDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/QuickStartDemo),
 which is compiled by the Windows and Linux example smoke checks.
 
+The program follows the normal v1.4.x ownership model: `THelloCommand`
+descends from `TBaseCommand`, `Main` is its instance and owns `--name`, and
+`App` is the `ICLIApplication` that parses the invocation and calls
+`Main.Execute`.
+
 ```pascal
 program QuickStartDemo;
 

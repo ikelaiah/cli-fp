@@ -100,7 +100,19 @@ buildable, test results do not depend on stale compiler units, diagnostics do
 not expose password values, and the test suite provides a dependable safety
 net for the v1.4.0 documentation work.
 
-## v1.4.0 — Documentation and Developer Learning Experience
+## v1.4.1 — Documentation Accuracy Patch (completed 2026-09-09)
+
+- Correct published snippets so the class-based command relationship is
+  explicit: a `TBaseCommand` descendant, its option-owning instance, and the
+  `ICLIApplication` registration that invokes `Execute`.
+- Keep the v1.4.0 learning path and executable QuickStart intact while making
+  recipes and reference fragments safe to read in context.
+
+**Maintenance outcome:** readers can follow the current public API without
+inventing command, application, or terminal variables that the documentation
+did not define.
+
+## v1.4.0 — Documentation and Developer Learning Experience (completed)
 
 - Publish a task-oriented documentation path that starts with a compiling
   example, distinguishes root, named, and nested command shapes, and makes

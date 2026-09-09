@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-09-09
+
+### Documentation
+
+- Corrected the reader-facing class-based command model: published recipes now
+  distinguish command descendants, their option-owning instances, and the
+  application registration that dispatches `Execute`.
+- Reworked root, named, nested, option, terminal, progress, exit-code, and
+  debug examples so each has declarations or explicit fragment context.
+- Labelled public-reference signatures and technical implementation excerpts
+  by scope; no runtime API, parser, or generator behavior changed.
+
 ## [1.4.0] - 2026-09-09
 
 ### Documentation
@@ -431,7 +443,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/ikelaiah/cli-fp/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ikelaiah/cli-fp/compare/v1.3.3...v1.4.0
 [1.3.3]: https://github.com/ikelaiah/cli-fp/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/ikelaiah/cli-fp/compare/v1.3.1...v1.3.2

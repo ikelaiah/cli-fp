@@ -1,62 +1,64 @@
-# Implementation Plan: cli-fp v1.4.0 documentation release
+# Implementation Plan: cli-fp v1.4.1 documentation accuracy patch
 
 ## Overview
 
-Turn the published documentation into a task-oriented learning path while
-keeping the current v1.3.3 runtime API intact. The release uses the existing
-canonical-example cleanup smoke test as the executable-documentation guard.
+Correct the published v1.4.0 documentation so readers always see the normal
+class-based cli-fp model: define a `TBaseCommand` descendant, create its
+instance, register options on that instance, and run its `Execute` method via
+an `ICLIApplication`. This is a documentation-only release; no runtime API,
+parser, or generator behaviour changes.
 
 ## Architecture Decisions
 
-- Keep `docs/user-manual.md` as a compact compatibility landing page rather
-  than breaking existing links; move reader-facing material into focused pages.
-- Add one concise task guide (`docs/how-to.md`) and link to deeper learning and
-  reference pages instead of duplicating explanations.
-- Keep generator safety and implementation details in technical documentation;
-  keep application-author guidance in `docs/codegen.md`.
-- Publish only current reader-facing pages through DocKit navigation; historical
-  release and completion test records remain unlisted.
-- Do not change the runtime API. Existing cleanup-smoke CI compiles every
-  canonical example and protects the beginner examples from documentation drift.
+- Treat the Getting Started QuickStart as the canonical full program; use
+  clearly labelled command patterns and in-context fragments elsewhere.
+- Give every reader-facing Pascal block either local declarations or an
+  explicit immediate context statement. Do not rely on implied `App`, `Root`,
+  `Command`, spinner, or progress variables.
+- Keep `docs/how-to.md` as one task-oriented page, but introduce the command
+  hierarchy there and link outward instead of duplicating full programs.
+- Keep technical documentation as source-context excerpts and label that scope
+  plainly rather than presenting implementation fragments as application code.
 
 ## Task List
 
-### Phase 1: Release foundation
+### Phase 1: Context audit and reader path
 
-- [ ] Task 1: Record the documentation audit and update release planning.
-- [ ] Task 2: Establish focused learning pages and compatibility links.
+- [ ] Task 1: Audit every published Pascal block and record its category
+  (complete program, command pattern, or explicitly scoped fragment).
+- [ ] Task 2: Add the command/object/application mental model to Getting
+  Started, Commands, and How-To; repair root, named, and nested command setup.
 
-### Checkpoint: Learning path
+### Checkpoint: Reader context
 
-- [ ] Documentation links resolve locally.
-- [ ] Root, named, and nested command shapes have distinct entry points.
+- [ ] A reader of How-To alone can identify the developer-defined
+  `TBaseCommand` descendant, the option-owning instance, and `Execute`.
+- [ ] No reader-facing Pascal block contains an unexplained identifier.
 
-### Phase 2: Task-oriented documentation
+### Phase 2: Recipe and reference accuracy
 
-- [ ] Task 3: Add concise How-To recipes grounded in tested APIs.
-- [ ] Task 4: Add limitations, terminal, and completion guidance.
-- [ ] Task 5: Refresh README, examples, generator, and API cross-links.
+- [ ] Task 3: Repair option, value-retrieval, exit-code, terminal, progress,
+  and debug recipes with exact units, receiver types, and scopes.
+- [ ] Task 4: Audit reference, technical, release, and navigation pages;
+  update v1.4.1 version records without changing runtime claims.
 
-### Checkpoint: Published documentation
+### Checkpoint: Documentation qualification
 
-- [ ] DocKit navigation contains each page once and excludes historical records.
-- [ ] Release notes, roadmap, and project material agree on v1.4.0.
+- [ ] DocKit check, strict audit, and build succeed.
+- [ ] Framework, generator, and canonical-example checks succeed as applicable.
 
-### Phase 3: Qualification
+### Phase 3: Review and release
 
-- [ ] Task 6: Run documentation checks, framework/generator checks, and example smoke checks.
-- [ ] Task 7: Review the final diff, commit, push, and create the requested PR/release if credentials permit.
-
-### Checkpoint: Complete
-
-- [ ] All release acceptance criteria that can be verified locally pass.
-- [ ] Working tree is clean after qualification.
+- [ ] Task 5: Review the diff for documentation/API accuracy, commit the
+  candidate, and publish the authorised PR.
+- [ ] Task 6: Qualify the exact candidate in CI, merge, tag v1.4.1, create the
+  GitHub release, and verify rendered Pages content.
 
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| Documentation claims drift from runtime behavior | High | Verify all recipe APIs against `src/` and existing FPCUnit tests. |
-| Breaking inbound manual links | Medium | Retain `user-manual.md` as a short migration/learning index. |
-| DocKit tooling unavailable locally | Medium | Run its configured commands if installed; otherwise validate JSON, Markdown links, and CI configuration locally and report the limitation. |
-| Remote permissions unavailable | Medium | Complete and qualify the candidate locally, then report exact remote steps blocked. |
+| A concise snippet still looks standalone | High | State its category and scope immediately before it; favour the canonical QuickStart link. |
+| Documentation drifts from source | High | Compare every touched API call to `src/` and compile all existing canonical examples. |
+| Docs-only changes do not trigger tests CI | Medium | Run local qualification and manually dispatch the existing Tests workflow for the PR branch. |
+| Pages deployment masks stale content | Medium | Verify route-specific rendered text after the main-branch deploy finishes. |
