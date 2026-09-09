@@ -25,13 +25,14 @@ fpc "-Fu.\src" "-FE.\example-bin" .\examples\RootCommandDemo\RootCommandDemo.lpr
 ```
 
 The repository's [example build scripts](https://github.com/ikelaiah/cli-fp/blob/main/compile-all-examples.ps1)
-compile all seven canonical examples. Individual source files remain in the
+compile all eight canonical examples. Individual source files remain in the
 repository so you can copy a small working program and change it directly.
 
 ## Choose by goal
 
 | Example | Shows |
 | --- | --- |
+| [QuickStartDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/QuickStartDemo) | The homepage's smallest compiling root CLI |
 | [RootCommandDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/RootCommandDemo) | A focused default action and root options |
 | [SimpleDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/SimpleDemo) | Named commands, options, output and a spinner |
 | [SubCommandDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/SubCommandDemo) | Nested command trees and completion |
@@ -40,5 +41,6 @@ repository so you can copy a small working program and change it directly.
 | [LongRunningOpDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/LongRunningOpDemo) | Longer operations and cleanup |
 | [ErrorHandlingDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/ErrorHandlingDemo) | Errors and exit behaviour |
 
-For the API decision behind root, named and nested commands, continue with the
-[user manual's learning paths](user-manual.md#choose-a-learning-path).
+The cleanup smoke checks compile all eight examples on Windows and Linux,
+including QuickStartDemo. For the API decision behind root, named, and nested
+commands, continue with [commands](commands.md).

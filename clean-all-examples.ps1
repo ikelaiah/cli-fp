@@ -8,6 +8,7 @@ $Examples = @(
     'ErrorHandlingDemo',
     'LongRunningOpDemo',
     'ProgressDemo',
+    'QuickStartDemo',
     'RootCommandDemo',
     'SimpleDemo',
     'SubCommandDemo'

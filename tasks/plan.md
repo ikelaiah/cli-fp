@@ -1,82 +1,62 @@
-# Implementation Plan: v1.3.3 Stabilization
-
-**Status:** Completed for the 2026-08-14 release.
+# Implementation Plan: cli-fp v1.4.0 documentation release
 
 ## Overview
 
-Delivered the ROADMAP.md v1.3.3 stabilization work only: safe example cleanup,
-behavioural coverage, hermetic builds, safe diagnostics, and behaviour-
-preserving internal decomposition before the next public API is added.
+Turn the published documentation into a task-oriented learning path while
+keeping the current v1.3.3 runtime API intact. The release uses the existing
+canonical-example cleanup smoke test as the executable-documentation guard.
 
 ## Architecture Decisions
 
-- Keep cleanup targets allowlisted to generated compiler artifacts; never remove
-  source-controlled directories or files.
-- Capture help output through an internal `TCLIApplication` test seam, without
-  adding a method to the public `ICLIApplication` API.
-- Extend the existing parser and validation path for separated signed numbers;
-  do not create a parallel parsing path.
-- Preserve `TCLIApplication` and all public compatibility symbols while moving
-  help rendering, completion calculation, and parameter-value semantics into
-  focused internal units.
-- Keep deprecated completion callback registration as public no-ops for 1.x,
-  but remove private branches that can never execute.
+- Keep `docs/user-manual.md` as a compact compatibility landing page rather
+  than breaking existing links; move reader-facing material into focused pages.
+- Add one concise task guide (`docs/how-to.md`) and link to deeper learning and
+  reference pages instead of duplicating explanations.
+- Keep generator safety and implementation details in technical documentation;
+  keep application-author guidance in `docs/codegen.md`.
+- Publish only current reader-facing pages through DocKit navigation; historical
+  release and completion test records remain unlisted.
+- Do not change the runtime API. Existing cleanup-smoke CI compiles every
+  canonical example and protects the beginner examples from documentation drift.
 
 ## Task List
 
-### Phase 1: Safe cleanup
+### Phase 1: Release foundation
 
-- [x] Task 1: Restrict both cleanup scripts to generated artifacts and add
-  cross-platform smoke checks that prove tracked files survive.
+- [ ] Task 1: Record the documentation audit and update release planning.
+- [ ] Task 2: Establish focused learning pages and compatibility links.
 
-### Phase 2: Runtime behaviour
+### Checkpoint: Learning path
 
-- [x] Task 2: Replace placeholder help tests with output assertions using an
-  internal capture seam.
-- [x] Task 3: Support separated negative integer and float option values, with
-  regression coverage for equals, separated, and unknown-option forms.
+- [ ] Documentation links resolve locally.
+- [ ] Root, named, and nested command shapes have distinct entry points.
 
-### Phase 3: Release integration
+### Phase 2: Task-oriented documentation
 
-- [x] Task 4: Compile all seven canonical examples in Linux and Windows CI,
-  document the behavioural changes, and run the release verification suite.
+- [ ] Task 3: Add concise How-To recipes grounded in tested APIs.
+- [ ] Task 4: Add limitations, terminal, and completion guidance.
+- [ ] Task 5: Refresh README, examples, generator, and API cross-links.
 
-### Phase 4: Review hardening
+### Checkpoint: Published documentation
 
-- [x] Task 5: Make framework test compilation hermetic and exclude capture
-  state and entry points from normal runtime builds.
-- [x] Task 6: Characterize debug output and redact registered password values.
-- [x] Task 7: Single-source parameter lookup and help rendering behind the
-  unchanged public facade.
-- [x] Task 8: Characterize and extract completion calculation, deleting
-  unreachable private callback paths and unused allocations.
-- [x] Task 9: Decompose application dispatch into focused internal helpers,
-  then run the complete cross-platform release verification.
+- [ ] DocKit navigation contains each page once and excludes historical records.
+- [ ] Release notes, roadmap, and project material agree on v1.4.0.
+
+### Phase 3: Qualification
+
+- [ ] Task 6: Run documentation checks, framework/generator checks, and example smoke checks.
+- [ ] Task 7: Review the final diff, commit, push, and create the requested PR/release if credentials permit.
 
 ### Checkpoint: Complete
 
-- [x] Windows cleanup smoke check passes; CI runs the platform-native checks.
-- [x] Framework and generator tests pass on Windows.
-- [x] All seven examples compile locally on Windows; both CI jobs run the check.
-- [x] No public API was added or changed.
-- [x] Normal builds contain no capture-specific state or entry point.
-- [x] Debug output cannot reveal registered password values.
-- [x] Internal decomposition preserves all characterized behaviour and public
-  compatibility symbols.
+- [ ] All release acceptance criteria that can be verified locally pass.
+- [ ] Working tree is clean after qualification.
 
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| Cleanup removes user content | High | Allowlist only generated compiler extensions and dedicated generated directories; assert tracked paths after cleanup. |
-| Output capture changes runtime output | High | Keep it internal, disabled by default, and test the normal help execution path. |
-| Signed numbers weaken option detection | High | Accept a leading `-` only when the registered parameter is integer or float and the candidate validates as numeric. |
-| Internal refactoring changes observable output | High | Add characterization tests first and verify each extraction independently. |
-| Stale compiler units bypass test defines | High | Force an isolated rebuild in both platform test runners. |
-| Debug diagnostics expose secrets | High | Resolve parameter metadata before logging and redact password values in every debug form. |
-
-## Scope Guard
-
-No new command API, parameter kinds, generator features, completion features,
-or public API removal is included. Public compatibility no-ops and test-oriented
-members remain until the planned v2.0.0 cleanup.
+| Documentation claims drift from runtime behavior | High | Verify all recipe APIs against `src/` and existing FPCUnit tests. |
+| Breaking inbound manual links | Medium | Retain `user-manual.md` as a short migration/learning index. |
+| DocKit tooling unavailable locally | Medium | Run its configured commands if installed; otherwise validate JSON, Markdown links, and CI configuration locally and report the limitation. |
+| Remote permissions unavailable | Medium | Complete and qualify the candidate locally, then report exact remote steps blocked. |

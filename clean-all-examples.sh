@@ -6,7 +6,7 @@ set -eu
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-EXAMPLES="ColorDemo ErrorHandlingDemo LongRunningOpDemo ProgressDemo RootCommandDemo SimpleDemo SubCommandDemo"
+EXAMPLES="ColorDemo ErrorHandlingDemo LongRunningOpDemo ProgressDemo QuickStartDemo RootCommandDemo SimpleDemo SubCommandDemo"
 
 remove_generated_artifacts() {
   directory="$1"
@@ -29,6 +29,7 @@ remove_generated_artifacts() {
     -name 'ErrorHandlingDemo' -o -name 'ErrorHandlingDemo.exe' -o \
     -name 'LongRunningOpDemo' -o -name 'LongRunningOpDemo.exe' -o \
     -name 'ProgressDemo' -o -name 'ProgressDemo.exe' -o \
+    -name 'QuickStartDemo' -o -name 'QuickStartDemo.exe' -o \
     -name 'RootCommandDemo' -o -name 'RootCommandDemo.exe' -o \
     -name 'SimpleDemo' -o -name 'SimpleDemo.exe' -o \
     -name 'SubCommandDemo' -o -name 'SubCommandDemo.exe' \

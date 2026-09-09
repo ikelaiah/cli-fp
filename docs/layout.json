@@ -17,51 +17,71 @@
       ]
     },
     {
-      "title": "Getting started",
+      "title": "Start here",
       "pages": [
         {
-          "title": "User manual",
-          "path": "user-manual.md"
+          "title": "Your first CLI",
+          "path": "getting-started.md"
         },
         {
           "title": "Runnable examples",
           "path": "examples.md"
-        }
-      ]
-    },
-    {
-      "title": "Guides",
-      "pages": [
-        {
-          "title": "Bash completion",
-          "path": "completion-testing/BASH_COMPLETION_GUIDE.md"
         },
         {
-          "title": "PowerShell completion",
-          "path": "completion-testing/PS_COMPLETION_GUIDE.md"
+          "title": "Guide index",
+          "path": "user-manual.md"
         }
       ]
     },
     {
-      "title": "Code generator",
+      "title": "How do I...?",
       "pages": [
         {
-          "title": "cli-fp-gen",
+          "title": "Common recipes",
+          "path": "how-to.md"
+        },
+        {
+          "title": "Shell completion",
+          "path": "completion.md"
+        },
+        {
+          "title": "Project generator",
           "path": "codegen.md"
         }
       ]
     },
     {
-      "title": "API reference",
+      "title": "Learn",
       "pages": [
         {
-          "title": "Public API",
-          "path": "api-reference.md"
+          "title": "Commands and subcommands",
+          "path": "commands.md"
+        },
+        {
+          "title": "Options and validation",
+          "path": "options.md"
+        },
+        {
+          "title": "Output, errors, and progress",
+          "path": "terminal.md"
         }
       ]
     },
     {
-      "title": "Advanced and technical",
+      "title": "Reference",
+      "pages": [
+        {
+          "title": "Public API",
+          "path": "api-reference.md"
+        },
+        {
+          "title": "Current limitations",
+          "path": "limitations.md"
+        }
+      ]
+    },
+    {
+      "title": "Inside cli-fp",
       "pages": [
         {
           "title": "Technical design",

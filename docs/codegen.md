@@ -1,23 +1,16 @@
-# CLI Project Generator
+# cli-fp project generator
 
-[Documentation home](../README.md) · [Project README](../README.md) ·
-[User manual](user-manual.md) · [API reference](api-reference.md)
+[How do I...?](how-to.md) · [Commands](commands.md) ·
+[Generator internals](technical-docs.md#generator-maintenance)
 
-`cli-fp-gen` turns a small JSON command specification into a native Free
-Pascal project. It creates the program entry point, command registry, and
-user-owned command classes, while keeping generated and hand-written code
-separate.
+`cli-fp-gen` creates a Free Pascal project with a command registry and
+user-owned command units. Use it when a command tree is large enough that a
+scaffold and a JSON command specification are useful. For a single program,
+start with [your first cli-fp program](getting-started.md) instead.
 
-Use the generator when you want a working project layout immediately or expect
-the command tree to evolve. For a single-file integration into an existing
-program, the [README quick start](../README.md#quick-start) may be
-simpler.
+## Start a project
 
-## Quick Start
-
-Run these commands from the `cli-fp` repository root.
-
-### Linux/macOS with Bash
+From the repository root, build the generator and initialize a project:
 
 ```bash
 fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
@@ -27,7 +20,7 @@ fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
 ./src/Myapp greet --help
 ```
 
-### Windows with PowerShell
+On PowerShell:
 
 ```powershell
 fpc "-Futools\cli-fp-gen\src" .\tools\cli-fp-gen\cli_fp_gen.lpr
@@ -37,42 +30,10 @@ fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Mya
 .\src\Myapp.exe greet --help
 ```
 
-You have now compiled both the generator and a generated application with FPC.
-Next, edit `src/commands/Myapp_Command_Greet.pas` and implement its `Execute`
-method. Change command metadata in `clifp.json`, then regenerate:
+Adjust the first `-Fu` path when the generated project is not two directories
+below the `cli-fp` repository.
 
-```text
-cli-fp-gen generate --project .
-```
-
-Use the platform-specific generator path shown above if it is not installed on
-your command path.
-
-## How Generation Fits Free Pascal
-
-The generated project uses ordinary Object Pascal source files:
-
-| File | Role |
-| --- | --- |
-| `src/Myapp.lpr` | Program entry point passed to `fpc` |
-| `src/generated/*.pas` | Generated units that register the command tree and its parameters |
-| `src/commands/*.pas` | User-owned command classes where `Execute` does the work |
-| `clifp.json` | Language-neutral source of truth for command metadata |
-
-FPC compiles all of these units into one native executable. The four `-Fu`
-arguments in the build command expose, respectively, the `cli-fp` framework,
-the program units, generated units, and command implementations to the
-compiler.
-
-Generation currently targets command-line projects. It does not install a
-Lazarus design-time wizard; Lazarus users may open the generated `.lpr` as a
-project and use the runtime package separately.
-
-## Location
-
-- Tool source: [`tools/cli-fp-gen/`](https://github.com/ikelaiah/cli-fp/tree/main/tools/cli-fp-gen)
-
-## Commands
+## Everyday commands
 
 ```text
 cli-fp-gen init <target-dir> [--name <app-name>] [--version <x.y.z>] [--dry-run] [--force]
@@ -81,227 +42,42 @@ cli-fp-gen add command <name> [--parent <cmd/path>] [--description <text>] [--pr
 cli-fp-gen remove command <cmd/path> [--cascade] [--project <dir-or-spec-file>] [--dry-run] [--force]
 ```
 
-## Project Spec
+Use `init` once. Use `add command` or edit `clifp.json`, then run `generate`.
+Use `remove command` for a command entry; add `--cascade` when its nested
+commands should be removed too. Try `--dry-run` before a substantial change.
 
-Generated projects use `clifp.json` as the source of truth.
+## Know which files you own
 
-Example:
+| Path | Ownership | What to do |
+| --- | --- | --- |
+| `clifp.json` | You | Change command metadata here. |
+| `src/commands/*.pas` | You | Implement `Execute` here. |
+| `src/generated/*.pas` | Generator | Do not hand-edit; regenerate it. |
+| `src/generated/.clifp-manifest.json` | Generator | Do not hand-edit. |
+| `src/<App>.lpr` | Generator | Regenerate instead of editing generated wiring. |
 
-```json
-{
-  "schemaVersion": 1,
-  "app": {
-    "name": "myapp",
-    "version": "0.1.0",
-    "programFile": "src/Myapp.lpr"
-  },
-  "rootCommand": {
-    "description": "Run the default greeting",
-    "parameters": [
-      {
-        "kind": "string",
-        "short": "-n",
-        "long": "--name",
-        "description": "Name to greet",
-        "required": false,
-        "default": "World",
-        "allowedValues": ""
-      }
-    ]
-  },
-  "commands": [
-    {
-      "name": "greet",
-      "description": "Say hello",
-      "parent": "",
-      "parameters": [
-        {
-          "kind": "string",
-          "short": "-n",
-          "long": "--name",
-          "description": "Name to greet",
-          "required": false,
-          "default": "World",
-          "allowedValues": ""
-        }
-      ]
-    }
-  ]
-}
-```
+The generator creates command stubs once and preserves them on normal
+regeneration. Generated registry/program files are rewritten from
+`clifp.json`.
 
-### Optional Root Command
+## Project specification
 
-`rootCommand` is optional in schema version 1. When present, the generated
-application can execute without a named command:
+`clifp.json` is the source of truth. Commands are a flat list; use a slash
+path such as `repo/remote` in `parent` to make a nested command. A
+`rootCommand` object is optional and creates the default action for
+`myapp [options]`.
 
-```text
-Myapp
-Myapp --name Gus
-```
+Supported parameter kinds are `string`, `integer`, `float`, `flag`, `boolean`,
+`path`, `enum`, `datetime`, `array`, `password`, and `url`. An enum needs
+`allowedValues`.
 
-The object accepts `description` and `parameters`; it deliberately has no
-`name` or `parent`. Generation creates
-`src/commands/<App>_RootCommand.pas` as a user-owned implementation stub and
-wires it into the three-argument `CreateCLIApplication` overload. Named
-commands in `commands` remain available alongside it.
+## Safe regeneration
 
-Removing `rootCommand` restores the traditional command-first generated
-application. The former root stub is retained because user-owned files are
-never removed as stale generated output.
+`init` refuses to replace an existing spec unless given `--force`.
+`generate` protects user-owned stubs unless forced. Its generated-file manifest
+is constrained to the project directory and refuses cleanup through symbolic
+links or Windows reparse points; `--force` does not bypass that path-safety
+check.
 
-### Parameter Kinds
-
-Supported `kind` values:
-
-- `string`
-- `integer`
-- `float`
-- `flag`
-- `boolean`
-- `path`
-- `enum` (requires `allowedValues`)
-- `datetime`
-- `array`
-- `password`
-- `url`
-
-## File Ownership
-
-- `clifp.json`: project source of truth; `init` refuses to replace an existing
-  spec unless `--force` is supplied
-- `src/generated/*.pas`: generator-owned, overwritten on `generate`
-- `src/generated/.clifp-manifest.json`: generator-owned manifest for cleanup
-- `src/commands/*.pas`: user-owned command and optional root-command stubs,
-  created once and not overwritten unless `--force`
-- `src/*.lpr`: generator-owned by the current generator
-
-### Cleanup Safety
-
-The manifest is used only to remove stale generator-owned files. Before
-deleting a manifest entry, `cli-fp-gen` verifies that its normalized path is
-inside the project directory and that no child path component is a symbolic
-link or Windows reparse point (including directory junctions). If either check
-fails, generation stops and reports the unsafe path.
-
-This protection is deliberately conservative: a stale generated file reached
-through a link is not deleted, even when that link points to another location
-inside the project. Edit or remove the unexpected manifest entry or link, then
-run `generate` again.
-
-`--force` allows overwrite operations that normally protect existing files,
-including replacement of an existing spec during `init` and regeneration of
-user-owned command stubs. It does not bypass manifest path safety checks.
-
-## Generated Layout
-
-```text
-<project>/
-  clifp.json
-  src/
-    <App>.lpr
-    commands/
-      <App>_RootCommand.pas       # only when rootCommand is configured
-      <App>_Command_*.pas
-    generated/
-      <App>_CommandRegistry_Generated.pas
-      .clifp-manifest.json
-```
-
-## Build Generated App (example)
-
-From the generated project directory, compile with the framework source path plus local generated/unit paths.
-
-### Verify on Linux/macOS (Bash)
-
-```bash
-fpc -Fu../../src -Fu./src -Fu./src/generated -Fu./src/commands ./src/Myapp.lpr
-```
-
-### Verify on Windows (PowerShell)
-
-```powershell
-fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Myapp.lpr
-```
-
-Adjust the first `-Fu` path (`../../src` or `..\..\src`) to point at the
-`cli-fp` framework `src/` directory.
-
-## Verification
-
-### Run checks on Linux/macOS (Bash)
-
-The repository includes focused codegen checks under `tests/codegen/`:
-
-- `run_unit_tests.sh`
-- `run_golden_test.sh`
-- `run_compile_smoke.sh`
-- `run_ops_test.sh`
-
-### Run checks on Windows (PowerShell)
-
-Use the Windows-native verification script from the repository root:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tests\codegen\run_all_tests.ps1
-```
-
-This script compiles `cli-fp-gen`, runs the focused unit tests,
-verifies golden output, compiles a generated app, and checks `init` / `generate`
-/ `add command` / `remove command` behavior plus overwrite and path validation
-guards.
-
-GitHub Actions runs the focused suite on Linux and Windows for pushes and pull
-requests that change the generator, its fixtures, the framework source, or the
-workflow. The workflow can also be started manually.
-
-The operations tests include manifest cleanup escape attempts through a Unix
-symbolic link and a Windows directory junction. They assert that the generator
-fails safely and leaves the external file untouched.
-
-## Maintainer Guide
-
-The generator is split into small units with one main responsibility:
-
-- `CliFpGen.App`: command-line parsing and command dispatch
-- `CliFpGen.Generate`: project operations and generation workflow
-- `CliFpGen.Model`: in-memory project and parameter types
-- `CliFpGen.SpecIO`: `clifp.json` loading and saving
-- `CliFpGen.Validate`: semantic and path validation
-- `CliFpGen.Naming`: Pascal identifiers, unit names, and command paths
-- `CliFpGen.Renderer`: Pascal source rendering
-- `CliFpGen.Filesystem`: managed writes, deletions, and dry-run behavior
-- `CliFpGen.Manifest`: generated-file tracking and safe stale-file cleanup
-
-`TProjectSpec` owns its root-command specification and named commands. The
-root-command specification and each `TCommandSpec` own their parameters.
-When parsing JSON, construct an object completely before transferring it to
-its owning list. If parsing raises an exception before that transfer, free the
-partially constructed object in the same routine.
-
-### Adding a Parameter Kind
-
-Use this checklist when the framework gains a new parameter type:
-
-1. Add the enum value and both text mappings in `CliFpGen.Model`.
-2. Add any kind-specific defaults or semantic rules in `CliFpGen.Validate`.
-3. Render the matching framework registration call in
-   `CliFpGen.Renderer.RenderParameterCall`.
-4. If the kind needs new JSON fields, add them symmetrically to load and save
-   in `CliFpGen.SpecIO`; update the project-spec example above.
-5. Add the kind to `tests/codegen-fixtures/golden-basic/clifp.json` and update
-   the expected registry in `tests/codegen-golden/golden-basic/`.
-6. Add focused validation or parsing tests when the kind has unique rules.
-7. Update the supported-kind lists here and in the root README.
-8. Run all Linux scripts under `tests/codegen/` and the Windows
-   `run_all_tests.ps1` script. The compile smoke test confirms that the
-   generated call still matches the current framework units in `src/`.
-
-## Notes
-
-- Commands are defined in a flat list with `parent` paths (slash-delimited, e.g. `repo/remote`).
-- `app.programFile` must stay project-relative under `src/` and point to an `.lpr` file.
-- `remove command` deletes command entries from `clifp.json`; use `--cascade` to remove a command subtree.
-- Default command stubs automatically show help when they have subcommands at runtime.
-- This avoids stale stub behavior when a command later becomes a command group.
-- Parameter registrations and command descriptions are generated in the registry unit (not user stubs), so editing `clifp.json` and re-running `generate` updates metadata without overwriting user code.
+For the internal unit map, extension checklist, and generator test details,
+read [Generator maintenance](technical-docs.md#generator-maintenance).

@@ -1,102 +1,87 @@
-# v1.3.3 Task Checklist
+# v1.4.0 documentation release tasks
 
-**Status:** Completed for the 2026-08-14 release.
+## Task 1: Audit and release plan
 
-## Task 1: Safe example cleanup
-
-**Acceptance criteria:**
-
-- [x] Shell and PowerShell cleanup remove generated artifacts only.
-- [x] Smoke checks build examples, run cleanup, and confirm tracked files remain.
-
-**Verification:** cleanup smoke tests on Linux and Windows.
-
-**Dependencies:** None.
-
-## Task 2: Help-output coverage
+**Description:** Capture the documentation problems found and move the planned
+release sequence to documentation-first v1.4.0.
 
 **Acceptance criteria:**
+- [ ] Roadmap assigns documentation/developer learning to v1.4.0.
+- [ ] Runtime simplification work moves to v1.5.0 and application boundaries to v1.6.0.
+- [ ] Release records state that no runtime API is added.
 
-- [x] Tests assert real usage, descriptions, required options, defaults, and subcommands.
-- [x] Capture support is internal to `TCLIApplication`; `ICLIApplication` remains unchanged.
+**Verification:** Read all changed release records and validate Markdown links.
 
-**Verification:** focused framework test suite.
+**Dependencies:** None
 
-**Dependencies:** None.
+**Files likely touched:** `ROADMAP.md`, `CHANGELOG.md`, `docs/project.md`
 
-## Task 3: Negative numeric parsing
+**Estimated scope:** Small: 1-2 files
+## Task 2: Focus the learning path
 
-**Acceptance criteria:**
-
-- [x] Integer and float options accept equals and separated negative values.
-- [x] Unknown options remain errors.
-
-**Verification:** focused framework test suite.
-
-**Dependencies:** None.
-
-## Task 4: Release integration and documentation
+**Description:** Replace the monolithic manual experience with focused pages,
+preserving the manual as a compatibility landing page.
 
 **Acceptance criteria:**
+- [ ] Newcomers have a first-CLI path.
+- [ ] Commands, options, terminal UX, completion, and limitations have clear homes.
+- [ ] Existing manual URLs continue to land on useful documentation.
 
-- [x] Both CI jobs are configured to compile the seven canonical examples.
-- [x] Release behaviour is documented in user-facing documentation and changelog.
+**Verification:** Validate internal links and compile the homepage example through the existing smoke suite.
 
-**Verification:** CI-script inspection and local compilation where available.
+**Dependencies:** Task 1
 
-**Dependencies:** Tasks 1–3.
+**Files likely touched:** `docs/*.md`, `docs/layout.json`
 
-## Task 5: Hermetic tests and production-safe capture
+**Estimated scope:** Medium: 3-5 files
 
-**Acceptance criteria:**
+## Task 3: Add practical recipes
 
-- [x] Windows and Linux runners force all units to rebuild in isolated output directories.
-- [x] Capture-specific fields and methods do not exist in normal runtime builds.
-
-**Verification:** normal build followed by both framework runners; normal package build.
-
-**Dependencies:** Task 2.
-
-## Task 6: Password-safe debug diagnostics
+**Description:** Create a compact How-To guide answering common application-author questions with minimal, supported examples.
 
 **Acceptance criteria:**
+- [ ] Recipes cover command shape, parameters, values, output, completion, generator, debugging, and unsupported work.
+- [ ] Every API call matches the public source interface.
+- [ ] Deeper links avoid restating full tutorials.
 
-- [x] Characterization covers ordinary debug output.
-- [x] Separated and equals-form password values are replaced with `[REDACTED]` everywhere.
+**Verification:** Source/API comparison and Markdown link validation.
 
-**Verification:** focused framework tests.
+**Dependencies:** Task 2
 
-**Dependencies:** Task 5.
+**Files likely touched:** `docs/how-to.md`, `docs/commands.md`, `docs/options.md`
 
-## Task 7: Parameter and help consolidation
+**Estimated scope:** Medium: 3-5 files
 
-**Acceptance criteria:**
+## Task 4: Publish-oriented refresh
 
-- [x] Application validation and command execution share one parameter-value implementation.
-- [x] Application and base-command help share one renderer with unchanged observable output.
-
-**Verification:** framework characterization tests and generator compile suite.
-
-**Dependencies:** Tasks 5–6.
-
-## Task 8: Completion extraction
+**Description:** Update the homepage, navigation, examples, generator guide, and reference links for the new information architecture.
 
 **Acceptance criteria:**
+- [ ] README stays concise and points to task-oriented documentation.
+- [ ] Navigation is intent-oriented with no duplicate entries.
+- [ ] Generator internals are separated from normal application guidance.
 
-- [x] Existing completion behavior is characterized before extraction.
-- [x] Completion calculation lives outside `TCLIApplication`; unreachable private callback branches and unused allocations are deleted.
+**Verification:** DocKit check/build if available; otherwise JSON, link, and Markdown validation.
 
-**Verification:** focused completion tests and framework suite.
+**Dependencies:** Tasks 2-3
 
-**Dependencies:** Task 7.
+**Files likely touched:** `README.md`, `docs/layout.json`, `docs/examples.md`, `docs/codegen.md`, `docs/api-reference.md`
 
-## Task 9: Dispatch decomposition and release verification
+**Estimated scope:** Medium: 3-5 files
+
+## Task 5: Qualify and release
+
+**Description:** Run existing project checks, review the candidate, and perform authorized remote release operations if possible.
 
 **Acceptance criteria:**
+- [ ] Framework, generator, cleanup, documentation, and diff checks are recorded.
+- [ ] The candidate is committed and reviewed.
+- [ ] PR, CI, merge, tag, release, and Pages verification are completed or precisely reported as blocked.
 
-- [x] Application dispatch is composed from focused helpers without changing its public facade.
-- [x] Framework, generator, cleanup, package, and seven-example checks pass.
+**Verification:** Repository scripts, DocKit tooling, GitHub CLI/API where authenticated.
 
-**Verification:** complete Windows suite and Linux/Windows CI.
+**Dependencies:** Tasks 1-4
 
-**Dependencies:** Tasks 5–8.
+**Files likely touched:** release metadata and documentation only
+
+**Estimated scope:** Small: 1-2 files
