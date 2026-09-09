@@ -331,6 +331,7 @@ var
 begin
   App := CreateCLIApplication('myapp', '1.0.0');
   (App as TCLIApplication).DebugMode := True;
+  Halt(App.Execute);
 end;
 ```
 

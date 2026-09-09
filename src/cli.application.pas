@@ -918,6 +918,7 @@ var
   AllowedValues: TStringList;
   i: Integer;
   DateTimeValue: TDateTime;
+  LocalFormatSettings: TFormatSettings;
 begin
   Result := True;
   
@@ -980,11 +981,12 @@ begin
     
     ptDateTime:
       begin
-        FormatSettings.DateSeparator := '-';
-        FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
-        FormatSettings.LongTimeFormat := 'HH:nn';
+        LocalFormatSettings := DefaultFormatSettings;
+        LocalFormatSettings.DateSeparator := '-';
+        LocalFormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+        LocalFormatSettings.LongTimeFormat := 'HH:nn';
         
-        if not TryStrToDateTime(Value, DateTimeValue) then
+        if not TryStrToDateTime(Value, DateTimeValue, LocalFormatSettings) then
         begin
           TConsole.WriteLn(Format('Error: Parameter "%s" must be in format YYYY-MM-DD HH:MM',
             [Param.LongFlag]), ccRed);
@@ -1074,6 +1076,39 @@ begin
 end;
 {$ENDIF}
 
+function QuoteForBash(const Value: string): string;
+begin
+  Result := #39 + StringReplace(Value, #39,
+    #39 + '"' + #39 + '"' + #39, [rfReplaceAll]) + #39;
+end;
+
+function QuoteForPowerShell(const Value: string): string;
+begin
+  Result := #39 + StringReplace(Value, #39, #39 + #39,
+    [rfReplaceAll]) + #39;
+end;
+
+function ShellIdentifier(const Value: string): string;
+var
+  i: Integer;
+  Character: Char;
+begin
+  Result := '';
+  for i := 1 to Length(Value) do
+  begin
+    Character := Value[i];
+    if ((Character >= 'a') and (Character <= 'z')) or
+      ((Character >= 'A') and (Character <= 'Z')) or
+      ((Character >= '0') and (Character <= '9')) or
+      (Character = '_') then
+      Result := Result + Character
+    else
+      Result := Result + '_';
+  end;
+  if Result = '' then
+    Result := 'cli';
+end;
+
 { OutputBashCompletionScript: Outputs a Bash completion script for the application }
 procedure TCLIApplication.OutputBashCompletionScript;
   procedure OutputBashTree(const Cmd: ICommand; const Path: string);
@@ -1112,10 +1147,11 @@ procedure TCLIApplication.OutputBashCompletionScript;
 var
   Cmd: ICommand;
   Param: ICommandParameter;
-  BashFunc, AppName, RootSubNames, RootParamFlags: string;
+  BashFunc, AppName, ExecutablePath, RootSubNames, RootParamFlags: string;
 begin
   AppName := ExtractFileName(ParamStr(0));
-  BashFunc := '_' + LowerCase(FName) + '_completions';
+  ExecutablePath := ParamStr(0);
+  BashFunc := '_' + LowerCase(ShellIdentifier(FName)) + '_completions';
 
   TConsole.WriteLn('#!/bin/bash');
   TConsole.WriteLn('declare -A tree');
@@ -1153,9 +1189,10 @@ begin
     OutputBashTree(Cmd, Cmd.Name);
 
   TConsole.WriteLn('');
-  TConsole.WriteLn(BashFunc+'()');
+  WriteOutput(BashFunc+'()');
   TConsole.WriteLn('{');
   TConsole.WriteLn('  local cur words cword args out dir candidates');
+  WriteOutput('  executable=' + QuoteForBash(ExecutablePath));
   if FDebugMode then
   begin
     TConsole.WriteLn('  # DEBUG: Print function call and COMP_WORDS');
@@ -1173,7 +1210,7 @@ begin
   TConsole.WriteLn('  else');
   TConsole.WriteLn('    args+=("${words[cword]}")');
   TConsole.WriteLn('  fi');
-  TConsole.WriteLn('  out=$("./'+AppName+'" __complete "${args[@]}")');
+  WriteOutput('  out=$("$executable" __complete "${args[@]}")');
   TConsole.WriteLn('  # Last line is directive in form :<number>');
   TConsole.WriteLn('  dir="$(printf "%s\n" "$out" | tail -n1)"');
   TConsole.WriteLn('  if [[ $dir =~ ^:([0-9]+)$ ]]; then');
@@ -1195,20 +1232,21 @@ begin
   TConsole.WriteLn('  done < <(compgen -W "$candidates" -- "$cur")');
   TConsole.WriteLn('  return 0');
   TConsole.WriteLn('}');
-  TConsole.WriteLn('complete -F '+BashFunc+' '+AppName);
-  TConsole.WriteLn('complete -F '+BashFunc+' ./'+AppName);
+  TConsole.WriteLn('complete -F '+BashFunc+' -- '+QuoteForBash(AppName));
+  TConsole.WriteLn('complete -F '+BashFunc+' -- '+QuoteForBash('./'+AppName));
 end;
 
 { OutputPowerShellCompletionScript: Outputs a PowerShell completion script for the application }
 procedure TCLIApplication.OutputPowerShellCompletionScript;
 var
-  AppName: string;
+  AppName, ExecutablePath: string;
 begin
   AppName := ExtractFileName(ParamStr(0));
-  TConsole.WriteLn('# Usage: ./' + AppName + ' --completion-file-pwsh > myapp-completion.ps1');
-  TConsole.WriteLn('# Then in PowerShell:');
-  TConsole.WriteLn('#   . ./myapp-completion.ps1');
-  TConsole.WriteLn('# To make it permanent, add the above line to your $PROFILE');
+  ExecutablePath := ParamStr(0);
+  WriteOutput('# Usage: ./' + AppName + ' --completion-file-pwsh > myapp-completion.ps1');
+  WriteOutput('# Then in PowerShell:');
+  WriteOutput('#   . ./myapp-completion.ps1');
+  WriteOutput('# To make it permanent, add the above line to your $PROFILE');
   TConsole.WriteLn('# PowerShell argument completer for ' + AppName);
   TConsole.WriteLn('');
   TConsole.WriteLn('$scriptBlock = {');
@@ -1217,7 +1255,8 @@ begin
   TConsole.WriteLn('  $words = $line -split " +" | Where-Object { $_ -ne '''' }');
   TConsole.WriteLn('  $argsList = @($words | Select-Object -Skip 1)');
   TConsole.WriteLn('  if ($line.EndsWith(" ")) { $argsList += "" }');
-  TConsole.WriteLn('  $out = & "./' + AppName + '" __complete @argsList 2>$null');
+  WriteOutput('$cliFpExecutable = ' + QuoteForPowerShell(ExecutablePath));
+  WriteOutput('  $out = & $cliFpExecutable __complete @argsList 2>$null');
   TConsole.WriteLn('  if (-not $out) { return @() }');
   TConsole.WriteLn('  # Extract directive and candidates');
   TConsole.WriteLn('  $directive = 0');
@@ -1247,15 +1286,21 @@ begin
   TConsole.WriteLn('}');
   TConsole.WriteLn('');
   TConsole.WriteLn('# Register for all common invocation patterns');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + AppName + '" -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + ChangeFileExt(AppName, '') + '" -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "./' + AppName + '" -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\' + AppName + '" -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\\' + AppName + '" -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
+    QuoteForPowerShell(AppName) + ' -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
+    QuoteForPowerShell(ChangeFileExt(AppName, '')) + ' -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
+    QuoteForPowerShell('./' + AppName) + ' -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
+    QuoteForPowerShell('.\' + AppName) + ' -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
+    QuoteForPowerShell('.\\' + AppName) + ' -ScriptBlock $scriptBlock');
   TConsole.WriteLn('');
   TConsole.WriteLn('# Try -Native flag if PowerShell 7+');
   TConsole.WriteLn('if ($PSVersionTable.PSVersion.Major -ge 7) {');
-  TConsole.WriteLn('  Register-ArgumentCompleter -Native -CommandName "' + ChangeFileExt(AppName, '') + '" -ScriptBlock {');
+  TConsole.WriteLn('  Register-ArgumentCompleter -Native -CommandName ' +
+    QuoteForPowerShell(ChangeFileExt(AppName, '')) + ' -ScriptBlock {');
   TConsole.WriteLn('    param($wordToComplete, $commandAst, $cursorPosition)');
   TConsole.WriteLn('    & $scriptBlock $wordToComplete $commandAst $cursorPosition');
   TConsole.WriteLn('  }');

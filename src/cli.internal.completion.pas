@@ -262,6 +262,7 @@ begin
   begin
     for Command in FCommands do
       Result.Add(Command.Name);
+    Result.Add(':' + IntToStr(Directive));
     Exit;
   end;
 
@@ -278,6 +279,7 @@ begin
     for Command in FCommands do
       if StartsStr(LowerCase(Current), LowerCase(Command.Name)) then
         Result.Add(Command.Name);
+    Result.Add(':' + IntToStr(Directive));
     Exit;
   end;
 

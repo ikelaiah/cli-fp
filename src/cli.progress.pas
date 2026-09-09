@@ -222,12 +222,20 @@ procedure TProgressBar.Update(const Progress: Integer; const ACaption: string);
 var
   Percentage: Integer;
   FilledWidth: Integer;
+  EffectiveWidth: Integer;
   ProgressText: string;
 begin
   if not FActive then Exit;
   
   // Calculate current percentage
-  Percentage := Round((Progress / FTotal) * 100);
+  if FTotal <= 0 then
+    Percentage := 0
+  else
+    Percentage := Round((Progress / FTotal) * 100);
+  if Percentage < 0 then
+    Percentage := 0
+  else if Percentage > 100 then
+    Percentage := 100;
   
   // Skip update only if neither percentage nor caption changed
   if (Percentage = FLastProgress) and (ACaption = FLastCaption) then
@@ -237,13 +245,16 @@ begin
   FLastCaption := ACaption;
   
   // Calculate filled portion of bar
-  FilledWidth := Round((Percentage / 100) * FWidth);
+  EffectiveWidth := FWidth;
+  if EffectiveWidth < 0 then
+    EffectiveWidth := 0;
+  FilledWidth := Round((Percentage / 100) * EffectiveWidth);
   
   // Create progress bar text: [====    ] XX%
   ProgressText := Format('[%-*.*s] %3d%%', [
-    FWidth,           // Total width
-    FWidth,           // Width for string formatting
-    StringOfChar('=', FilledWidth) + StringOfChar(' ', FWidth - FilledWidth),
+    EffectiveWidth,   // Total width
+    EffectiveWidth,   // Width for string formatting
+    StringOfChar('=', FilledWidth) + StringOfChar(' ', EffectiveWidth - FilledWidth),
     Percentage
   ]);
 

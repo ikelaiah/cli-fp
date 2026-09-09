@@ -25,9 +25,11 @@ the script path is stable.
 . .\myapp-completion.ps1
 ```
 
-The script registers completion for the executable name and common relative
-invocation forms. PowerShell cycles candidates with Tab; Bash normally lists
-matches according to its configured completion behavior.
+The scripts register completion for the executable name and common relative
+invocation forms. Generated executable values are quoted so names and paths
+containing spaces or shell-sensitive characters remain usable. PowerShell
+cycles candidates with Tab; Bash normally lists matches according to its
+configured completion behavior.
 
 ## Boundaries
 

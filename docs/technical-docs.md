@@ -557,12 +557,15 @@ The framework implements parameter validation in `TCLIApplication.ValidateParame
 - `ptBoolean`: Must be 'true' or 'false' (case-insensitive)
 
 ### Complex Types
-- `ptDateTime`: Uses `TryStrToDateTime` with these format settings:
+- `ptDateTime`: Uses `TryStrToDateTime` with local format settings:
   ```pascal
-  FormatSettings.DateSeparator := '-';
-  FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
-  FormatSettings.LongTimeFormat := 'HH:nn';  // 24-hour format
+  LocalFormatSettings := DefaultFormatSettings;
+  LocalFormatSettings.DateSeparator := '-';
+  LocalFormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  LocalFormatSettings.LongTimeFormat := 'HH:nn';  // 24-hour format
+  TryStrToDateTime(Value, DateTimeValue, LocalFormatSettings);
   ```
+  This does not change process-wide `FormatSettings`.
   `YYYY-MM-DD HH:MM` is the recommended portable representation, but
   `TryStrToDateTime` currently also accepts some date-only values and values
   containing seconds. `AddDateTimeParameter` still labels generated help with
