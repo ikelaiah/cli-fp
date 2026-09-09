@@ -1,12 +1,12 @@
 # CLI Framework Technical Documentation
 
-[Documentation home](../README.md) · [Project README](../README.md) ·
-[User manual](user-manual.md) · [API reference](api-reference.md)
+[Documentation home](../README.md) · [How do I...?](how-to.md) ·
+[API reference](api-reference.md) · [Current limitations](limitations.md)
 
 This is a maintainer-level guide to parser flow, object ownership, help and
 completion generation, console behaviour, and tests. Application authors
 looking for public usage examples should start with the
-[user manual](user-manual.md).
+[first-CLI guide](getting-started.md).
 
 ## Architecture Overview
 
@@ -973,3 +973,26 @@ retrieval.
 **Bottom line:** Custom callbacks are deprecated and non-functional in the
 current implementation. Built-in command, flag, Boolean, and enum completion
 does not depend on them.
+
+## Generator maintenance
+
+This section is for maintainers of `cli-fp-gen`; application authors should use
+the [generator guide](codegen.md).
+
+The generator separates command-line dispatch (`CliFpGen.App`), project
+operations (`CliFpGen.Generate`), the in-memory model (`CliFpGen.Model`), JSON
+I/O (`CliFpGen.SpecIO`), validation (`CliFpGen.Validate`), naming
+(`CliFpGen.Naming`), rendering (`CliFpGen.Renderer`), managed filesystem work
+(`CliFpGen.Filesystem`), and generated-file tracking (`CliFpGen.Manifest`).
+
+When adding a parameter kind, update the model mappings, semantic validation,
+renderer, JSON load/save paths, golden fixture and expected output, focused
+tests, and the application-facing supported-kind list. Run all scripts in
+`tests/codegen/` plus `tests/codegen/run_all_tests.ps1`; the compile smoke test
+confirms that generated calls match the framework source.
+
+`TProjectSpec` owns its root-command specification and named commands, and
+each command owns its parameters. Construct parsed objects completely before
+transferring ownership; free a partially constructed object in the same routine
+if parsing raises. Manifest cleanup must remain conservative: no stale file
+may be deleted through a Unix symbolic link or Windows reparse point.

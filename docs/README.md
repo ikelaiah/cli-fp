@@ -5,16 +5,19 @@ The published documentation starts at the
 the repository-root `README.md` as its home page and publishes a deliberate
 reader-first navigation from `docs/layout.json`.
 
-For local repository work, the main source pages are:
+For local repository work, the reader-facing source pages are:
 
-- [User manual](user-manual.md) — build applications with the supported
-  class-based API.
-- [Runnable examples](examples.md) — choose and compile a command shape.
-- [Code generator](codegen.md) — use `cli-fp-gen` when a project needs it.
-- [API reference](api-reference.md) — look up public types and methods.
-- [Technical design](technical-docs.md) — understand advanced internals.
-- [Contributing and support](project.md) — supported environments and project
-  workflow.
+- [Your first cli-fp program](getting-started.md) — compile a small root CLI.
+- [How do I...?](how-to.md) — find the shortest supported recipe.
+- [Commands](commands.md), [options](options.md),
+  [terminal UX](terminal.md), and [completion](completion.md) — learn one
+  concept at a time.
+- [Limitations](limitations.md) — find current boundaries quickly.
+- [Runnable examples](examples.md), [generator guide](codegen.md), and
+  [API reference](api-reference.md) — choose a runnable program, scaffold a
+  project, or look up a contract.
+- [Technical design](technical-docs.md) and [contributing/support](project.md)
+  — maintainer-oriented material.
 
 Release snapshots, completion test reports and the historical test output stay
 in the repository for maintainers but are intentionally not part of the normal

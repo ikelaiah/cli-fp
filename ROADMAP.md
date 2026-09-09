@@ -21,7 +21,8 @@ downcast.
 ## v1.3.3 — Stabilize Before Expanding (implementation complete; release 2026-08-14)
 
 This focused stabilization release makes the current framework safer to
-maintain before v1.4.0 adds another public entry point.
+maintain before the documentation-first v1.4.0 release improves how developers
+learn and navigate the current public API.
 
 ### Safe repository maintenance
 
@@ -91,15 +92,30 @@ maintain before v1.4.0 adds another public entry point.
 - No new parameter kinds, generator capabilities, or completion features.
 - No replacement of the `TCLIApplication` facade or execution-state contract.
 - No removal of public compatibility APIs or broad completion/help cleanup;
-  those changes remain planned for v1.5.0 and v2.0.0.
+  those changes remain planned for v1.6.0 and v2.0.0.
 - No large historical-documentation cleanup mixed into the behavioural fixes.
 
 **Maintenance outcome:** the repository can be cleaned safely, examples remain
 buildable, test results do not depend on stale compiler units, diagnostics do
 not expose password values, and the test suite provides a dependable safety
-net for the v1.4.0 ergonomics work.
+net for the v1.4.0 documentation work.
 
-## v1.4.0 — Make Simple CLIs Simple
+## v1.4.0 — Documentation and Developer Learning Experience
+
+- Publish a task-oriented documentation path that starts with a compiling
+  example, distinguishes root, named, and nested command shapes, and makes
+  supported limitations easy to find.
+- Add concise How-To recipes for the current class-based API, parameter types,
+  terminal UX, completion, debugging, and `cli-fp-gen` workflows.
+- Make canonical beginner examples executable documentation in the existing CI
+  example build and cleanup smoke checks.
+- Keep tutorials, API reference, and maintainer material separate so each
+  concept has one primary home.
+
+**Maintenance outcome:** developers can find the shortest correct path for a
+common task without guessing which manual or reference page contains it.
+
+## v1.5.0 — Make Simple CLIs Simple
 
 - Introduce a single beginner-facing facade with a callback-based command API.
 - Add typed argument access for strings, integers, booleans, floats, and other
@@ -114,7 +130,7 @@ net for the v1.4.0 ergonomics work.
 **Maintenance outcome:** beginner-oriented ergonomics improve without creating
 a second framework to maintain.
 
-## v1.5.0 — Finish the Application Core Boundaries
+## v1.6.0 — Finish the Application Core Boundaries
 
 - Separate command selection and execution orchestration from parsing and
   validation.

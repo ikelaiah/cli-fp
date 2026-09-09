@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Title Value="QuickStartDemo"/>
+      <UseAppBundle Value="False"/>
+    </General>
+    <Units>
+      <Unit>
+        <Filename Value="QuickStartDemo.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\..\example-bin\QuickStartDemo"/>
+    </Target>
+    <SearchPaths>
+      <OtherUnitFiles Value="..\..\src"/>
+      <UnitOutputDirectory Value="..\..\example-bin\lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+  </CompilerOptions>
+</CONFIG>

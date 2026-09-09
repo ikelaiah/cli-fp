@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-09
+
+### Documentation
+
+- Reorganized the published documentation around a first CLI, task-oriented
+  How-To recipes, focused learning guides, a current-limitations page, and
+  intent-oriented DocKit navigation.
+- Added `QuickStartDemo`, which is compiled by the existing cross-platform
+  example cleanup smoke checks so the homepage and getting-started code remain
+  executable documentation.
+- Separated normal generator usage from generator-maintainer detail and made
+  current completion guidance easier to find.
+- Kept `user-manual.md` as a concise compatibility landing page for existing
+  links while moving repeated tutorial material to focused pages.
+
+### Changed
+
+- Replanned the roadmap: the simple callback API and typed argument access
+  move to v1.5.0; application-core boundary work moves to v1.6.0. No runtime
+  API changes are included in v1.4.0.
+
 ## [1.3.3] - 2026-08-14
 
 ### Fixed
@@ -410,7 +431,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.3.3...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ikelaiah/cli-fp/compare/v1.3.3...v1.4.0
 [1.3.3]: https://github.com/ikelaiah/cli-fp/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/ikelaiah/cli-fp/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/ikelaiah/cli-fp/compare/v1.3.0...v1.3.1

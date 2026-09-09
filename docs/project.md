@@ -1,8 +1,8 @@
 # Contributing and support
 
 `cli-fp` is a small open-source framework maintained around a deliberately
-small public API. The current supported runtime is the v1.3.3 class-based API;
-the roadmap's v1.4.0 ideas are future work, not a second API to use today.
+small public API. v1.4.0 is a documentation release: the supported runtime is
+still the class-based API described in these guides.
 
 ## Supported environments
 
@@ -30,5 +30,5 @@ Useful project records:
   focused enhancement discussions.
 
 When documentation and source disagree, treat the current public units under
-[`src/`](https://github.com/ikelaiah/cli-fp/tree/main/src) and the v1.3.3
-behaviour covered by tests as authoritative.
+[`src/`](https://github.com/ikelaiah/cli-fp/tree/main/src) and behaviour covered
+by tests as authoritative.
