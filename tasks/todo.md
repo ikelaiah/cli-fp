@@ -1,87 +1,53 @@
-# v1.4.0 documentation release tasks
+# v1.4.1 documentation accuracy tasks
 
-## Task 1: Audit and release plan
+## Task 1: Audit and classify published Pascal snippets
 
-**Description:** Capture the documentation problems found and move the planned
-release sequence to documentation-first v1.4.0.
+**Acceptance criteria:** Every Pascal block in a published page is classified
+as a complete program, complete command pattern, or explicitly scoped fragment;
+all identifiers have declarations or immediate context.
 
-**Acceptance criteria:**
-- [ ] Roadmap assigns documentation/developer learning to v1.4.0.
-- [ ] Runtime simplification work moves to v1.5.0 and application boundaries to v1.6.0.
-- [ ] Release records state that no runtime API is added.
-
-**Verification:** Read all changed release records and validate Markdown links.
+**Verification:** Search all published Markdown files and manually inspect each
+Pascal block against the source API.
 
 **Dependencies:** None
 
-**Files likely touched:** `ROADMAP.md`, `CHANGELOG.md`, `docs/project.md`
+## Task 2: Establish the class-based command model
 
-**Estimated scope:** Small: 1-2 files
-## Task 2: Focus the learning path
+**Acceptance criteria:** Getting Started, Commands, and How-To explicitly show
+`TBaseCommand` descendants, command instances, option registration, application
+registration, and `Execute`.
 
-**Description:** Replace the monolithic manual experience with focused pages,
-preserving the manual as a compatibility landing page.
-
-**Acceptance criteria:**
-- [ ] Newcomers have a first-CLI path.
-- [ ] Commands, options, terminal UX, completion, and limitations have clear homes.
-- [ ] Existing manual URLs continue to land on useful documentation.
-
-**Verification:** Validate internal links and compile the homepage example through the existing smoke suite.
+**Verification:** Apply the supplied reader test to How-To and compile the
+canonical QuickStart example.
 
 **Dependencies:** Task 1
 
-**Files likely touched:** `docs/*.md`, `docs/layout.json`
+## Task 3: Correct recipe and reference fragments
 
-**Estimated scope:** Medium: 3-5 files
+**Acceptance criteria:** Options, value retrieval, exit codes, terminal output,
+spinner/progress, debug casting, API reference, and technical excerpts state
+their receiver, units, and execution scope accurately.
 
-## Task 3: Add practical recipes
+**Verification:** Compare the touched APIs with `src/`; run DocKit checks.
 
-**Description:** Create a compact How-To guide answering common application-author questions with minimal, supported examples.
+**Dependencies:** Tasks 1-2
 
-**Acceptance criteria:**
-- [ ] Recipes cover command shape, parameters, values, output, completion, generator, debugging, and unsupported work.
-- [ ] Every API call matches the public source interface.
-- [ ] Deeper links avoid restating full tutorials.
+## Task 4: Release records and qualification
 
-**Verification:** Source/API comparison and Markdown link validation.
+**Acceptance criteria:** Version metadata, changelog, roadmap, project page,
+and v1.4.1 release notes truthfully describe a documentation-only patch; local
+documentation/framework/generator/example checks pass.
 
-**Dependencies:** Task 2
+**Verification:** Repository test scripts, DocKit strict audit/build, and diff
+whitespace check.
 
-**Files likely touched:** `docs/how-to.md`, `docs/commands.md`, `docs/options.md`
+**Dependencies:** Task 3
 
-**Estimated scope:** Medium: 3-5 files
+## Task 5: Review, publish, and verify release
 
-## Task 4: Publish-oriented refresh
+**Acceptance criteria:** The candidate is reviewed, approved by checks, merged,
+tagged, released, and its rendered docs demonstrate the repaired context.
 
-**Description:** Update the homepage, navigation, examples, generator guide, and reference links for the new information architecture.
+**Verification:** GitHub PR/checks/release state and route-specific Pages text.
 
-**Acceptance criteria:**
-- [ ] README stays concise and points to task-oriented documentation.
-- [ ] Navigation is intent-oriented with no duplicate entries.
-- [ ] Generator internals are separated from normal application guidance.
-
-**Verification:** DocKit check/build if available; otherwise JSON, link, and Markdown validation.
-
-**Dependencies:** Tasks 2-3
-
-**Files likely touched:** `README.md`, `docs/layout.json`, `docs/examples.md`, `docs/codegen.md`, `docs/api-reference.md`
-
-**Estimated scope:** Medium: 3-5 files
-
-## Task 5: Qualify and release
-
-**Description:** Run existing project checks, review the candidate, and perform authorized remote release operations if possible.
-
-**Acceptance criteria:**
-- [ ] Framework, generator, cleanup, documentation, and diff checks are recorded.
-- [ ] The candidate is committed and reviewed.
-- [ ] PR, CI, merge, tag, release, and Pages verification are completed or precisely reported as blocked.
-
-**Verification:** Repository scripts, DocKit tooling, GitHub CLI/API where authenticated.
-
-**Dependencies:** Tasks 1-4
-
-**Files likely touched:** release metadata and documentation only
-
-**Estimated scope:** Small: 1-2 files
+**Dependencies:** Task 4

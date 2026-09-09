@@ -1,186 +1,225 @@
 # How do I...?
 
 Short, supported recipes for common `cli-fp` tasks. Start with
-[your first program](getting-started.md) if the class-based API is new to you.
-Each recipe shows the smallest useful piece; linked guides supply the surrounding
-program structure.
+[your first program](getting-started.md) for the canonical compiled program.
+
+## The command model used by every recipe
+
+Normal v1.4.x applications are class-based. You define a descendant, create
+an object of that class, register its options on that object, then register the
+object with the application:
+
+```text
+TBaseCommand
+  └── TGreetCommand
+      ├── Execute
+      └── registered options
+TGreetCommand instance
+  └── registered with ICLIApplication
+```
+
+This complete **command pattern** defines the developer-owned command. It is
+not a whole program; the setup fragment immediately below creates and
+registers its `Greet` instance.
+
+```pascal
+uses
+  CLI.Command;
+
+type
+  TGreetCommand = class(TBaseCommand)
+  public
+    function Execute: Integer; override;
+  end;
+
+function TGreetCommand.Execute: Integer;
+var
+  PersonName: string;
+begin
+  if not GetParameterValue('--name', PersonName) then
+    PersonName := 'World';
+  WriteLn('Hello, ', PersonName, '!');
+  Result := 0;
+end;
+```
+
+This **program-setup fragment** supplies the instance and application used by
+the option recipes below. Put it in a program that also contains the command
+pattern above and uses `CLI.Interfaces` and `CLI.Application`.
+
+```pascal
+var
+  App: ICLIApplication;
+  Greet: TGreetCommand;
+begin
+  App := CreateCLIApplication('hello', '1.0.0');
+  Greet := TGreetCommand.Create('greet', 'Print a greeting');
+  Greet.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+  App.RegisterCommand(Greet);
+  Halt(App.Execute);
+end.
+```
+
+The `TGreetCommand` instance owns `--name`; its `Execute` method retrieves
+that value after the application has parsed and validated the command line.
 
 ## How do I create the smallest CLI?
 
-Use an unnamed root command and pass it to `CreateCLIApplication`:
-
-```pascal
-Main := THelloCommand.Create('', 'Print a greeting');
-App := CreateCLIApplication('hello', '1.0.0', Main);
-Halt(App.Execute);
-```
-
-See the complete, compiled [QuickStartDemo](getting-started.md).
+Use the complete, compiled [QuickStartDemo](getting-started.md). It supplies
+an unnamed root-command descendant and passes that object to the three-argument
+`CreateCLIApplication` overload.
 
 ## How do I create a root/default command?
 
-Give a `TBaseCommand` descendant an empty name. Its `Execute` method runs for
-`myapp [options]`:
+Define the root command exactly like `TGreetCommand`, but give its instance an
+empty name. This setup fragment assumes `TRootCommand` is your declared
+`TBaseCommand` descendant with an overridden `Execute` method:
 
 ```pascal
-Root := TMyRootCommand.Create('', 'Run the default action');
-App := CreateCLIApplication('myapp', '1.0.0', Root);
+var
+  App: ICLIApplication;
+  Root: TRootCommand;
+begin
+  Root := TRootCommand.Create('', 'Run the default action');
+  Root.AddFlag('-v', '--verbose', 'Show detailed output');
+  App := CreateCLIApplication('myapp', '1.0.0', Root);
+  Halt(App.Execute);
+end.
 ```
 
-Root options are not inherited by named commands. See [command shapes](commands.md).
+Its `Execute` method runs for `myapp [options]`. Root options are not inherited
+by named commands; see [command shapes](commands.md).
 
 ## How do I add a named command?
 
-```pascal
-Greet := TGreetCommand.Create('greet', 'Print a greeting');
-App.RegisterCommand(Greet);
-```
-
-This creates `myapp greet`. Create the application without a root command for
-a command-first CLI.
+The `TGreetCommand` pattern and setup at the top of this page create
+`hello greet --name Ada`. For a command-first application, call the two-argument
+factory, create the named command object, register its options on that object,
+then call `App.RegisterCommand(Greet)`.
 
 ## How do I add a subcommand?
 
+A parent and child are both command objects. This **setup fragment** assumes
+`TRepoCommand` and `TCloneCommand` are declared `TBaseCommand` descendants,
+each with its own `Execute` override; it registers only the top-level object:
+
 ```pascal
-Repo := TRepoCommand.Create('repo', 'Repository operations');
-Clone := TCloneCommand.Create('clone', 'Clone a repository');
-Repo.AddSubCommand(Clone);
-App.RegisterCommand(Repo);
+var
+  App: ICLIApplication;
+  Repo: TRepoCommand;
+  Clone: TCloneCommand;
+begin
+  App := CreateCLIApplication('tool', '1.0.0');
+  Repo := TRepoCommand.Create('repo', 'Repository operations');
+  Clone := TCloneCommand.Create('clone', 'Clone a repository');
+  Clone.AddUrlParameter('-u', '--url', 'Repository URL', True);
+  Repo.AddSubCommand(Clone);
+  App.RegisterCommand(Repo);
+  Halt(App.Execute);
+end.
 ```
 
-This creates `myapp repo clone`. See [commands](commands.md) for the complete
-relationship.
+This creates `tool repo clone --url https://example.com/project.git`. The
+`Clone` object owns `--url`; the parent is only the command group. See
+[commands](commands.md) for the full root/named/nested comparison.
 
-## How do I add a string option?
+## How do I add options?
+
+Each registration below is a **program-setup fragment** placed immediately
+after `Greet := TGreetCommand.Create(...)` in the setup at the top of this
+page. `Greet` is therefore the concrete `TGreetCommand` instance that owns
+the registered option.
+
+### String, integer, and float
 
 ```pascal
-Command.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+Greet.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
+Greet.AddIntegerParameter('-c', '--count', 'Number of runs', True);
+Greet.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
 ```
 
-The final argument is the default value. Omit it for an optional parameter
-without a default.
-
-## How do I add an integer or float option?
+### Required, default, flag, and enum
 
 ```pascal
-Command.AddIntegerParameter('-c', '--count', 'Number of runs', True);
-Command.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
-```
-
-Values are validated before `Execute`; convert the retrieved string with
-`TryStrToInt` or `TryStrToFloat`.
-
-## How do I make an option required?
-
-Pass `True` in the `Required` position:
-
-```pascal
-Command.AddStringParameter('-f', '--file', 'Input file', True);
-```
-
-The framework reports a missing required option and shows command help before
-it calls `Execute`.
-
-## How do I give an option a default?
-
-```pascal
-Command.AddStringParameter('-o', '--output', 'Output file', False, 'out.txt');
-```
-
-`GetParameterValue` returns the default string when the user omitted the
-option.
-
-## How do I add a Boolean flag?
-
-```pascal
-Command.AddFlag('-v', '--verbose', 'Show detailed output');
-```
-
-It is `false` by default and `true` when present. For an explicit
-`--colour true|false` value, use `AddBooleanParameter` instead.
-
-## How do I add an enum option?
-
-```pascal
-Command.AddEnumParameter('-l', '--level', 'Log level',
+Greet.AddStringParameter('-f', '--file', 'Input file', True);
+Greet.AddStringParameter('-o', '--output', 'Output file', False, 'out.txt');
+Greet.AddFlag('-v', '--verbose', 'Show detailed output');
+Greet.AddEnumParameter('-l', '--level', 'Log level',
   'debug|info|warn|error', False, 'info');
 ```
 
-Enum matching is case-insensitive and built-in completion suggests the listed
-values.
-
-## How do I accept a path?
+### Path, URL, and password
 
 ```pascal
-Command.AddPathParameter('-p', '--path', 'Target directory', True);
+Greet.AddPathParameter('-p', '--path', 'Target directory', True);
+Greet.AddUrlParameter('-u', '--url', 'Repository URL', True);
+Greet.AddPasswordParameter('-k', '--api-key', 'API key', True);
 ```
 
-This accepts a path-shaped string; it does not check that the path exists.
+The framework validates registered values before it calls the selected
+command's `Execute`. Paths are still strings rather than existence checks;
+never print a retrieved password. See [options](options.md) for every kind.
 
-## How do I accept a URL?
+## How do I retrieve and convert a value?
 
-```pascal
-Command.AddUrlParameter('-u', '--url', 'Repository URL', True);
-```
-
-The current validator accepts `http://`, `https://`, `git://`, and `ssh://`
-prefixes.
-
-## How do I accept a sensitive/password value?
+Put lookup code inside the descendant that owns the option. This replacement
+for `TGreetCommand.Execute` uses the `--count` and `--verbose` options
+registered on the `Greet` instance above; it needs `SysUtils` for
+`TryStrToInt` and `SameText`.
 
 ```pascal
-Command.AddPasswordParameter('-k', '--api-key', 'API key', True);
-```
-
-Do not print or log the retrieved string. Framework debug output redacts
-registered password values, but your own output does not.
-
-## How do I retrieve a parameter inside `Execute`?
-
-```pascal
-var Name: string;
+function TGreetCommand.Execute: Integer;
+var
+  RawCount: string;
+  RawVerbose: string;
+  Count: Integer;
 begin
-  if GetParameterValue('--name', Name) then
-    WriteLn('Hello, ', Name);
+  if GetParameterValue('--count', RawCount) and
+     TryStrToInt(RawCount, Count) then
+    WriteLn('Count: ', Count);
+
+  if GetParameterValue('--verbose', RawVerbose) and
+     SameText(RawVerbose, 'true') then
+    WriteLn('Verbose mode');
+
+  Result := 0;
 end;
 ```
 
-Use either the short or long flag registered on that command.
-
-## How do I convert validated values to Pascal types?
-
-```pascal
-if GetParameterValue('--count', RawCount) and TryStrToInt(RawCount, Count) then
-  WriteLn(Count);
-
-if GetParameterValue('--verbose', RawVerbose) and
-   SameText(RawVerbose, 'true') then
-  WriteLn('Verbose mode');
-```
-
-The current public lookup API is string-based; [options](options.md) explains
-why conversion remains necessary.
+`GetParameterValue` is protected, so it belongs in the command class—not the
+program setup. Values remain strings after validation; use `TryStrToFloat` for
+a float. An absent `AddFlag` normally supplies `false`.
 
 ## How do I return a non-zero exit code?
 
-Return it from `Execute`, then pass the application's result to `Halt`:
+Set `Result` in the command's `Execute`, then let the application return it to
+the shell. This complete **command-method fragment** assumes
+`TCheckCommand = class(TBaseCommand)` is declared in the same unit:
 
 ```pascal
 function TCheckCommand.Execute: Integer;
+var
+  InputFile: string;
 begin
-  if not CheckInputs then
+  if not GetParameterValue('--file', InputFile) then
     Exit(1);
+  WriteLn('Checking ', InputFile);
   Result := 0;
 end;
-
-// Program body
-Halt(App.Execute);
 ```
+
+At the program boundary, use `Halt(App.Execute)`—not `Halt` inside `Execute`.
+Here `App` is the `ICLIApplication` variable created in a program-setup
+fragment such as the one at the top of this page.
 
 ## How do I print coloured output?
 
+Inside a command's `Execute`, import `CLI.Console` and call the `TConsole`
+class directly; there is no console object to construct:
+
 ```pascal
-uses CLI.Console;
+uses
+  CLI.Console;
 
 TConsole.WriteLn('Created project', ccGreen);
 TConsole.WriteLn('Could not create project', ccRed);
@@ -191,31 +230,59 @@ See [terminal output](terminal.md) and the runnable
 
 ## How do I display a spinner?
 
+This complete **`Execute`-method fragment** belongs to a declared
+`TDownloadCommand = class(TBaseCommand)`. Its command unit needs
+`CLI.Interfaces` and `CLI.Progress`:
+
 ```pascal
-Spinner := CreateSpinner(ssLine);
-Spinner.Start;
-try
-  Work;
-finally
-  Spinner.Stop;
+function TDownloadCommand.Execute: Integer;
+var
+  Spinner: IProgressIndicator;
+begin
+  Spinner := CreateSpinner(ssLine);
+  Spinner.Start;
+  try
+    Spinner.Update(0, 'Downloading');
+    // Perform the download here.
+  finally
+    Spinner.Stop;
+  end;
+  Result := 0;
 end;
 ```
 
-Use an `IProgressIndicator` variable and always stop it in `finally`.
+Always stop the indicator in `finally`.
 
 ## How do I display progress?
 
+This complete **`Execute`-method fragment** belongs to a declared
+`TBatchCommand = class(TBaseCommand)`. Its command unit needs `SysUtils`,
+`CLI.Interfaces`, and `CLI.Progress`:
+
 ```pascal
-Bar := CreateProgressBar(Total);
-Bar.Start;
-try
-  Bar.Update(Current, 'Working');
-finally
-  Bar.Stop;
+function TBatchCommand.Execute: Integer;
+var
+  Bar: IProgressIndicator;
+  Index: Integer;
+  Total: Integer;
+begin
+  Total := 3;
+  Bar := CreateProgressBar(Total);
+  Bar.Start;
+  try
+    for Index := 1 to Total do
+    begin
+      // Process item Index here.
+      Bar.Update(Index, Format('Processed %d of %d', [Index, Total]));
+    end;
+  finally
+    Bar.Stop;
+  end;
+  Result := 0;
 end;
 ```
 
-Use a progress bar when `Total` is known; otherwise use a spinner.
+Use a progress bar when the total is known; otherwise use a spinner.
 
 ## How do I generate Bash completion?
 
@@ -254,11 +321,17 @@ user-owned command units. See the [generator guide](codegen.md).
 
 ## How do I inspect/debug argument parsing?
 
-`DebugMode` is on the concrete `TCLIApplication`, not `ICLIApplication`:
+`DebugMode` is on the concrete `TCLIApplication`, not `ICLIApplication`. This
+**program-setup fragment** declares and creates the `App` it casts; it needs
+`CLI.Interfaces` and `CLI.Application`:
 
 ```pascal
-App := CreateCLIApplication('myapp', '1.0.0');
-(App as TCLIApplication).DebugMode := True;
+var
+  App: ICLIApplication;
+begin
+  App := CreateCLIApplication('myapp', '1.0.0');
+  (App as TCLIApplication).DebugMode := True;
+end;
 ```
 
 Use it only while diagnosing an invocation, and never use debug output as a

@@ -8,6 +8,11 @@ completion generation, console behaviour, and tests. Application authors
 looking for public usage examples should start with the
 [first-CLI guide](getting-started.md).
 
+All Pascal blocks on this page are **source-context excerpts** from the unit
+named by their heading or surrounding text. They describe implementation and
+interfaces, not standalone application snippets; use the reader guides for a
+defined command class, command instance, and application setup.
+
 ## Architecture Overview
 
 The Free Pascal CLI Framework is built on a modular, interface-based architecture that promotes extensibility and maintainability. The framework is organized into several key components that work together to provide a complete CLI solution.

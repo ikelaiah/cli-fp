@@ -6,7 +6,9 @@
 Use this page to look up the current public, application-facing API. For a
 complete program, start with [your first CLI](getting-started.md). The public
 units in [`src/`](https://github.com/ikelaiah/cli-fp/tree/main/src) are the
-authoritative declarations.
+authoritative declarations. Signature blocks below are API declarations;
+application code is always labelled as a program-setup fragment and names its
+variables or states the command pattern it depends on.
 
 ## Units to use
 
@@ -34,10 +36,20 @@ Use the two-argument overload for a command-first application. Use the
 three-argument overload when an unnamed root command should run for
 `myapp [options]`.
 
+The following **program-setup fragment** needs `CLI.Interfaces` and
+`CLI.Application`. It assumes `TRootCommand` is a declared `TBaseCommand`
+descendant with an overridden `Execute`; `Root` is the instance passed to the
+factory.
+
 ```pascal
-App := CreateCLIApplication('myapp', '1.0.0', Root);
-App.RegisterCommand(About);
-Halt(App.Execute);
+var
+  App: ICLIApplication;
+  Root: TRootCommand;
+begin
+  Root := TRootCommand.Create('', 'Run the default action');
+  App := CreateCLIApplication('myapp', '1.0.0', Root);
+  Halt(App.Execute);
+end.
 ```
 
 `ICLIApplication` exposes:
