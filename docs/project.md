@@ -1,8 +1,8 @@
 # Contributing and support
 
 `cli-fp` is a small open-source framework maintained around a deliberately
-small public API. v1.4.1 is a documentation-accuracy patch: the supported
-runtime is still the class-based API described in these guides.
+small public API. v1.4.2 is a correctness and maintenance patch: the supported
+runtime remains the class-based API described in these guides.
 
 ## Supported environments
 

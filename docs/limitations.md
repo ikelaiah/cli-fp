@@ -2,7 +2,7 @@
 
 [How do I...?](how-to.md) · [Commands](commands.md) · [Options](options.md)
 
-These are current v1.4.1 boundaries verified against the public source and
+These are current v1.4.2 boundaries verified against the public source and
 tests. They are intentionally easy to find so a limitation does not look like
 an undocumented feature.
 
@@ -31,6 +31,7 @@ an undocumented feature.
 - Registered integer and float options accept negative values in either
   `--count=-1` or `--count -1` form. For another value beginning with `-`, use
   the equals form so it is not read as a new option.
+- Option flags are case-sensitive; use the spelling registered by the command.
 
 ## Completion
 

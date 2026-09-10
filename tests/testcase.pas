@@ -75,6 +75,13 @@ type
     procedure Test_7_7_CompleteRootParameters;
     procedure Test_7_8_NoRootPreservesEmptyArgumentBehavior;
     procedure Test_7_9_CompletionBehaviour;
+
+    // 8.x - v1.4.2 Regression Tests
+    procedure Test_8_1_ProgressBarBounds;
+    procedure Test_8_2_FlagCaseSensitivity;
+    procedure Test_8_3_CompletionAlwaysReturnsDirective;
+    procedure Test_8_4_CompletionScriptQuotingAndHeader;
+    procedure Test_8_5_DateTimeValidationDoesNotChangeFormatSettings;
   end;
 
 implementation
@@ -95,6 +102,15 @@ type
     function Execute: Integer; override;
     property ExecuteCount: Integer read FExecuteCount;
     property LastName: string read FLastName;
+  end;
+
+  TRecordingProgressBar = class(TProgressBar)
+  private
+    FLastText: string;
+  protected
+    procedure RenderText(const Text: string); override;
+  public
+    property LastText: string read FLastText;
   end;
 
   { ICommand implementation that deliberately does not inherit TBaseCommand. }
@@ -126,6 +142,11 @@ begin
   if not GetParameterValue('--name', FLastName) then
     FLastName := '';
   Result := 0;
+end;
+
+procedure TRecordingProgressBar.RenderText(const Text: string);
+begin
+  FLastText := Text;
 end;
 
 function TInterfaceOnlyCommand.GetName: string;
@@ -1179,6 +1200,163 @@ begin
     end;
   finally
     App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_8_1_ProgressBarBounds;
+var
+  Progress: TRecordingProgressBar;
+begin
+  Progress := TRecordingProgressBar.Create(0, 10);
+  try
+    Progress.Start;
+    Progress.Update(0);
+    AssertEquals('A zero total should render an empty progress bar',
+      '[          ]   0%', Progress.LastText);
+    Progress.Stop;
+  finally
+    Progress.Free;
+  end;
+
+  Progress := TRecordingProgressBar.Create(10, 10);
+  try
+    Progress.Start;
+    Progress.Update(0);
+    AssertEquals('Zero progress should render an empty progress bar',
+      '[          ]   0%', Progress.LastText);
+    Progress.Update(5);
+    AssertEquals('Partial progress should render a partial progress bar',
+      '[=====     ]  50%', Progress.LastText);
+    Progress.Update(10);
+    AssertEquals('Complete progress should fill the configured width',
+      '[==========] 100%', Progress.LastText);
+    Progress.Update(15);
+    AssertEquals('Progress beyond total should remain visually clamped',
+      '[==========] 100%', Progress.LastText);
+    Progress.Stop;
+  finally
+    Progress.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_8_2_FlagCaseSensitivity;
+var
+  App: TCLIApplication;
+  Cmd: TRecordingCommand;
+begin
+  App := TCLIApplication.Create('TestApp', '1.4.2');
+  Cmd := TRecordingCommand.Create('test', 'Test command');
+  try
+    Cmd.AddStringParameter('-n', '--name', 'Name', True);
+    App.RegisterCommand(Cmd);
+    AssertEquals('Exact-case flags should execute and provide their value', 0,
+      App.TestExecute(MakeArgs(['test', '--name', 'Ada'])));
+    AssertEquals('Exact-case flag value should be available to the command',
+      'Ada', Cmd.LastName);
+    AssertEquals('Different-case flags should be rejected consistently', 1,
+      App.TestExecute(MakeArgs(['test', '--NAME', 'Ada'])));
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_8_3_CompletionAlwaysReturnsDirective;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.4.2');
+  Cmd := TTestCommand.Create('deploy', 'Deploy an application');
+  try
+    App.RegisterCommand(Cmd);
+
+    Candidates := App.TestComplete(MakeArgs([]));
+    try
+      AssertEquals('Empty completion should finish with a directive', ':0',
+        Candidates[Candidates.Count - 1]);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['de']));
+    try
+      AssertEquals('Command-prefix completion should finish with a directive',
+        ':0', Candidates[Candidates.Count - 1]);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_8_4_CompletionScriptQuotingAndHeader;
+var
+  App: TCLIApplication;
+  Output: TStringList;
+  i, HeaderCount: Integer;
+begin
+  App := TCLIApplication.Create('my app$unsafe', '1.4.2');
+  Output := TStringList.Create;
+  try
+    AssertEquals('Bash script generation should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--completion-file']), Output));
+    AssertTrue('Bash function names should be safe shell identifiers',
+      Pos('_my_app_unsafe_completions()', Output.Text) > 0);
+    AssertTrue('Bash should invoke the executable through a quoted variable',
+      Pos('"$executable" __complete', Output.Text) > 0);
+
+    Output.Clear;
+    AssertEquals('PowerShell script generation should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--completion-file-pwsh']), Output));
+    HeaderCount := 0;
+    for i := 0 to Output.Count - 1 do
+      if Pos('# Usage:', Output[i]) = 1 then
+        Inc(HeaderCount);
+    AssertEquals('PowerShell output should contain exactly one preamble', 1,
+      HeaderCount);
+    AssertTrue('PowerShell should invoke a quoted executable variable',
+      Pos('& $cliFpExecutable __complete @argsList', Output.Text) > 0);
+  finally
+    Output.Free;
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_8_5_DateTimeValidationDoesNotChangeFormatSettings;
+var
+  App: TCLIApplication;
+  Cmd: TRecordingCommand;
+  OriginalDateSeparator: Char;
+  OriginalShortDateFormat, OriginalLongTimeFormat: string;
+begin
+  OriginalDateSeparator := FormatSettings.DateSeparator;
+  OriginalShortDateFormat := FormatSettings.ShortDateFormat;
+  OriginalLongTimeFormat := FormatSettings.LongTimeFormat;
+  FormatSettings.DateSeparator := '.';
+  FormatSettings.ShortDateFormat := 'dd.mm.yyyy';
+  FormatSettings.LongTimeFormat := 'hh:nn';
+  App := TCLIApplication.Create('TestApp', '1.4.2');
+  Cmd := TRecordingCommand.Create('date', 'Validate a date');
+  try
+    Cmd.AddDateTimeParameter('-d', '--when', 'When to run', True);
+    App.RegisterCommand(Cmd);
+    AssertEquals('The documented date-time format should validate', 0,
+      App.TestExecute(MakeArgs(['date', '--when=2024-01-01 12:00'])));
+    AssertEquals('Date-time values with seconds should remain accepted', 0,
+      App.TestExecute(MakeArgs(['date', '--when=2024-01-01 12:00:30'])));
+    AssertEquals('Date separator should remain caller-owned', '.',
+      FormatSettings.DateSeparator);
+    AssertEquals('Short date format should remain caller-owned', 'dd.mm.yyyy',
+      FormatSettings.ShortDateFormat);
+    AssertEquals('Long time format should remain caller-owned', 'hh:nn',
+      FormatSettings.LongTimeFormat);
+  finally
+    App.Free;
+    FormatSettings.DateSeparator := OriginalDateSeparator;
+    FormatSettings.ShortDateFormat := OriginalShortDateFormat;
+    FormatSettings.LongTimeFormat := OriginalLongTimeFormat;
   end;
 end;
 

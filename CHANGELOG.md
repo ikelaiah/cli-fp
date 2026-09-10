@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-09-10
+
+### Fixed
+
+- Progress bars now safely handle zero totals and clamp their visual range.
+- Completion responses consistently end with their directive, including empty
+  and command-prefix requests.
+- Generated Bash and PowerShell completion scripts safely quote executable
+  values; PowerShell generation emits one preamble.
+- Date/time validation now uses local format settings and no longer changes
+  process-wide formatting state.
+
+### Documentation / Maintenance
+
+- Corrected the DebugMode setup recipe so the application executes.
+- Removed obsolete tracked Pascal backup files.
+
 ## [1.4.1] - 2026-09-09
 
 ### Documentation
@@ -443,7 +460,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/ikelaiah/cli-fp/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/ikelaiah/cli-fp/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ikelaiah/cli-fp/compare/v1.3.3...v1.4.0
 [1.3.3]: https://github.com/ikelaiah/cli-fp/compare/v1.3.2...v1.3.3

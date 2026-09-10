@@ -100,6 +100,17 @@ buildable, test results do not depend on stale compiler units, diagnostics do
 not expose password values, and the test suite provides a dependable safety
 net for the v1.4.0 documentation work.
 
+## v1.4.2 — Correctness and Maintenance Patch (completed 2026-09-10)
+
+- Make progress bars safe at zero and over-total boundaries.
+- Preserve caller-owned date/time formatting state during validation.
+- Make all completion protocol branches directive-complete and generated Bash
+  and PowerShell scripts safe for shell-sensitive executable names and paths.
+- Remove obsolete source backup files and correct the DebugMode recipe.
+
+**Maintenance outcome:** v1.4.1 behavior is more robust without expanding the
+public API or command model.
+
 ## v1.4.1 — Documentation Accuracy Patch (completed 2026-09-09)
 
 - Correct published snippets so the class-based command relationship is
