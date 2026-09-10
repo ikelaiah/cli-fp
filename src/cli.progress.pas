@@ -15,6 +15,9 @@ interface
 uses
   Classes, SysUtils, CLI.Interfaces, CLI.Console;
 
+const
+  MaxProgressBarWidth = 200;
+
 type
   { Spinner styles }
   TSpinnerStyle = (
@@ -204,7 +207,6 @@ begin
   DisplayText := ComposeText(FFrames[FFrame], ACaption);
   RenderText(DisplayText);
   FFrame := (FFrame + 1) mod Length(FFrames);  // Move to next frame
-  Sleep(100);  // Delay for animation
 end;
 
 { TProgressBar }
@@ -214,6 +216,10 @@ begin
   inherited Create;
   FTotal := ATotal;
   FWidth := AWidth;
+  if FWidth < 0 then
+    FWidth := 0
+  else if FWidth > MaxProgressBarWidth then
+    FWidth := MaxProgressBarWidth;
   FLastProgress := -1;  // Initialize to invalid progress to force first update
   FLastCaption := EmptyStr;
 end;
@@ -246,8 +252,6 @@ begin
   
   // Calculate filled portion of bar
   EffectiveWidth := FWidth;
-  if EffectiveWidth < 0 then
-    EffectiveWidth := 0;
   FilledWidth := Round((Percentage / 100) * EffectiveWidth);
   
   // Create progress bar text: [====    ] XX%

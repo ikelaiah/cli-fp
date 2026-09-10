@@ -254,14 +254,6 @@ begin
     RemoteRemoveCmd.AddStringParameter('-n', '--name', 'Remote name', True);
     RemoteCmd.AddSubCommand(RemoteRemoveCmd);
 
-    // Clean up command references (not strictly necessary but good practice)
-    RepoCmd := nil;
-    InitCmd := nil;
-    CloneCmd := nil;
-    RemoteCmd := nil;
-    RemoteAddCmd := nil;
-    RemoteRemoveCmd := nil;
-
     // Execute the application and get exit code
     ExitCode := App.Execute;
   except

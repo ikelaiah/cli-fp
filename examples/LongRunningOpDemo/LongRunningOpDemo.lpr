@@ -110,7 +110,7 @@ type
         except
           on E: Exception do
           begin
-            TConsole.WriteLn('Error: Invalid date/time format. Use YYYY-MM-DD HH:MM:SS', ccRed);
+            TConsole.WriteLn('Error: Invalid date/time format. Use YYYY-MM-DD HH:MM', ccRed);
             Exit(1);
           end;
         end;

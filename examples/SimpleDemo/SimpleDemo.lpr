@@ -103,8 +103,6 @@ begin
     { Register the command with the application
       This makes it available for use }
     App.RegisterCommand(Cmd);
-    Cmd := nil;  // App takes ownership, clear our reference
-
     { Execute the application and store exit code
       This processes command line and runs the appropriate command }
     ExitCode := App.Execute;

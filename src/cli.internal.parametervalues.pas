@@ -37,8 +37,8 @@ function TryGetParameterValue(const Param: ICommandParameter;
 var
   Index: Integer;
 begin
-  Result := False;
   Value := '';
+  Result := False;
   if not Assigned(Param) or not Assigned(ParsedParams) then
     Exit;
 

@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testregistry,
   CLI.Interfaces,
   CLI.Application, CLI.Command, CLI.Parameter,
-  CLI.Progress, CLI.Console;
+  CLI.Progress, CLI.Console, CLI.Internal.Text;
 
 type
   { TCLIFrameworkTests }
@@ -78,10 +78,21 @@ type
 
     // 8.x - v1.4.2 Regression Tests
     procedure Test_8_1_ProgressBarBounds;
-    procedure Test_8_2_FlagCaseSensitivity;
+    procedure Test_8_2_FlagCaseInsensitiveLookup;
     procedure Test_8_3_CompletionAlwaysReturnsDirective;
     procedure Test_8_4_CompletionScriptQuotingAndHeader;
     procedure Test_8_5_DateTimeValidationDoesNotChangeFormatSettings;
+
+    // 9.x - v1.5.0 Defensive CLI Core
+    procedure Test_9_1_InvalidRegisteredCommand;
+    procedure Test_9_2_NilRegisteredCommand;
+    procedure Test_9_3_InvalidParameterFlags;
+    procedure Test_9_4_DuplicateParameterFlags;
+    procedure Test_9_5_InvalidSubcommandTrees;
+    procedure Test_9_6_PositionalArgumentsAndDuplicateOptions;
+    procedure Test_9_7_HelpExtraArgumentsAndValueMiss;
+    procedure Test_9_8_EnumValuesMayContainSpaces;
+    procedure Test_9_9_TerminalTextSanitization;
   end;
 
 implementation
@@ -1237,9 +1248,20 @@ begin
   finally
     Progress.Free;
   end;
+
+  Progress := TRecordingProgressBar.Create(1, MaxProgressBarWidth + 1000);
+  try
+    Progress.Start;
+    Progress.Update(1);
+    AssertTrue('Pathological progress widths should be capped',
+      Length(Progress.LastText) <= MaxProgressBarWidth + 10);
+    Progress.Stop;
+  finally
+    Progress.Free;
+  end;
 end;
 
-procedure TCLIFrameworkTests.Test_8_2_FlagCaseSensitivity;
+procedure TCLIFrameworkTests.Test_8_2_FlagCaseInsensitiveLookup;
 var
   App: TCLIApplication;
   Cmd: TRecordingCommand;
@@ -1253,8 +1275,10 @@ begin
       App.TestExecute(MakeArgs(['test', '--name', 'Ada'])));
     AssertEquals('Exact-case flag value should be available to the command',
       'Ada', Cmd.LastName);
-    AssertEquals('Different-case flags should be rejected consistently', 1,
+    AssertEquals('Different-case flags should match the public lookup rules', 0,
       App.TestExecute(MakeArgs(['test', '--NAME', 'Ada'])));
+    AssertEquals('Case-insensitive flag lookup should provide the value',
+      'Ada', Cmd.LastName);
   finally
     App.Free;
   end;
@@ -1357,6 +1381,258 @@ begin
     FormatSettings.DateSeparator := OriginalDateSeparator;
     FormatSettings.ShortDateFormat := OriginalShortDateFormat;
     FormatSettings.LongTimeFormat := OriginalLongTimeFormat;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_1_InvalidRegisteredCommand;
+var
+  Cmd: TTestCommand;
+  Raised: Boolean;
+begin
+  Cmd := TTestCommand.Create('bad command', 'Invalid command');
+  Raised := False;
+  try
+    try
+      FApp.RegisterCommand(Cmd);
+    except
+      on E: Exception do
+        Raised := Pos('invalid command-name', LowerCase(E.Message)) > 0;
+    end;
+  finally
+    Cmd.Free;
+  end;
+  AssertTrue('Invalid registered command names should fail clearly', Raised);
+end;
+
+procedure TCLIFrameworkTests.Test_9_2_NilRegisteredCommand;
+var
+  Cmd: ICommand;
+  Raised: Boolean;
+begin
+  Cmd := nil;
+  Raised := False;
+  try
+    FApp.RegisterCommand(Cmd);
+  except
+    on E: Exception do
+      Raised := Pos('cannot be nil', LowerCase(E.Message)) > 0;
+  end;
+  AssertTrue('Nil registered commands should be rejected', Raised);
+end;
+
+procedure TCLIFrameworkTests.Test_9_3_InvalidParameterFlags;
+var
+  Cmd: TTestCommand;
+  Raised: Boolean;
+begin
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Raised := False;
+    try
+      Cmd.AddStringParameter('-', '--name', 'Invalid short flag');
+    except
+      on E: Exception do Raised := True;
+    end;
+    AssertTrue('Bare short flags should be rejected', Raised);
+
+    Raised := False;
+    try
+      Cmd.AddStringParameter('-n', '--', 'Invalid long flag');
+    except
+      on E: Exception do Raised := True;
+    end;
+    AssertTrue('Bare long flags should be rejected', Raised);
+
+    Raised := False;
+    try
+      Cmd.AddStringParameter('-x', '--bad name', 'Whitespace in flag');
+    except
+      on E: Exception do Raised := True;
+    end;
+    AssertTrue('Whitespace in flags should be rejected', Raised);
+  finally
+    Cmd.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_4_DuplicateParameterFlags;
+var
+  Cmd: TTestCommand;
+  Raised: Boolean;
+begin
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Cmd.AddStringParameter('-n', '--name', 'Name');
+    Raised := False;
+    try
+      Cmd.AddStringParameter('-N', '--other', 'Duplicate short flag');
+    except
+      on E: Exception do Raised := True;
+    end;
+    AssertTrue('Duplicate short flags should be case-insensitive', Raised);
+
+    Raised := False;
+    try
+      Cmd.AddStringParameter('-o', '--NAME', 'Duplicate long flag');
+    except
+      on E: Exception do Raised := True;
+    end;
+    AssertTrue('Duplicate long flags should be case-insensitive', Raised);
+  finally
+    Cmd.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_5_InvalidSubcommandTrees;
+var
+  Parent, Child, Duplicate, Invalid: TTestCommand;
+  NilCommand: ICommand;
+  Raised: Boolean;
+begin
+  Parent := TTestCommand.Create('parent', 'Parent');
+  Child := TTestCommand.Create('child', 'Child');
+  Duplicate := TTestCommand.Create('CHILD', 'Duplicate child');
+  Invalid := TTestCommand.Create('bad child', 'Invalid child');
+  try
+    NilCommand := nil;
+    Raised := False;
+    try
+      Parent.AddSubCommand(NilCommand);
+    except
+      on E: Exception do Raised := Pos('cannot be nil', LowerCase(E.Message)) > 0;
+    end;
+    AssertTrue('Nil subcommands should be rejected', Raised);
+
+    Raised := False;
+    try
+      Parent.AddSubCommand(Invalid);
+    except
+      on E: Exception do Raised := True;
+    end;
+    AssertTrue('Invalid subcommand names should be rejected', Raised);
+
+    Raised := False;
+    try
+      Parent.AddSubCommand(Parent);
+    except
+      on E: Exception do Raised := Pos('cycle', LowerCase(E.Message)) > 0;
+    end;
+    AssertTrue('A command cannot be its own child', Raised);
+
+    Parent.AddSubCommand(Child);
+    Raised := False;
+    try
+      Parent.AddSubCommand(Duplicate);
+    except
+      on E: Exception do Raised := Pos('already defined', LowerCase(E.Message)) > 0;
+    end;
+    AssertTrue('Duplicate sibling subcommands should be rejected', Raised);
+
+    Raised := False;
+    try
+      Child.AddSubCommand(Parent);
+    except
+      on E: Exception do Raised := Pos('cycle', LowerCase(E.Message)) > 0;
+    end;
+    AssertTrue('Indirect command cycles should be rejected', Raised);
+  finally
+    Parent.Free;
+    Duplicate.Free;
+    Invalid.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_6_PositionalArgumentsAndDuplicateOptions;
+var
+  App: TCLIApplication;
+  Cmd: TRecordingCommand;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.0');
+  Cmd := TRecordingCommand.Create('test', 'Test command');
+  try
+    Cmd.AddStringParameter('-n', '--name', 'Name');
+    App.RegisterCommand(Cmd);
+    AssertEquals('Unexpected positional arguments should fail with exit code 1',
+      1, App.TestExecute(MakeArgs(['test', 'foo'])));
+    AssertEquals('Positional argument rejection should not execute the command',
+      '', Cmd.LastName);
+    AssertEquals('Duplicate options should use the last occurrence', 0,
+      App.TestExecute(MakeArgs(['test', '--name', 'Alice', '--name', 'Bob'])));
+    AssertEquals('Last option value should win', 'Bob', Cmd.LastName);
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_7_HelpExtraArgumentsAndValueMiss;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Output: TStringList;
+  Value: string;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.0');
+  Cmd := TTestCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
+  try
+    App.RegisterCommand(Cmd);
+    AssertEquals('Global help with extra arguments should be deterministic', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--help', 'extra']), Output));
+    AssertTrue('Global help should still be shown with extra arguments',
+      Pos('Usage:', Output.Text) > 0);
+    Value := 'stale';
+    AssertFalse('Missing command parameter should report a miss',
+      Cmd.TestGetParameterValue('--missing', Value));
+    AssertEquals('Missing parameter lookup should clear the out value', '', Value);
+  finally
+    Output.Free;
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_8_EnumValuesMayContainSpaces;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.0');
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Cmd.AddEnumParameter('-m', '--mode', 'Mode', 'normal mode|fast mode');
+    App.RegisterCommand(Cmd);
+    AssertEquals('Enum values containing spaces should validate', 0,
+      App.TestExecute(MakeArgs(['test', '--mode', 'normal mode'])));
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_9_9_TerminalTextSanitization;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Output: TStringList;
+begin
+  AssertEquals('Terminal sanitization should remove ESC and NUL while preserving text',
+    'Safe[31m' + #13#10 + '✓',
+    SanitizeTerminalText('Safe' + #27 + '[31m' + #0 + #13#10 + '✓'));
+
+  App := TCLIApplication.Create('TestApp', '1.5.0');
+  Cmd := TTestCommand.Create('safe', 'Description' + #27 + '[31m' + #0);
+  Output := TStringList.Create;
+  try
+    App.RegisterCommand(Cmd);
+    AssertEquals('Help should remain available for sanitized descriptions', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--help']), Output));
+    AssertTrue('Help should preserve printable description text',
+      Pos('Description[31m', Output.Text) > 0);
+    AssertEquals('Captured help should contain no ESC characters', 0,
+      Pos(#27, Output.Text));
+    AssertEquals('Captured help should contain no NUL characters', 0,
+      Pos(#0, Output.Text));
+  finally
+    Output.Free;
+    App.Free;
   end;
 end;
 

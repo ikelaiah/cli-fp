@@ -34,6 +34,7 @@ type
       Called automatically in initialization section
       Platform-specific: Stores initial attributes on Windows }
     class procedure InitConsole;
+    class function ColorsEnabled: Boolean;
   public
     { Sets text foreground color
       @param Color The color to set for subsequent text output }
@@ -97,6 +98,8 @@ type
 implementation
 
 uses
+  SysUtils,
+  CLI.Internal.Text,
 {$IFDEF WINDOWS}
   Windows;
 {$ELSE}
@@ -135,11 +138,15 @@ var
   Handle: THandle;
   Info: TConsoleScreenBufferInfo;
 begin
+  if not ColorsEnabled then
+    Exit;
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleScreenBufferInfo(Handle, Info);
   SetConsoleTextAttribute(Handle, (Info.wAttributes and $F0) or Ord(Color));
 {$ELSE}
 begin
+  if not ColorsEnabled then
+    Exit;
   case Color of
     ccBlack: System.Write(#27'[30m');
     ccBlue: System.Write(#27'[34m');
@@ -172,11 +179,15 @@ var
   Handle: THandle;
   Info: TConsoleScreenBufferInfo;
 begin
+  if not ColorsEnabled then
+    Exit;
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
   GetConsoleScreenBufferInfo(Handle, Info);
   SetConsoleTextAttribute(Handle, (Info.wAttributes and $0F) or (Ord(Color) shl 4));
 {$ELSE}
 begin
+  if not ColorsEnabled then
+    Exit;
   case Color of
     ccBlack: System.Write(#27'[40m');
     ccBlue: System.Write(#27'[44m');
@@ -207,10 +218,14 @@ class procedure TConsole.ResetColors;
 var
   Handle: THandle;
 begin
+  if not ColorsEnabled then
+    Exit;
   Handle := GetStdHandle(STD_OUTPUT_HANDLE);
   SetConsoleTextAttribute(Handle, FDefaultAttr);
 {$ELSE}
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'[0m');
 {$ENDIF}
 end;
@@ -219,15 +234,22 @@ end;
   Uses carriage return and spaces for universal compatibility }
 class procedure TConsole.ClearLine;
 begin
-  System.Write(#13);  // Carriage return
-  System.Write('                                                  ');  // Clear line
-  System.Write(#13);  // Return to start
+  if ColorsEnabled then
+    System.Write(#27'[2K'#13)
+  else
+  begin
+    System.Write(#13);
+    System.Write('                                                  ');
+    System.Write(#13);
+  end;
 end;
 
 { MoveCursorUp: Moves cursor up specified lines
   @param Lines Number of lines to move up }
 class procedure TConsole.MoveCursorUp(const Lines: Integer);
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'[', Lines, 'A');
 end;
 
@@ -235,6 +257,8 @@ end;
   @param Lines Number of lines to move down }
 class procedure TConsole.MoveCursorDown(const Lines: Integer);
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'[', Lines, 'B');
 end;
 
@@ -242,6 +266,8 @@ end;
   @param Columns Number of columns to move left }
 class procedure TConsole.MoveCursorLeft(const Columns: Integer);
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'[', Columns, 'D');
 end;
 
@@ -249,6 +275,8 @@ end;
   @param Columns Number of columns to move right }
 class procedure TConsole.MoveCursorRight(const Columns: Integer);
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'[', Columns, 'C');
 end;
 
@@ -256,6 +284,8 @@ end;
   Uses ANSI sequence that works on most terminals }
 class procedure TConsole.SaveCursorPosition;
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'7');
 end;
 
@@ -263,6 +293,8 @@ end;
   Uses ANSI sequence that works on most terminals }
 class procedure TConsole.RestoreCursorPosition;
 begin
+  if not ColorsEnabled then
+    Exit;
   System.Write(#27'8');
 end;
 
@@ -270,7 +302,7 @@ end;
   @param Text The text to write }
 class procedure TConsole.Write(const Text: string);
 begin
-  System.Write(Text);
+  System.Write(SanitizeTerminalText(Text));
 end;
 
 { Write: Outputs colored text without line ending
@@ -280,15 +312,18 @@ end;
 class procedure TConsole.Write(const Text: string; const FgColor: TConsoleColor);
 begin
   SetForegroundColor(FgColor);
-  System.Write(Text);
-  ResetColors;
+  try
+    System.Write(SanitizeTerminalText(Text));
+  finally
+    ResetColors;
+  end;
 end;
 
 { WriteLn: Outputs text with line ending
   @param Text The text to write }
 class procedure TConsole.WriteLn(const Text: string);
 begin
-  System.WriteLn(Text);
+  System.WriteLn(SanitizeTerminalText(Text));
 end;
 
 { WriteLn: Outputs colored text with line ending
@@ -298,8 +333,29 @@ end;
 class procedure TConsole.WriteLn(const Text: string; const FgColor: TConsoleColor);
 begin
   SetForegroundColor(FgColor);
-  System.WriteLn(Text);
-  ResetColors;
+  try
+    System.WriteLn(SanitizeTerminalText(Text));
+  finally
+    ResetColors;
+  end;
+end;
+
+class function TConsole.ColorsEnabled: Boolean;
+{$IFDEF WINDOWS}
+var
+  Handle: THandle;
+  Mode: DWORD;
+{$ENDIF}
+begin
+  if SysUtils.GetEnvironmentVariable('NO_COLOR') <> '' then
+    Exit(False);
+{$IFDEF WINDOWS}
+  Handle := GetStdHandle(STD_OUTPUT_HANDLE);
+  Result := (Handle <> INVALID_HANDLE_VALUE) and
+    (GetConsoleMode(Handle, Mode));
+{$ELSE}
+  Result := fpIsATTY(1) = 1;
+{$ENDIF}
 end;
 
 initialization

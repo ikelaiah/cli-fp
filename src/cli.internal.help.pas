@@ -76,6 +76,7 @@ procedure TCLIHelpRenderer.WriteParameters(
 var
   Param: ICommandParameter;
   RequiredText: string;
+  FlagText: string;
 begin
   for Param in Parameters do
   begin
@@ -83,8 +84,13 @@ begin
       RequiredText := ' (required)'
     else
       RequiredText := '';
-    WriteLine(Indent + Param.ShortFlag + ', ' +
-      PadRight(Param.LongFlag, 20) + Param.Description + RequiredText);
+    if (Param.ShortFlag <> '') and (Param.LongFlag <> '') then
+      FlagText := Param.ShortFlag + ', ' + Param.LongFlag
+    else if Param.LongFlag <> '' then
+      FlagText := Param.LongFlag
+    else
+      FlagText := Param.ShortFlag;
+    WriteLine(Indent + PadRight(FlagText, 20) + Param.Description + RequiredText);
     if Param.DefaultValue <> '' then
       WriteLine(Indent + '    Default: ' + Param.DefaultValue);
   end;
