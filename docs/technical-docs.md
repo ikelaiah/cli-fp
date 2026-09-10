@@ -566,15 +566,14 @@ The framework implements parameter validation in `TCLIApplication.ValidateParame
   TryStrToDateTime(Value, DateTimeValue, LocalFormatSettings);
   ```
   This does not change process-wide `FormatSettings`.
-  `YYYY-MM-DD HH:MM` is the recommended portable representation, but
-  `TryStrToDateTime` currently also accepts some date-only values and values
-  containing seconds. `AddDateTimeParameter` still labels generated help with
-  `HH:MM:SS`; this is an implementation inconsistency rather than strict
-  validation.
+  `YYYY-MM-DD HH:MM` is the documented portable representation. The parser
+  remains compatible with existing v1.x values containing seconds, but help
+  and validation errors consistently advertise the canonical format.
   
 - `ptEnum`: Validates against pipe-separated allowed values:
   ```pascal
   AllowedValues.Delimiter := '|';
+  AllowedValues.StrictDelimiter := True;
   AllowedValues.DelimitedText := Param.AllowedValues;
   ```
 

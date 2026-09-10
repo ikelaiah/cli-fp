@@ -23,8 +23,38 @@ begin
 end;
 
 function PascalStringLiteral(const S: string): string;
+var
+  i: Integer;
+  Chunk: string;
+
+  procedure AppendPart(const Part: string);
+  begin
+    if Result <> '' then
+      Result := Result + ' + ';
+    Result := Result + Part;
+  end;
+
 begin
-  Result := '''' + StringReplace(S, '''', '''''', [rfReplaceAll]) + '''';
+  Result := '';
+  Chunk := '';
+  for i := 1 to Length(S) do
+  begin
+    if (Ord(S[i]) < 32) or (Ord(S[i]) = 127) then
+    begin
+      if Chunk <> '' then
+      begin
+        AppendPart('''' + StringReplace(Chunk, '''', '''''', [rfReplaceAll]) + '''');
+        Chunk := '';
+      end;
+      AppendPart('#' + IntToStr(Ord(S[i])));
+    end
+    else
+      Chunk := Chunk + S[i];
+  end;
+  if Chunk <> '' then
+    AppendPart('''' + StringReplace(Chunk, '''', '''''', [rfReplaceAll]) + '''');
+  if Result = '' then
+    Result := '''''';
 end;
 
 function PascalBoolLiteral(const B: Boolean): string;

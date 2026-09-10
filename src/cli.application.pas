@@ -67,7 +67,7 @@ type
 
     { Parses command-line arguments into FParsedParams
       Handles both --param=value and -p value formats }
-    procedure ParseCommandLine;
+    function ParseCommandLine: Boolean;
 
     { Loads the process command line into FArguments. }
     procedure LoadProcessArguments;
@@ -237,7 +237,7 @@ implementation
 
 uses
   StrUtils, CLI.Internal.ParameterValues, CLI.Internal.Help,
-  CLI.Internal.Completion;
+  CLI.Internal.Completion, CLI.Internal.Text, CLI.Validation;
 
 { Constructor: Initializes a new CLI application instance
   @param AName The name of the application
@@ -250,9 +250,11 @@ begin
   FName := AName;
   FVersion := AVersion;
   FRootCommand := ARootCommand;
+  if Assigned(FRootCommand) then
+    ValidateCommandTree(FRootCommand, 'Root command', True);
   FCommands := TCommandList.Create;
   FParsedParams := TStringList.Create;
-  FParsedParams.CaseSensitive := True;  // Parameters are case-sensitive
+  FParsedParams.CaseSensitive := False; // Parameter lookup is case-insensitive
   FParamStartIndex := 2;                // Skip program name and command name
   FDebugMode := False;                  // Debug output disabled by default
   {$IFDEF CLI_FP_TESTING}
@@ -268,11 +270,11 @@ begin
   {$IFDEF CLI_FP_TESTING}
   if Assigned(FOutputCapture) then
   begin
-    FOutputCapture.Add(Text);
+    FOutputCapture.Add(SanitizeTerminalText(Text));
     Exit;
   end;
   {$ENDIF}
-  TConsole.WriteLn(Text);
+  TConsole.WriteLn(SanitizeTerminalText(Text));
 end;
 
 procedure TCLIApplication.WriteOutput(const Text: string;
@@ -281,11 +283,11 @@ begin
   {$IFDEF CLI_FP_TESTING}
   if Assigned(FOutputCapture) then
   begin
-    FOutputCapture.Add(Text);
+    FOutputCapture.Add(SanitizeTerminalText(Text));
     Exit;
   end;
   {$ENDIF}
-  TConsole.WriteLn(Text, Color);
+  TConsole.WriteLn(SanitizeTerminalText(Text), Color);
 end;
 
 procedure TCLIApplication.WriteHelpLine(const Text: string;
@@ -328,10 +330,13 @@ procedure TCLIApplication.RegisterCommand(const Command: ICommand);
 var
   i: Integer;
 begin
+  if not Assigned(Command) then
+    raise EArgumentNilException.Create('Registered command cannot be nil');
+  ValidateCommandTree(Command, 'Registered command');
   // Check for duplicate command names
   for i := 0 to FCommands.Count - 1 do
     if SameText(FCommands[i].Name, Command.Name) then
-      raise Exception.CreateFmt('Command "%s" is already registered', [Command.Name]);
+      raise EArgumentException.CreateFmt('Command "%s" is already registered', [Command.Name]);
 
   FCommands.Add(Command);
 end;
@@ -375,20 +380,20 @@ begin
     Exit;
   end;
 
-  if (ArgumentCount = 1) and
+  if (ArgumentCount >= 1) and
     ((ArgumentAt(1) = '-h') or (ArgumentAt(1) = '--help')) then
   begin
     ShowHelp;
     Exit;
   end;
 
-  if (ArgumentCount = 1) and (ArgumentAt(1) = '--help-complete') then
+  if (ArgumentCount >= 1) and (ArgumentAt(1) = '--help-complete') then
   begin
     ShowCompleteHelp;
     Exit;
   end;
 
-  if (ArgumentCount = 1) and
+  if (ArgumentCount >= 1) and
     ((ArgumentAt(1) = '-v') or (ArgumentAt(1) = '--version')) then
   begin
     ShowVersion;
@@ -459,6 +464,12 @@ begin
   while (i <= ArgumentCount) and not StartsStr('-', ArgumentAt(i)) do
   begin
     SubCmdName := ArgumentAt(i);
+    if Length(CurrentCmd.SubCommands) = 0 then
+    begin
+      TConsole.WriteLn('Error: Unexpected positional argument "' +
+        SubCmdName + '"', ccRed);
+      Exit;
+    end;
     SubCmd := nil;
     for Cmd in CurrentCmd.SubCommands do
       if SameText(Cmd.Name, SubCmdName) then
@@ -546,7 +557,8 @@ function TCLIApplication.ExecuteCurrentCommand: Integer;
 var
   ParameterReceiver: ICommandParameterReceiver;
 begin
-  ParseCommandLine;
+  if not ParseCommandLine then
+    Exit(1);
 
   if Supports(FCurrentCommand, ICommandParameterReceiver, ParameterReceiver) then
     ParameterReceiver.SetParsedParams(FParsedParams);
@@ -572,11 +584,12 @@ end;
   - Short format (-p value)
   - Boolean flags (--flag)
   Note: Updates FParsedParams with parsed values }
-procedure TCLIApplication.ParseCommandLine;
+function TCLIApplication.ParseCommandLine: Boolean;
 var
   i: Integer;
   Param, Value: string;
 begin
+  Result := True;
   FParsedParams.Clear;
   i := FParamStartIndex; // Start after program name and command name(s)
 
@@ -589,6 +602,12 @@ begin
     if FDebugMode then
       WriteOutput('Processing argument ' + IntToStr(i) + ': ' +
         RedactArgument(FCurrentCommand, Param), ccCyan);
+
+    if not StartsStr('-', Param) then
+    begin
+      TConsole.WriteLn('Error: Unexpected positional argument "' + Param + '"', ccRed);
+      Exit(False);
+    end;
 
     // Handle --param=value format
     if StartsStr('--', Param) then
@@ -692,13 +711,15 @@ var
   Param: ICommandParameter;
 begin
   Result := TStringList.Create;
-  Result.CaseSensitive := True;
+  Result.CaseSensitive := False;
   
   // Add command-specific parameter flags
   for Param in FCurrentCommand.Parameters do
   begin
-    Result.Add(Param.LongFlag);
-    Result.Add(Param.ShortFlag);
+    if Param.LongFlag <> '' then
+      Result.Add(Param.LongFlag);
+    if Param.ShortFlag <> '' then
+      Result.Add(Param.ShortFlag);
   end;
   
   // Add global flags
@@ -770,6 +791,7 @@ end;
 function TCLIApplication.GetParameterValue(const Param: ICommandParameter; 
   out Value: string): Boolean;
 begin
+  Value := '';
   Result := TryGetParameterValue(Param, FParsedParams, Value);
 end;
 
@@ -961,6 +983,7 @@ begin
         AllowedValues := TStringList.Create;
         try
           AllowedValues.Delimiter := '|';
+          AllowedValues.StrictDelimiter := True;
           AllowedValues.DelimitedText := Param.AllowedValues;
           
           Result := False;
@@ -1138,8 +1161,10 @@ procedure TCLIApplication.OutputBashCompletionScript;
       ParamFlags := ParamFlags + ' ';
     ParamFlags := ParamFlags + '--help -h';
     // Output Bash associative arrays for this path (no leading spaces)
-    TConsole.WriteLn('tree["' + Path + '|subcommands"]="' + SubNames + '"');
-    TConsole.WriteLn('tree["' + Path + '|params"]="' + ParamFlags + '"');
+    TConsole.WriteLn('tree[' + QuoteForBash(Path + '|subcommands') + ']=' +
+      QuoteForBash(SubNames));
+    TConsole.WriteLn('tree[' + QuoteForBash(Path + '|params') + ']=' +
+      QuoteForBash(ParamFlags));
     // Recurse for subcommands
     for Sub in Cmd.SubCommands do
       OutputBashTree(Sub, Path + ' ' + Sub.Name);
@@ -1181,8 +1206,10 @@ begin
   RootParamFlags := RootParamFlags +
     '--help --help-complete --version --completion-file --completion-file-pwsh -h -v';
   // Use a special root key for Bash associative array (no leading spaces)
-  TConsole.WriteLn('tree["__root__|subcommands"]="' + RootSubNames + '"');
-  TConsole.WriteLn('tree["__root__|params"]="' + RootParamFlags + '"');
+  TConsole.WriteLn('tree[' + QuoteForBash('__root__|subcommands') + ']=' +
+    QuoteForBash(RootSubNames));
+  TConsole.WriteLn('tree[' + QuoteForBash('__root__|params') + ']=' +
+    QuoteForBash(RootParamFlags));
 
   // Output the command tree
   for Cmd in FCommands do

@@ -114,8 +114,6 @@ begin
 
     // Register command with application
     App.RegisterCommand(Cmd);
-    Cmd := nil;  // Clear reference as App now owns the command
-
     // Execute the application and get exit code
     ExitCode := App.Execute;
   except

@@ -150,7 +150,7 @@ type
       @param LongFlag Long form flag (e.g., '--date')
       @param Description Parameter description
       @param Required Whether parameter is required
-      @param DefaultValue Default value if not provided (format: YYYY-MM-DD HH:MM:SS) }
+      @param DefaultValue Default value if not provided (format: YYYY-MM-DD HH:MM) }
     procedure AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
       Required: Boolean = False; const DefaultValue: string = '');
     
@@ -211,7 +211,7 @@ type
 implementation
 
 uses
-  CLI.Internal.ParameterValues, CLI.Internal.Help;
+  CLI.Internal.ParameterValues, CLI.Internal.Help, CLI.Validation;
 
 { Constructor: Creates new command instance
   @param AName Command name as used in CLI
@@ -271,7 +271,19 @@ end;
 { AddParameter: Adds a parameter to the command
   @param Parameter The parameter to add }
 procedure TBaseCommand.AddParameter(const Parameter: ICommandParameter);
+var
+  Existing: ICommandParameter;
 begin
+  ValidateParameterDefinition(Parameter, 'Command');
+  for Existing in FParameters do
+  begin
+    if (Parameter.LongFlag <> '') and SameText(Existing.LongFlag, Parameter.LongFlag) then
+      raise EArgumentException.CreateFmt(
+        'Command parameter long flag "%s" is already defined', [Parameter.LongFlag]);
+    if (Parameter.ShortFlag <> '') and SameText(Existing.ShortFlag, Parameter.ShortFlag) then
+      raise EArgumentException.CreateFmt(
+        'Command parameter short flag "%s" is already defined', [Parameter.ShortFlag]);
+  end;
   SetLength(FParameters, Length(FParameters) + 1);
   FParameters[High(FParameters)] := Parameter;
 end;
@@ -351,7 +363,7 @@ end;
 procedure TBaseCommand.AddDateTimeParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean = False; const DefaultValue: string = '');
 begin
-  AddParameter(ShortFlag, LongFlag, Description + ' (format: YYYY-MM-DD HH:MM:SS)', Required, ptDateTime, DefaultValue);
+  AddParameter(ShortFlag, LongFlag, Description + ' (format: YYYY-MM-DD HH:MM)', Required, ptDateTime, DefaultValue);
 end;
 
 { AddArrayParameter: Helper to add an array parameter }
@@ -378,7 +390,22 @@ end;
 { AddSubCommand: Adds a subcommand to this command
   @param Command The subcommand to add }
 procedure TBaseCommand.AddSubCommand(const Command: ICommand);
+var
+  Existing: ICommand;
 begin
+  if not Assigned(Command) then
+    raise EArgumentNilException.Create('Subcommand cannot be nil');
+  ValidateCommandName(Command.Name, 'Subcommand');
+  ValidateCommandTree(Command, 'Subcommand');
+  if CommandTreeContainsName(Command, Name) then
+    raise EArgumentException.CreateFmt(
+      'Cannot add command "%s" as a child of "%s": command tree cycle detected',
+      [Command.Name, Name]);
+  for Existing in FSubCommands do
+    if SameText(Existing.Name, Command.Name) then
+      raise EArgumentException.CreateFmt(
+        'Subcommand "%s" is already defined under "%s"',
+        [Command.Name, Name]);
   SetLength(FSubCommands, Length(FSubCommands) + 1);
   FSubCommands[High(FSubCommands)] := Command;
 end;

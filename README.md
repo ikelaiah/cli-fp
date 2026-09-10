@@ -7,13 +7,34 @@
 [![Lazarus](https://img.shields.io/badge/Lazarus-package-60A5FA.svg)](https://github.com/ikelaiah/cli-fp/blob/main/packages/lazarus/cli_fp.lpk)
 ![Supports Windows](https://img.shields.io/badge/support-Windows-F59E0B?logo=Windows)
 ![Supports Linux](https://img.shields.io/badge/support-Linux-F59E0B?logo=Linux)
-[![Version](https://img.shields.io/badge/version-1.4.3-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
 [![Documentation](https://img.shields.io/badge/Docs-Website-brightgreen.svg)](https://ikelaiah.github.io/cli-fp/)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
 
 `cli-fp` is a small Free Pascal framework for native command-line programs. It
 provides command trees, validated options, generated help and shell completion,
 colours, spinners, and progress bars—without third-party runtime dependencies.
+
+## Prerequisites
+
+- Install [Free Pascal](https://www.freepascal.org/download.html); FPC 3.2.2 is
+  the tested repository version. Check it with `fpc -iV`.
+- Put the `fpc` executable on your `PATH` so the compiler command works from a
+  terminal.
+- [Lazarus](https://www.lazarus-ide.org/) is optional. It can use the supplied
+  package at `packages/lazarus/cli_fp.lpk`.
+
+If you start in an empty folder, copy the QuickStartDemo source and compile it
+with a unit search path pointing at the cloned library:
+
+```bash
+fpc -Fu/path/to/cli-fp/src QuickStartDemo.lpr
+```
+
+`-Fu` means “add this directory to FPC's unit search path.” If compilation
+reports `Fatal: Can't find unit CLI.Interfaces`, the path is missing or points
+to the wrong checkout. In Lazarus, install/open `packages/lazarus/cli_fp.lpk`
+to provide the same unit path through the IDE.
 
 ## Your first CLI
 
@@ -71,6 +92,20 @@ Hello, Ada!
 On PowerShell, use `fpc "-Fu.\src" .\examples\QuickStartDemo\QuickStartDemo.lpr`
 and run `.\examples\QuickStartDemo\QuickStartDemo.exe --name Ada`.
 
+The empty name in `THelloCommand.Create('', ...)` marks the root/default
+command, so the invocation is `hello --name Ada`, not `hello greet --name Ada`.
+Keep the command and application references and let the `ICLIApplication` own
+the registered command tree; do not manually free registered commands.
+`Halt(App.Execute)` is the beginner-recommended program tail.
+
+Quick self-checks are:
+
+```text
+hello --help       # generated usage and --name
+hello --version    # hello version 1.0.0
+hello --name Ada   # Hello, Ada!
+```
+
 ## Choose a CLI shape
 
 | Shape | Invocation | Start with |
@@ -101,15 +136,13 @@ Use [`cli-fp-gen`](docs/codegen.md) when a larger command tree benefits from a
 scaffolded project layout. It is optional; the program above is the shortest
 way to start.
 
-## Requirements
+## Platform notes
 
-- Free Pascal 3.2.2 is the tested compiler version.
 - Windows and Linux run the repository's CI checks.
-- Lazarus is optional; a runtime package is available in the
-  [`packages/lazarus/`](https://github.com/ikelaiah/cli-fp/tree/main/packages/lazarus)
-  directory.
 - The runtime has no third-party dependencies. The generator uses FCL JSON
   units.
+- On Linux, filenames and unit names are case-sensitive; a casing mismatch
+  that Windows tolerates can prevent compilation.
 
 ## Contributing
 

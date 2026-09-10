@@ -122,13 +122,24 @@ begin
   if not FileExists(FileName) then
     Exit;
 
-  Root := GetJSON(ReadTextFileStrict(FileName));
+  try
+    Root := GetJSON(ReadTextFileStrict(FileName));
+  except
+    on E: Exception do
+      raise Exception.CreateFmt('Invalid generated manifest JSON in %s: %s',
+        [FileName, E.Message]);
+  end;
   try
     if not (Root is TJSONObject) then
-      Exit;
+      raise Exception.CreateFmt(
+        'Invalid generated manifest in %s: root must be an object', [FileName]);
     Obj := TJSONObject(Root);
-    if (Obj.Find('generatedFiles') = nil) or not (Obj.Arrays['generatedFiles'] is TJSONArray) then
-      Exit;
+    if Obj.Find('generatedFiles') = nil then
+      raise Exception.CreateFmt(
+        'Invalid generated manifest in %s: generatedFiles is required', [FileName]);
+    if not (Obj.Find('generatedFiles') is TJSONArray) then
+      raise Exception.CreateFmt(
+        'Invalid generated manifest in %s: generatedFiles must be an array', [FileName]);
     Arr := Obj.Arrays['generatedFiles'];
     for i := 0 to Arr.Count - 1 do
       Result.Add(NormalizeRelPath(Arr.Strings[i]));

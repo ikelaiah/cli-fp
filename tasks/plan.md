@@ -1,64 +1,80 @@
-# Implementation Plan: cli-fp v1.4.1 documentation accuracy patch
+# Implementation Plan: cli-fp v1.5.0 Defensive CLI Core
 
 ## Overview
 
-Correct the published v1.4.0 documentation so readers always see the normal
-class-based cli-fp model: define a `TBaseCommand` descendant, create its
-instance, register options on that instance, and run its `Execute` method via
-an `ICLIApplication`. This is a documentation-only release; no runtime API,
-parser, or generator behaviour changes.
+Harden the existing v1.4.3 command/parameter model, make parser failures
+predictable, secure generated output, fix confirmed value and terminal bugs,
+and publish a beginner-oriented v1.5.0 release without redesigning the
+public facade or adding positional-argument semantics.
 
-## Architecture Decisions
+## Architecture decisions
 
-- Treat the Getting Started QuickStart as the canonical full program; use
-  clearly labelled command patterns and in-context fragments elsewhere.
-- Give every reader-facing Pascal block either local declarations or an
-  explicit immediate context statement. Do not rely on implied `App`, `Root`,
-  `Command`, spinner, or progress variables.
-- Keep `docs/how-to.md` as one task-oriented page, but introduce the command
-  hierarchy there and link outward instead of duplicating full programs.
-- Keep technical documentation as source-context excerpts and label that scope
-  plainly rather than presenting implementation fragments as application code.
+- Keep validation in small shared helpers in the runtime and generator rather
+  than changing the public interfaces or adding dependencies.
+- Treat an empty command name as valid only for the configured root command;
+  named application commands and subcommands must use valid single tokens.
+- Preserve last-write-wins option parsing and reject unexpected positional
+  arguments explicitly.
+- Keep shell emitters in the current application unit for v1.5.0; defer the
+  larger renderer extraction to v1.6.x.
+- Encode Pascal strings as valid literals with `#` character fragments for
+  line breaks/control characters rather than silently corrupting generated
+  source.
 
-## Task List
+## Task list
 
-### Phase 1: Context audit and reader path
+### Phase 1: Runtime contracts and regression coverage
 
-- [ ] Task 1: Audit every published Pascal block and record its category
-  (complete program, command pattern, or explicitly scoped fragment).
-- [ ] Task 2: Add the command/object/application mental model to Getting
-  Started, Commands, and How-To; repair root, named, and nested command setup.
+- [x] Add focused tests for malformed definitions, parser edge cases, value
+  initialization, enum/date-time correctness, and help behavior.
+- [x] Add reusable command/flag validation and cycle detection while preserving
+  root-command semantics.
+- [x] Reject unexpected positional arguments and make help requests with extra
+  arguments deterministic.
+- [x] Fix case-consistent parameter lookup, literal enum splitting, documented
+  date-time format, and empty flag filtering.
 
-### Checkpoint: Reader context
+### Checkpoint: Runtime
 
-- [ ] A reader of How-To alone can identify the developer-defined
-  `TBaseCommand` descendant, the option-owning instance, and `Execute`.
-- [ ] No reader-facing Pascal block contains an unexplained identifier.
+- [x] Framework tests pass and normal root/named/nested examples still compile.
 
-### Phase 2: Recipe and reference accuracy
+### Phase 2: Output, generator, and terminal hardening
 
-- [ ] Task 3: Repair option, value-retrieval, exit-code, terminal, progress,
-  and debug recipes with exact units, receiver types, and scopes.
-- [ ] Task 4: Audit reference, technical, release, and navigation pages;
-  update v1.4.1 version records without changing runtime claims.
+- [x] Quote/escape Bash and PowerShell completion metadata and sanitize unsafe
+  terminal controls in rendered text.
+- [x] Harden generator validation, argument parsing, corrupt-manifest/spec
+  failures, and Pascal literal rendering.
+- [x] Make color reset exception-safe, bound progress width, remove spinner
+  update sleeping, and improve line clearing.
+- [x] Extend generator/completion/terminal regression tests.
 
-### Checkpoint: Documentation qualification
+### Checkpoint: Qualification
 
-- [ ] DocKit check, strict audit, and build succeed.
-- [ ] Framework, generator, and canonical-example checks succeed as applicable.
+- [x] Framework, generator, golden, compile-smoke, cleanup, completion, and
+  documentation checks pass where supported by the environment.
 
-### Phase 3: Review and release
+### Phase 3: Documentation and release
 
-- [ ] Task 5: Review the diff for documentation/API accuracy, commit the
-  candidate, and publish the authorised PR.
-- [ ] Task 6: Qualify the exact candidate in CI, merge, tag v1.4.1, create the
-  GitHub release, and verify rendered Pages content.
+- [x] Update beginner docs, limitations, API/reference pages, navigation,
+  changelog, roadmap, and DocKit version metadata for v1.5.0.
+- [x] Run review and final diff checks; commit coherent changes.
+- [ ] Push, create/check/merge PR, tag, publish release, and verify Pages if
+  GitHub authentication and required checks permit remote operations.
 
-## Risks and Mitigations
+## Deferred by design
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| A concise snippet still looks standalone | High | State its category and scope immediately before it; favour the canonical QuickStart link. |
-| Documentation drifts from source | High | Compare every touched API call to `src/` and compile all existing canonical examples. |
-| Docs-only changes do not trigger tests CI | Medium | Run local qualification and manually dispatch the existing Tests workflow for the PR branch. |
-| Pages deployment masks stale content | Medium | Verify route-specific rendered text after the main-branch deploy finishes. |
+- Positional-argument APIs and `--` terminator semantics remain later design
+  work because the v1.x parser has no positional destination.
+- Per-command versioning remains unsupported; version stays application-level.
+- The major `TCLIApplication` structural split remains v1.6.x work.
+- Deprecated/no-op public completion callbacks remain source-compatible until
+  v2.0.0.
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Existing valid command declarations are rejected | Validate only malformed token shapes and preserve root `''`. |
+| Shell quoting fix creates invalid scripts | Add generated-script inspection and shell syntax tests. |
+| FPC 3.2.2 differences | Use repository runners and CI-equivalent commands on Windows. |
+| Release permissions unavailable | Finish local qualification and report exact remote blocker/actions. |

@@ -8,6 +8,11 @@ progress bar. These calls normally live inside the `Execute` method of your
 `TBaseCommand` descendant; the framework does not decide what your command
 prints.
 
+Colour is disabled when stdout is redirected or when the `NO_COLOR` environment
+variable is set. Terminal text removes NUL and ESC control characters while
+preserving ordinary prose, Unicode, and line breaks. Coloured writes restore
+the previous terminal state even if the underlying output raises an error.
+
 ## Coloured output
 
 Import `CLI.Console` in the command unit and call the `TConsole` class
@@ -51,6 +56,9 @@ end;
 
 Always stop the indicator in `finally`.
 
+`Update` renders immediately; it does not sleep. Choose the refresh cadence in
+the work loop that calls it.
+
 ## Progress bar
 
 Use a progress bar when you know the total work. This complete **`Execute`-
@@ -82,6 +90,11 @@ end;
 
 The [ProgressDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/ProgressDemo)
 contains both patterns.
+
+Progress bars cap their configured visual width at 200 characters, so a bad
+configuration cannot request an enormous allocation. `ClearLine` uses ANSI
+line clearing on a capable terminal and falls back to a bounded portable
+overwrite otherwise.
 
 ## Fail clearly
 

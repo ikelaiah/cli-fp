@@ -31,6 +31,10 @@ type
     procedure TestNonObjectParameterReportsItsLocation;
     procedure TestMalformedParameterDoesNotLeakOwnedSpecs;
     procedure TestRootCommandSpecRoundTrips;
+    procedure TestMalformedFlagsAreRejected;
+    procedure TestMalformedJsonFailsClearly;
+    procedure TestMalformedManifestFailsClearly;
+    procedure TestPascalStringRenderingEscapesControls;
   end;
 
 implementation
@@ -38,7 +42,9 @@ implementation
 uses
   CliFpGen.Naming,
   CliFpGen.SpecIO,
-  CliFpGen.Validate;
+  CliFpGen.Validate,
+  CliFpGen.Renderer,
+  CliFpGen.Manifest;
 
 procedure TCodegenTests.AssertSpecLoadFails(const JsonText,
   ExpectedMessagePart: string);
@@ -319,6 +325,104 @@ begin
   finally
     Spec.Free;
     DeleteFile(SpecFile);
+  end;
+end;
+
+procedure TCodegenTests.TestMalformedFlagsAreRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.ShortFlag := '-';
+    Param.LongFlag := '--name';
+    Param.Description := 'Name';
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'invalid short flag');
+
+    Spec.Free;
+    Spec := NewValidSpec;
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.ShortFlag := '-n';
+    Param.LongFlag := '--';
+    Param.Description := 'Name';
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'invalid long flag');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestMalformedJsonFailsClearly;
+begin
+  AssertSpecLoadFails('{', 'Invalid project spec JSON');
+end;
+
+procedure TCodegenTests.TestMalformedManifestFailsClearly;
+var
+  ProjectDir, GeneratedDir, ManifestFile: string;
+  Lines, Manifest: TStringList;
+  RaisedExpectedError: Boolean;
+begin
+  ProjectDir := GetTempFileName(GetTempDir(False), 'mft');
+  DeleteFile(ProjectDir);
+  GeneratedDir := ProjectDir + DirectorySeparator + 'src' +
+    DirectorySeparator + 'generated';
+  ForceDirectories(GeneratedDir);
+  ManifestFile := GeneratedDir + DirectorySeparator + '.clifp-manifest.json';
+  Lines := TStringList.Create;
+  try
+    Lines.Text := '{';
+    Lines.SaveToFile(ManifestFile);
+  finally
+    Lines.Free;
+  end;
+
+  RaisedExpectedError := False;
+  Manifest := nil;
+  try
+    try
+      Manifest := LoadGeneratedManifest(ProjectDir);
+    except
+      on E: Exception do
+      begin
+        RaisedExpectedError := True;
+        AssertTrue('Expected corrupt manifest error to be explicit',
+          Pos('invalid generated manifest json', LowerCase(E.Message)) > 0);
+      end;
+    end;
+    AssertTrue('Expected corrupt manifest loading to fail', RaisedExpectedError);
+  finally
+    Manifest.Free;
+    DeleteFile(ManifestFile);
+    RemoveDir(GeneratedDir);
+    RemoveDir(ExtractFileDir(GeneratedDir));
+    RemoveDir(ProjectDir);
+  end;
+end;
+
+procedure TCodegenTests.TestPascalStringRenderingEscapesControls;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Rendered: string;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'greet');
+    Cmd.Description := 'O''Reilly' + #13#10 + 'second line';
+    Rendered := RenderRegistryUnit(Spec);
+    AssertTrue('Generated Pascal should escape apostrophes',
+      Pos('O''''Reilly', Rendered) > 0);
+    AssertTrue('Generated Pascal should encode newlines',
+      Pos('#13 + #10', Rendered) > 0);
+  finally
+    Spec.Free;
   end;
 end;
 
