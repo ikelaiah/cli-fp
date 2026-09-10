@@ -111,7 +111,13 @@ begin
     raise Exception.CreateFmt('Spec file not found: %s', [SpecFile]);
 
   JsonText := ReadTextFileStrict(SpecFile);
-  Root := GetJSON(JsonText);
+  try
+    Root := GetJSON(JsonText);
+  except
+    on E: Exception do
+      raise Exception.CreateFmt('Invalid project spec JSON in %s: %s',
+        [SpecFile, E.Message]);
+  end;
   try
     if not (Root is TJSONObject) then
       raise Exception.Create('Invalid spec: root must be a JSON object');
@@ -139,8 +145,10 @@ begin
           Result.RootCommand.Parameters);
       end;
 
-      if (RootObj.Find('commands') <> nil) and (RootObj.Arrays['commands'] is TJSONArray) then
+      if RootObj.Find('commands') <> nil then
       begin
+        if not (RootObj.Find('commands') is TJSONArray) then
+          raise Exception.Create('Invalid spec: commands must be an array');
         CmdArray := RootObj.Arrays['commands'];
         for i := 0 to CmdArray.Count - 1 do
         begin

@@ -231,6 +231,8 @@ begin
   Result := False;
   if S = '' then
     Exit;
+  if S[1] = '-' then
+    Exit;
   for i := 1 to Length(S) do
   begin
     Ch := S[i];

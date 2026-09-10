@@ -19,6 +19,30 @@ begin
   Result := Copy(S, 1, Length(Prefix)) = Prefix;
 end;
 
+function IsAsciiAlphaNumeric(const C: Char): Boolean;
+begin
+  Result := C in ['A'..'Z', 'a'..'z', '0'..'9'];
+end;
+
+function IsValidLongFlag(const Flag: string): Boolean;
+var
+  i: Integer;
+begin
+  Result := (Length(Flag) >= 3) and (Copy(Flag, 1, 2) = '--') and
+    IsAsciiAlphaNumeric(Flag[3]);
+  if not Result then Exit;
+  for i := 3 to Length(Flag) do
+    if not (IsAsciiAlphaNumeric(Flag[i]) or (Flag[i] in ['-', '_'])) then
+      Exit(False);
+end;
+
+function IsValidShortFlag(const Flag: string): Boolean;
+begin
+  Result := (Length(Flag) = 2) and (Flag[1] = '-') and
+    (Flag[2] <> '-') and (Ord(Flag[2]) >= 33) and (Ord(Flag[2]) < 127) and
+    not (Flag[2] in ['=']);
+end;
+
 function IsAbsoluteLikePath(const S: string): Boolean;
 begin
   Result := (ExtractFileDrive(S) <> '') or
@@ -58,19 +82,14 @@ begin
     begin
       Param := Parameters[j];
 
-      if Trim(Param.LongFlag) = '' then
-        raise Exception.CreateFmt('%s: parameter %d missing long flag',
+      if (Trim(Param.ShortFlag) = '') and (Trim(Param.LongFlag) = '') then
+        raise Exception.CreateFmt('%s: parameter %d must define a short or long flag',
           [CommandLabel, j]);
-      if not StartsWith(Param.LongFlag, '--') then
+      if not IsValidLongFlag(Param.LongFlag) then
         raise Exception.CreateFmt('%s: invalid long flag "%s"',
           [CommandLabel, Param.LongFlag]);
-      if (Trim(Param.ShortFlag) <> '') and
-        (not StartsWith(Param.ShortFlag, '-')) then
+      if (Trim(Param.ShortFlag) <> '') and not IsValidShortFlag(Param.ShortFlag) then
         raise Exception.CreateFmt('%s: invalid short flag "%s"',
-          [CommandLabel, Param.ShortFlag]);
-      if StartsWith(Param.ShortFlag, '--') then
-        raise Exception.CreateFmt(
-          '%s: short flag must be single-dash style ("%s")',
           [CommandLabel, Param.ShortFlag]);
 
       if Trim(Param.Description) = '' then

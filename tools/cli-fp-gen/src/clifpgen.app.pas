@@ -157,11 +157,6 @@ begin
       Inc(i);
       if i > ParamCount then raise Exception.Create('--description requires a value');
       Description := ArgOrEmpty(i);
-      while (i < ParamCount) and (Copy(ArgOrEmpty(i + 1), 1, 2) <> '--') do
-      begin
-        Inc(i);
-        Description := Description + ' ' + ArgOrEmpty(i);
-      end;
     end
     else if Arg = '--project' then
     begin
