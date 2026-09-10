@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-09-11
+
+### Documentation / Maintenance
+
+- Switched GitHub Pages to DocKit historical/versioned publishing, so readers
+  can select documentation built from each supported immutable release source.
+- Added the release manifest and a tag-triggered DocKit v1.0.0 Pages workflow.
+- Recorded that the earlier single-version Pages architecture is superseded.
+
 ## [1.4.2] - 2026-09-10
 
 ### Fixed

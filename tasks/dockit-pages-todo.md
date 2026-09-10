@@ -20,3 +20,20 @@
 - root `CHANGELOG.md`, `ROADMAP.md`, `CONTRIBUTING.md`, and `LICENSE`
 - source, example, and test directories that are linked as repository code but
   are not Markdown documentation pages
+
+## Historical/versioned migration (v1.4.3)
+
+- [x] Add `docs/versions.json` from verified immutable release sources.
+- [x] Replace the single-version Pages caller with DocKit v1.0.0's
+  tag-triggered historical caller.
+- [x] Record why the pre-existing v1.4.2 tag cannot be retrofitted as current.
+- [x] Run `dockit-fp check`, `check-release`, and `build-all` against a
+  local-only candidate tag.
+- [ ] Merge the qualified documentation-maintenance release and create an
+  annotated v1.4.3 tag without changing earlier tags.
+- [ ] Verify the deployed selector and release-specific historical pages.
+
+**Historical eligibility:** `v1.4.0`–`v1.4.2` build directly from their
+annotated tags. The genuine but lightweight `v1.2.0`–`v1.3.3` tags are not
+listed because DocKit v1.0.0's legacy fallback rejects their archived broken
+completion-document links; do not replace those sources with current files.

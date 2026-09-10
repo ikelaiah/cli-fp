@@ -1,9 +1,11 @@
 # cli-fp documentation index
 
 The published documentation starts at the
-[cli-fp documentation site](https://ikelaiah.github.io/cli-fp/). The site uses
-the repository-root `README.md` as its home page and publishes a deliberate
-reader-first navigation from `docs/layout.json`.
+[cli-fp documentation site](https://ikelaiah.github.io/cli-fp/). Use its
+version selector to choose documentation built from the matching immutable
+release source. The current site uses the repository-root `README.md` as its
+home page and publishes a deliberate reader-first navigation from
+`docs/layout.json`.
 
 For local repository work, the reader-facing source pages are:
 
