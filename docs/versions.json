@@ -5,11 +5,6 @@
     {"release": "1.4.3", "source_ref": "v1.4.3"},
     {"release": "1.4.2", "source_ref": "v1.4.2"},
     {"release": "1.4.1", "source_ref": "v1.4.1"},
-    {"release": "1.4.0", "source_ref": "v1.4.0"},
-    {"release": "1.3.3", "source_ref": "8aa1fe903aa4abc63048005059e34380fbf6e0f8"},
-    {"release": "1.3.2", "source_ref": "26ca6dce8ace27f30a84d11d5395204f9a6df2ca"},
-    {"release": "1.3.1", "source_ref": "38747325dd8514eeb95843ae9ebbf5c5067e4f2a"},
-    {"release": "1.3.0", "source_ref": "218bb4ec51282c1aca72f43c15424b23206af759"},
-    {"release": "1.2.0", "source_ref": "8935b1f223c823e07429ff9a6a9624ba326aecdd"}
+    {"release": "1.4.0", "source_ref": "v1.4.0"}
   ]
 }

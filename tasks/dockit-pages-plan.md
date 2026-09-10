@@ -103,9 +103,8 @@ the immutable historical-release model recorded above.
 
 ### Delivery plan
 
-1. Add a schema-1 manifest for all verified release sources, using annotated
-   tag refs where available and full commit SHAs for the older lightweight-tag
-   release commits.
+1. Add a schema-1 manifest for every verified buildable release source, using
+   annotated tag refs where available.
 2. Use DocKit v1.0.0's documented tag-triggered reusable historical workflow.
 3. Publish a new documentation-maintenance release because `check-release`
    requires the manifest current source to match the release `HEAD`; never
@@ -114,3 +113,13 @@ the immutable historical-release model recorded above.
    middle, and current output has release-specific provenance.
 5. Merge, create an annotated v1.4.3 tag, then verify the deployed selector
    and historical Pages routes.
+
+### Historical eligibility
+
+- `v1.4.0`, `v1.4.1`, and `v1.4.2` build from their annotated release tags and
+  are published alongside the new v1.4.3 maintenance release.
+- `v1.2.0` through `v1.3.3` are genuine lightweight release tags, but their
+  legacy fallback builds fail from the archived source: historical PR records
+  link to missing completion-document paths. DocKit v1.0.0 has no supported
+  per-release overlay for an archive that predates configuration. They remain
+  unlisted rather than being rebuilt from modified or current documentation.
