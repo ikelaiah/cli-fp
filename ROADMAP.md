@@ -100,6 +100,16 @@ buildable, test results do not depend on stale compiler units, diagnostics do
 not expose password values, and the test suite provides a dependable safety
 net for the v1.4.0 documentation work.
 
+## v1.4.3 — Historical Documentation Publishing (completed 2026-09-11)
+
+- Publish DocKit historical/versioned documentation from immutable cli-fp
+  release sources rather than one moving `latest` site.
+- Preserve existing release tags and add the migration as a new documentation
+  maintenance release.
+
+**Maintenance outcome:** readers can select documentation that matches a
+released cli-fp version without changing prior release history.
+
 ## v1.4.2 — Correctness and Maintenance Patch (completed 2026-09-10)
 
 - Make progress bars safe at zero and over-total boundaries.
