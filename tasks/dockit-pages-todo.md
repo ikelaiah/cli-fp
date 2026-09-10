@@ -23,11 +23,11 @@
 
 ## Historical/versioned migration (v1.4.3)
 
-- [ ] Add `docs/versions.json` from verified immutable release sources.
-- [ ] Replace the single-version Pages caller with DocKit v1.0.0's
+- [x] Add `docs/versions.json` from verified immutable release sources.
+- [x] Replace the single-version Pages caller with DocKit v1.0.0's
   tag-triggered historical caller.
-- [ ] Record why the pre-existing v1.4.2 tag cannot be retrofitted as current.
-- [ ] Run `dockit-fp check`, `check-release`, and `build-all` against a
+- [x] Record why the pre-existing v1.4.2 tag cannot be retrofitted as current.
+- [x] Run `dockit-fp check`, `check-release`, and `build-all` against a
   local-only candidate tag.
 - [ ] Merge the qualified documentation-maintenance release and create an
   annotated v1.4.3 tag without changing earlier tags.
