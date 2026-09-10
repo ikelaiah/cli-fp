@@ -354,7 +354,7 @@ begin
   Result := (Handle <> INVALID_HANDLE_VALUE) and
     (GetConsoleMode(Handle, Mode));
 {$ELSE}
-  Result := fpIsATTY(1) = 1;
+  Result := isatty(1) = 1;
 {$ENDIF}
 end;
 
