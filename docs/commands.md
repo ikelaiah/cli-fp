@@ -3,7 +3,7 @@
 [Start here](getting-started.md) · [How do I...?](how-to.md) ·
 [Options](options.md) · [Limitations](limitations.md)
 
-In normal v1.4.x code, a command is an object you define by subclassing
+In normal v1.5.x code, a command is an object you define by subclassing
 `TBaseCommand`. The object owns its registered options; the application owns
 the command tree and calls the selected object's `Execute` method.
 
@@ -169,7 +169,8 @@ does not receive options from its children. For a runnable nested example, see
 command. `--version` is an application-level request when used as the first
 argument. Return `0` from a command's `Execute` for success and a non-zero
 integer for an application failure; the setup fragments use `Halt(App.Execute)`
-to forward that result to the shell.
+to forward that result to the shell. The application owns registered commands
+through its interfaces, so do not manually free them.
 
 See [How do I return a non-zero exit code?](how-to.md#how-do-i-return-a-non-zero-exit-code)
 for a focused method pattern.

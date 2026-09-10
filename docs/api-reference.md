@@ -85,6 +85,8 @@ and return `0` on success. Use an empty `AName` for a root command.
 
 `GetParameterValue` is protected, so call it from your descendant's `Execute`.
 It finds either registered flag spelling and returns values as strings.
+Lookup is case-insensitive; a missing value returns `False` and clears the
+output string.
 
 ### Register parameters
 
@@ -111,6 +113,9 @@ for validation behavior and [How do I...?](how-to.md) for minimal examples.
 
 `TParameterType` contains `ptString`, `ptInteger`, `ptFloat`, `ptBoolean`,
 `ptPath`, `ptEnum`, `ptDateTime`, `ptArray`, `ptPassword`, and `ptUrl`.
+
+The canonical date/time text is `YYYY-MM-DD HH:MM`; existing v1.x values with
+seconds remain accepted for compatibility.
 
 `ICommandParameter` exposes `ShortFlag`, `LongFlag`, `Description`, `Required`,
 `ParamType`, `DefaultValue`, and `AllowedValues`. For lower-level registration,
@@ -179,3 +184,9 @@ Applications receive `-h`/`--help`, `--help-complete`, and `-v`/`--version`.
 When it is the first argument, `--completion-file` prints a Bash script and
 `--completion-file-pwsh` prints a PowerShell script. See
 [shell completion](completion.md) for usage.
+
+Definitions are validated when commands are registered or parameters are
+added. Invalid names, flags, duplicate siblings/options, nil commands, and
+command-tree cycles raise developer-facing exceptions. The parser rejects
+unexpected positional arguments with exit code `1`; it does not implement the
+`--` terminator in v1.5.0.

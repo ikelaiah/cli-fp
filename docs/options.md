@@ -60,6 +60,11 @@ with a default returns that default when it was omitted. Complete the program
 setup with `App.RegisterCommand(Cmd)`, where `App` is the `ICLIApplication`
 variable created with `CreateCLIApplication` as shown in [How-To](how-to.md).
 
+`AddFlag` is a presence flag: it is `false` when omitted and becomes `true`
+when present. `AddBooleanParameter` expects an explicit `true` or `false`
+value, such as `--color true`. Flag matching is case-insensitive, and when an
+option is supplied more than once, the last occurrence wins.
+
 ## Use a validated value
 
 Values are currently exposed as strings, even after integer, float, Boolean,
@@ -92,6 +97,8 @@ indication that validation was skipped.
 - URLs must start with `http://`, `https://`, `git://`, or `ssh://`.
 - Paths and passwords are accepted as strings; a path is not checked for
   existence and a password is not encrypted.
+- Date/time values use the documented `YYYY-MM-DD HH:MM` representation. The
+  parser remains compatible with existing v1.x values that include seconds.
 
 For syntax rules and surprising boundaries, read [Limitations and gotchas](limitations.md).
 For every public signature, use the [API reference](api-reference.md).

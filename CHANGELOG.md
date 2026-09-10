@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-11
+
+### Added
+
+- Early validation for command names, parameter flags, duplicate definitions,
+  nil commands, and cyclic command trees.
+- Regression coverage for malformed definitions, parser edge cases, output
+  hardening, and generator metadata.
+
+### Changed
+
+- Unexpected positional arguments now fail with exit code `1`; the `--`
+  terminator remains intentionally unsupported.
+- Duplicate options retain explicit v1.x last-occurrence-wins behavior.
+- Option lookup and duplicate detection are consistently case-insensitive.
+- Date/time help and validation advertise the canonical `YYYY-MM-DD HH:MM`
+  format while retaining compatibility with values containing seconds.
+
+### Fixed
+
+- Missing parameter values now deterministically return `False` and an empty
+  output string.
+- Enum values containing spaces are parsed literally.
+- Empty flags are excluded from lookup and completion suggestions.
+- Progress widths are bounded, spinner updates no longer sleep, and coloured
+  output restores terminal state safely.
+
+### Security
+
+- Terminal ESC/NUL characters are sanitized from rendered output.
+- Bash/PowerShell completion metadata is quoted, and generated Pascal strings
+  safely encode apostrophes and control characters.
+- Generator JSON and manifest corruption now fails clearly without being
+  treated as empty configuration.
+
+### Documentation
+
+- Added beginner setup guidance for FPC, empty-folder use, `-Fu`, Lazarus,
+  ownership, root commands, PowerShell, and Linux casing.
+- Updated limitations, API, terminal, generator, roadmap, and versioned docs
+  metadata for v1.5.0.
+
 ## [1.4.3] - 2026-09-11
 
 ### Documentation / Maintenance
@@ -469,7 +511,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/ikelaiah/cli-fp/compare/v1.4.3...v1.5.0
+[1.4.3]: https://github.com/ikelaiah/cli-fp/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/ikelaiah/cli-fp/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/ikelaiah/cli-fp/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/ikelaiah/cli-fp/compare/v1.3.3...v1.4.0

@@ -8,7 +8,7 @@ complete program below is also the repository's
 [QuickStartDemo](https://github.com/ikelaiah/cli-fp/tree/main/examples/QuickStartDemo),
 which is compiled by the Windows and Linux example smoke checks.
 
-The program follows the normal v1.4.x ownership model: `THelloCommand`
+The program follows the normal v1.5.x ownership model: `THelloCommand`
 descends from `TBaseCommand`, `Main` is its instance and owns `--name`, and
 `App` is the `ICLIApplication` that parses the invocation and calls
 `Main.Execute`.
@@ -61,7 +61,19 @@ fpc "-Fu.\src" .\examples\QuickStartDemo\QuickStartDemo.lpr
 ```
 
 Both commands print `Hello, Ada!`. Run `--help` to see generated usage and
-the option description.
+the option description. `hello --version` prints `hello version 1.0.0`.
+
+`THelloCommand.Create('', ...)` uses an empty name intentionally: it represents
+the root/default command, so users run `hello --name Ada`, not
+`hello greet --name Ada`.
+
+The application owns the registered command tree through its interfaces. Do
+not manually free registered commands; the beginner-recommended program tail
+is `Halt(App.Execute)`.
+
+The `{$mode objfpc}{$H+}` directive selects Free Pascal's Object Pascal mode
+and long strings. If the compiler reports syntax or class/interface errors,
+check that the directive is present before the `uses` clause.
 
 ## What the program does
 

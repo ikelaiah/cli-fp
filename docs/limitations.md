@@ -2,13 +2,15 @@
 
 [How do I...?](how-to.md) · [Commands](commands.md) · [Options](options.md)
 
-These are current v1.4.2 boundaries verified against the public source and
+These are current v1.5.0 boundaries verified against the public source and
 tests. They are intentionally easy to find so a limitation does not look like
 an undocumented feature.
 
 ## Command model
 
 - Positional arguments are not supported.
+- The `--` option terminator is not supported because positional arguments are
+  not supported yet.
 - Root-command options belong only to the root action. Named commands and
   subcommands do not inherit them.
 - The framework has no persistent/global option model across a command tree.
@@ -31,7 +33,8 @@ an undocumented feature.
 - Registered integer and float options accept negative values in either
   `--count=-1` or `--count -1` form. For another value beginning with `-`, use
   the equals form so it is not read as a new option.
-- Option flags are case-sensitive; use the spelling registered by the command.
+- Option flags are matched case-insensitively. If an option appears more than
+  once, the last occurrence wins.
 
 ## Completion
 

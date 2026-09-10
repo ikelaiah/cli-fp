@@ -148,6 +148,11 @@ Greet.AddEnumParameter('-l', '--level', 'Log level',
   'debug|info|warn|error', False, 'info');
 ```
 
+Use `AddFlag` when presence alone enables a feature: `--verbose` becomes
+`true`, while omission returns `false`. Use `AddBooleanParameter` when callers
+must write an explicit value such as `--verbose true` or `--verbose false`.
+Option lookup is case-insensitive and repeated options use the last value.
+
 ### Path, URL, and password
 
 ```pascal
@@ -188,7 +193,8 @@ end;
 
 `GetParameterValue` is protected, so it belongs in the command class—not the
 program setup. Values remain strings after validation; use `TryStrToFloat` for
-a float. An absent `AddFlag` normally supplies `false`.
+a float. An absent `AddFlag` normally supplies `false`. `GetParameterValue`
+returns `False` and clears its output string when the option has no value.
 
 ## How do I return a non-zero exit code?
 
@@ -294,6 +300,11 @@ source ./myapp-completion.bash
 The request must be the first argument. See [shell completion](completion.md)
 for installation and behavior.
 
+On Windows, quote the unit path and descriptions with PowerShell's normal
+quoting rules, for example `fpc "-Fu.\src" .\src\Myapp.lpr`; do not paste Bash
+line-continuation or variable syntax into PowerShell. On Linux, filename and
+unit casing must match exactly.
+
 ## How do I generate PowerShell completion?
 
 ```powershell
@@ -341,7 +352,7 @@ place to expose password values.
 ## How do I do something cli-fp does not support?
 
 Read [current limitations](limitations.md) first. In particular, positional
-arguments, inherited global options, typed parameter access, and dynamic
+arguments, the `--` terminator, inherited global options, typed parameter access, and dynamic
 completion callbacks are not current features. Build a small application-level
 adapter if it fits your program, or open an issue with the command line and
 behavior you need. Planned roadmap work is not a released contract.

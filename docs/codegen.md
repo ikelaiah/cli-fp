@@ -60,6 +60,17 @@ The generator creates command stubs once and preserves them on normal
 regeneration. Generated registry/program files are rewritten from
 `clifp.json`.
 
+Generator validation rejects malformed command and option tokens, including
+bare `-`/`--`, whitespace, dash-prefixed command names, and duplicate flags.
+`--description` consumes one command-line argument, so quote descriptions that
+contain spaces. Corrupt project JSON or generated manifests fail with an
+explicit error; they are never silently treated as empty configuration.
+
+Command descriptions are escaped as Pascal string expressions during
+generation, so apostrophes and control characters cannot produce invalid
+source. Generated files remain constrained to the project-owned paths listed
+by the manifest.
+
 ## Project specification
 
 `clifp.json` is the source of truth. Commands are a flat list; use a slash

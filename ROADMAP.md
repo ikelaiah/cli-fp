@@ -148,27 +148,29 @@ did not define.
 **Maintenance outcome:** developers can find the shortest correct path for a
 common task without guessing which manual or reference page contains it.
 
-## v1.5.0 — Make Simple CLIs Simple
+## v1.5.0 — Defensive CLI Core (completed 2026-09-11)
 
-- Introduce a single beginner-facing facade with a callback-based command API.
-- Add typed argument access for strings, integers, booleans, floats, and other
-  supported parameter types so command code does not parse validated strings a
-  second time.
-- Implement the simple API as a facade over the existing command machinery so
-  parsing and validation remain single-sourced.
-- Keep the class-based `TBaseCommand` API available for advanced applications.
-- Make the primary example a single source file that does not require the
-  project generator.
+- Validate command names, parameter flags, duplicate definitions, nil commands,
+  and command-tree cycles before dispatch or rendering.
+- Reject unsupported positional arguments clearly; preserve last-occurrence-wins
+  option semantics and deterministic global help handling.
+- Harden completion/Pascal output, terminal text, colour handling, progress
+  widths, and spinner update cadence.
+- Improve the beginner path with prerequisite, ownership, root-command, and
+  troubleshooting guidance while keeping the class-based public facade.
 
-**Maintenance outcome:** beginner-oriented ergonomics improve without creating
-a second framework to maintain.
+**Maintenance outcome:** valid v1.x CLIs remain familiar while malformed
+definitions and unsafe edge cases fail predictably.
 
 ## v1.6.0 — Finish the Application Core Boundaries
 
+- Continue internal architecture cleanup without changing the public facade.
 - Separate command selection and execution orchestration from parsing and
   validation.
 - Extract Bash and PowerShell script rendering from `TCLIApplication`, building
   on the completion engine introduced in v1.3.3.
+- Deduplicate command lookup, path-building, and output helpers.
+- Improve console/progress internals and test seams.
 - Strengthen the internal help and completion boundaries introduced in v1.3.3
   without exposing them as new public APIs.
 - Preserve existing observable behaviour with the v1.3.3 characterization
@@ -180,11 +182,15 @@ can be made and tested independently.
 
 ## v2.0.0 — Make Execution State Explicit
 
+- Evaluate actual positional-argument support and `--` terminator semantics
+  together as one parser design.
 - Adopt an explicit execution-context contract for commands.
 - Remove legacy shared-state plumbing between the application and commands.
 - Remove test-only methods and mutable implementation details from the public
   concrete application surface.
 - Remove APIs deprecated during the 1.x releases.
+- Reconsider the exception hierarchy and other breaking parser/API
+  simplifications.
 
 **Maintenance outcome:** command inputs and ownership are explicit, legacy
 compatibility paths are retired, and the core has one coherent execution
