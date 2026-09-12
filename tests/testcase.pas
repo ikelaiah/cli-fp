@@ -101,6 +101,10 @@ type
 
     // 11.x - v1.5.2 Safety and Documentation Corrections
     procedure Test_11_1_ProgressCaptionTerminalSanitization;
+
+    // 12.x - v1.5.3 Generator Safety & Contract Corrections
+    procedure Test_12_1_EnumCompletionMatchesValidation;
+    procedure Test_12_2_BooleanParameterPresenceCompatibility;
   end;
 
 implementation
@@ -1825,6 +1829,68 @@ begin
       Pos('caption[31m', Captured) > 0);
   finally
     DeleteFile(OutputFileName);
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_12_1_EnumCompletionMatchesValidation;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.3');
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Cmd.AddEnumParameter('-m', '--mode', 'Mode', '"normal mode"|fast mode');
+    App.RegisterCommand(Cmd);
+    AssertEquals('Quoted enum values containing spaces should validate', 0,
+      App.TestExecute(MakeArgs(['test', '--mode', 'normal mode'])));
+
+    Candidates := App.TestComplete(MakeArgs(['test', '--mode', '']));
+    try
+      AssertTrue('Completion must offer the same quoted enum value as validation',
+        Candidates.IndexOf('normal mode') >= 0);
+      AssertTrue('Completion must retain unquoted values containing spaces',
+        Candidates.IndexOf('fast mode') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_12_2_BooleanParameterPresenceCompatibility;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Value: string;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.3');
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Cmd.AddBooleanParameter('-b', '--bool', 'Boolean value', True, 'false');
+    App.RegisterCommand(Cmd);
+
+    AssertEquals('Bare Boolean presence remains accepted in 1.x', 0,
+      App.TestExecute(MakeArgs(['test', '--bool'])));
+    AssertTrue('Bare Boolean presence should have a value',
+      Cmd.TestGetParameterValue('--bool', Value));
+    AssertEquals('Bare Boolean presence normalizes to true', 'true', Value);
+
+    AssertEquals('Explicit Boolean true remains accepted', 0,
+      App.TestExecute(MakeArgs(['test', '--bool', 'true'])));
+    AssertTrue('Explicit true should be available',
+      Cmd.TestGetParameterValue('--bool', Value));
+    AssertEquals('Explicit true remains true', 'true', Value);
+
+    AssertEquals('Explicit Boolean false remains accepted', 0,
+      App.TestExecute(MakeArgs(['test', '--bool', 'false'])));
+    AssertTrue('Explicit false should be available',
+      Cmd.TestGetParameterValue('--bool', Value));
+    AssertEquals('Explicit false remains false', 'false', Value);
+  finally
+    App.Free;
   end;
 end;
 
