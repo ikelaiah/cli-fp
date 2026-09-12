@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-09-12
+
+### Fixed
+
+- Progress captions now use the same terminal-text sanitization as normal
+  console output, removing caller-provided NUL and ESC characters while
+  retaining the renderer's carriage-return redraw behavior.
+- Corrected portable path construction and runnable usage guidance in the
+  LongRunningOpDemo and ErrorHandlingDemo examples.
+- Added the standard `{$J-}` compiler-safety directive to ProgressDemo.
+- Corrected the current completion documentation link and made
+  `example-bin/README.md` consistent with the repository's source-only binary
+  policy.
+
 ## [1.5.1] - 2026-09-12
 
 ### Fixed
@@ -529,7 +543,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...HEAD
+[1.5.2]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/ikelaiah/cli-fp/compare/v1.4.3...v1.5.0
 [1.4.3]: https://github.com/ikelaiah/cli-fp/compare/v1.4.2...v1.4.3

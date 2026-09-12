@@ -174,6 +174,18 @@ definitions and unsafe edge cases fail predictably.
 runtime shape while lookup, completion, and built-in version boundaries are
 consistent and predictable.
 
+## v1.5.2 — Safety and Documentation Corrections (completed 2026-09-12)
+
+- Sanitize caller-controlled progress captions using the established terminal
+  text policy without changing renderer redraw semantics.
+- Correct runnable example guidance, portable demo path construction, the
+  ProgressDemo compiler directive, and directly related current documentation.
+- Keep current DocKit metadata ready for the immutable `v1.5.2` release
+  snapshot.
+
+**Maintenance outcome:** progress output and example documentation remain safe,
+portable, and truthful without changing the v1.x command model or public API.
+
 ## v1.6.0 — Finish the Application Core Boundaries
 
 - Continue internal architecture cleanup without changing the public facade.

@@ -11,8 +11,8 @@
 
 This directory contains current user guides plus historical completion test and
 development records. The dated test reports describe the implementation at the
-time they were written; use the user guides and the
-[main user manual](../user-manual.md#bash-completion) for current behavior.
+time they were written; use the user guides and the current
+[completion documentation](../completion.md) for current behavior.
 
 ## Files
 

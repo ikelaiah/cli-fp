@@ -1,17 +1,19 @@
 # Example Binaries
 
-This directory contains pre-compiled example executables demonstrating the cli-fp framework.
+This directory tracks generated completion-script examples. Precompiled example
+executables are not committed; local example builds place their output here.
 
 ## Available Examples
 
-### Core Examples
-- **SimpleDemo.exe** - Basic CLI with parameters, spinner, and colored output
-- **ColorDemo.exe** - Professional colored output with decorative formatting
-- **ProgressDemo.exe** - Spinner and progress bar demonstrations
-- **RootCommandDemo.exe** - Command-less root execution with optional named commands
-- **SubCommandDemo.exe** - Hierarchical commands (git-like structure)
-- **ErrorHandlingDemo.exe** - Error handling patterns
-- **LongRunningOpDemo.exe** - Advanced parameter types
+### Canonical Examples
+- **QuickStartDemo** - Smallest root-command CLI
+- **SimpleDemo** - Basic CLI with parameters, spinner, and colored output
+- **ColorDemo** - Professional colored output with decorative formatting
+- **ProgressDemo** - Spinner and progress bar demonstrations
+- **RootCommandDemo** - Command-less root execution with optional named commands
+- **SubCommandDemo** - Hierarchical commands (git-like structure)
+- **ErrorHandlingDemo** - Error handling patterns
+- **LongRunningOpDemo** - Advanced parameter types
 
 ## Shell Completion Scripts
 
@@ -56,6 +58,7 @@ Each example includes `--help` to show usage:
 
 ```bash
 ./SimpleDemo.exe --help
+./QuickStartDemo.exe --name Gus
 ./RootCommandDemo.exe --name Gus
 ./SubCommandDemo.exe repo --help
 ./ProgressDemo.exe process --help
@@ -65,6 +68,7 @@ Each example includes `--help` to show usage:
 
 Example source code is located in the `examples/` directory:
 - `examples/SimpleDemo/`
+- `examples/QuickStartDemo/`
 - `examples/ColorDemo/`
 - `examples/ProgressDemo/`
 - `examples/RootCommandDemo/`
@@ -87,19 +91,20 @@ The executable will be placed in `example-bin/`.
 
 - `*_completion.bash` files - Bash completion scripts
 - `*_completion.ps1` files - PowerShell completion scripts
-- `lib/` - Shared compiled units (can be ignored)
+- locally-built executables and `lib/` units (ignored by Git)
 
-**Note:** Pre-compiled binaries are no longer included in this directory. Users should compile examples from source using the build scripts in the repository root (`compile-all-examples.ps1` or `compile-all-examples.sh`).
+Build examples from source with `compile-all-examples.ps1` or
+`compile-all-examples.sh`. Generated executables remain local and can be
+removed with the matching cleanup script.
 
 ## Documentation
 
 For detailed completion documentation, see:
-- [docs/completion-testing/](../docs/completion-testing/) - Testing documentation
-- [docs/completion-testing/BASH_COMPLETION_GUIDE.md](../docs/completion-testing/BASH_COMPLETION_GUIDE.md) - User guide
+- [docs/completion.md](../docs/completion.md) - Completion usage
+- [docs/completion-testing/](../docs/completion-testing/) - Historical testing documentation
 
 ## Notes
 
-- These are pre-built binaries for convenience
 - Source code in `examples/` is the authoritative version
-- Rebuild after framework changes
+- Rebuild locally after framework changes
 - Completion scripts should be regenerated after rebuilding
