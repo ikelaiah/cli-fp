@@ -620,7 +620,7 @@ Accessible via the `--completion-file` global flag, this generator outputs a Bas
 - At the root level, an option prefix includes root-command parameters and all
   application options: `--help`, `-h`, `--help-complete`, `--version`, `-v`,
   `--completion-file`, and `--completion-file-pwsh`.
-  - At named command levels, an empty token offers subcommands, command
+- At named command levels, an empty token offers subcommands, command
   parameters, and help; `--version` and `-v` remain application-level requests
   and are not command options.
 - The shell function calls the executable's hidden `__complete` entrypoint for

@@ -135,9 +135,9 @@ release v1.5.1 without changing the public facade.
 
 ### Checkpoint: Qualification
 
-- [ ] Framework, generator, completion, example, cleanup, golden,
+- [x] Framework, generator, completion, example, cleanup, golden,
   compile-smoke, docs, DocKit, and diff checks pass where supported.
-- [ ] Code review finds no required correctness, security, architecture, or
+- [x] Code review finds no required correctness, security, architecture, or
   compatibility issues.
 
 ### Phase 4: Remote release

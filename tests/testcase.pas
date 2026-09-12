@@ -1706,6 +1706,18 @@ begin
     finally
       Candidates.Free;
     end;
+
+    Candidates := App.TestComplete(MakeArgs(['test', '--']));
+    try
+      AssertEquals('Flag-prefix completion should not emit an empty candidate',
+        -1, Candidates.IndexOf(''));
+      AssertTrue('Long-only parameters should complete after a long prefix',
+        Candidates.IndexOf('--name') >= 0);
+      AssertTrue('Both parameters should complete after a long prefix',
+        Candidates.IndexOf('--both') >= 0);
+    finally
+      Candidates.Free;
+    end;
   finally
     App.Free;
   end;

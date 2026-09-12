@@ -17,7 +17,7 @@
 - [x] Prevent blank completion suggestions
 - [x] Correct command-level version semantics
 - [x] Update current docs, changelog, release notes, roadmap, and DocKit metadata
-- [ ] Run local qualification and code review
+- [x] Run local qualification and code review
 - [ ] Push branch and create PR
 - [ ] Observe CI and request merge authorization at the safety boundary
 - [ ] Merge, tag, publish, deploy, live-verify, and report release
