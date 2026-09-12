@@ -725,8 +725,11 @@ begin
   // Add global flags
   Result.Add('--help');
   Result.Add('-h');
-  Result.Add('--version');
-  Result.Add('-v');
+  if FCurrentCommand = FRootCommand then
+  begin
+    Result.Add('--version');
+    Result.Add('-v');
+  end;
 end;
 
 { ValidateCommand: Checks if all parameters are valid

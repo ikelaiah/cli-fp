@@ -78,3 +78,89 @@ public facade or adding positional-argument semantics.
 | Shell quoting fix creates invalid scripts | Add generated-script inspection and shell syntax tests. |
 | FPC 3.2.2 differences | Use repository runners and CI-equivalent commands on Windows. |
 | Release permissions unavailable | Finish local qualification and report exact remote blocker/actions. |
+
+---
+
+# Implementation Plan: cli-fp v1.5.1 Correctness and Completion Patch
+
+## Overview
+
+Deliver a surgical patch release from the v1.5.0 `main` baseline. Confirm and
+fix only the reported `GetParameterValue`, completion-suggestion, and
+application-version semantics; clarify current documentation; update current
+version metadata and immutable DocKit version history; then qualify and
+release v1.5.1 without changing the public facade.
+
+## Architecture decisions
+
+- Reuse `SameText` and the existing parameter-value lookup conventions rather
+  than introducing a second lookup abstraction.
+- Keep application `--version`/`-v` handling at the application boundary and
+  remove those flags only from selected named-command validation/completion.
+- Keep the existing completion engine and command model intact; add only
+  independent empty-flag guards.
+- Preserve v1.5.0 and older documentation sources as immutable historical
+  releases; make only current documentation and version metadata current for
+  v1.5.1.
+
+## Task list
+
+### Phase 1: Confirm and reproduce
+
+- [x] Inspect the v1.5.0 `main` implementation, tests, docs, version metadata,
+  DocKit configuration, and CI workflows.
+- [x] Add focused failing regressions for case-insensitive descendant lookup,
+  empty completion suggestions, and named-command version rejection.
+
+### Phase 2: Surgical runtime fixes
+
+- [x] Make `TBaseCommand.GetParameterValue` use case-insensitive flag matching
+  while preserving miss initialization.
+- [x] Guard both flag forms independently in every relevant completion path.
+- [x] Keep version global at application level; reject and avoid suggesting it
+  after named-command selection.
+
+### Checkpoint: Runtime patch
+
+- [x] Focused regressions fail before the fixes and pass afterward.
+- [x] Existing v1.5.0 behavior remains covered and passing.
+
+### Phase 3: Documentation and release metadata
+
+- [x] Correct stale current 1.x wording and label `GetParameterValue` as a
+  protected descendant member in the API reference.
+- [x] Update authoritative current version locations to 1.5.1, add concise
+  changelog/release notes, update roadmap context, and add DocKit v1.5.1.
+- [x] Preserve historical release notes and tags unchanged.
+
+### Checkpoint: Qualification
+
+- [x] Framework, generator, completion, example, cleanup, golden,
+  compile-smoke, docs, DocKit, and diff checks pass where supported.
+- [x] Code review finds no required correctness, security, architecture, or
+  compatibility issues.
+
+### Phase 4: Remote release
+
+- [ ] Push `release/v1.5.1` and open the PR.
+- [ ] Observe green Linux and Windows CI, then stop for explicit merge
+  authorization if repository safety requires it.
+- [ ] After authorization, squash merge, tag, publish the release, verify
+  post-merge/tag CI, deploy/live-check Pages, and report final state.
+
+## Explicitly deferred
+
+Positional arguments, `--` terminator semantics, per-command versioning,
+typed getters, execution-context redesign, the major `TCLIApplication` split,
+renderer extraction, help architecture redesign, exception hierarchy changes,
+deprecated API removal, presentation/data separation, Unicode display-width
+redesign, historical archive reorganization, sanitizer policy expansion, and
+new dependencies remain out of scope.
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Removing command-level version suggestions changes completion output | Keep application-level handling unchanged and add explicit root/named tests. |
+| A one-flag parameter regresses completion | Test short-only, long-only, and two-flag definitions through the real engine. |
+| Current-version edits rewrite history | Limit edits to active metadata/current docs and preserve v1.5.0 release sources. |

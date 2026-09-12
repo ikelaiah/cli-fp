@@ -93,6 +93,11 @@ type
     procedure Test_9_7_HelpExtraArgumentsAndValueMiss;
     procedure Test_9_8_EnumValuesMayContainSpaces;
     procedure Test_9_9_TerminalTextSanitization;
+
+    // 10.x - v1.5.1 Correctness and Completion Patch
+    procedure Test_10_1_DirectParameterLookupIsCaseInsensitive;
+    procedure Test_10_2_CompletionOmitsEmptyParameterFlags;
+    procedure Test_10_3_ApplicationOnlyVersionFlags;
   end;
 
 implementation
@@ -1630,6 +1635,143 @@ begin
       Pos(#27, Output.Text));
     AssertEquals('Captured help should contain no NUL characters', 0,
       Pos(#0, Output.Text));
+  finally
+    Output.Free;
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_10_1_DirectParameterLookupIsCaseInsensitive;
+var
+  Cmd: TTestCommand;
+  Parsed: TStringList;
+  Value: string;
+begin
+  Cmd := TTestCommand.Create('test', 'Test command');
+  Parsed := TStringList.Create;
+  try
+    Parsed.CaseSensitive := False;
+    Parsed.Add('-n=Ada');
+    Cmd.AddStringParameter('-n', '--name', 'Name');
+    Cmd.SetParsedParams(Parsed);
+
+    AssertTrue('Direct lookup should find an exact long flag',
+      Cmd.TestGetParameterValue('--name', Value));
+    AssertEquals('Exact long lookup should return its value', 'Ada', Value);
+    AssertTrue('Direct lookup should ignore long flag case',
+      Cmd.TestGetParameterValue('--NAME', Value));
+    AssertEquals('Case-insensitive long lookup should return its value',
+      'Ada', Value);
+    AssertTrue('Direct lookup should ignore short flag case',
+      Cmd.TestGetParameterValue('-N', Value));
+    AssertEquals('Case-insensitive short lookup should return its value',
+      'Ada', Value);
+
+    Value := 'stale';
+    AssertFalse('Missing direct lookup should return False',
+      Cmd.TestGetParameterValue('--missing', Value));
+    AssertEquals('Missing direct lookup should clear its output', '', Value);
+  finally
+    Parsed.Free;
+    Cmd.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_10_2_CompletionOmitsEmptyParameterFlags;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.1');
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Cmd.AddStringParameter('-n', '', 'Short-only parameter');
+    Cmd.AddStringParameter('', '--name', 'Long-only parameter');
+    Cmd.AddStringParameter('-b', '--both', 'Parameter with both flags');
+    App.RegisterCommand(Cmd);
+
+    Candidates := App.TestComplete(MakeArgs(['test', '']));
+    try
+      AssertEquals('Completion should not emit an empty flag candidate', -1,
+        Candidates.IndexOf(''));
+      AssertTrue('Short-only parameters should be completed',
+        Candidates.IndexOf('-n') >= 0);
+      AssertTrue('Long-only parameters should be completed',
+        Candidates.IndexOf('--name') >= 0);
+      AssertTrue('Both parameter flags should be completed',
+        Candidates.IndexOf('-b') >= 0);
+      AssertTrue('Both parameter long flags should be completed',
+        Candidates.IndexOf('--both') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['test', '--']));
+    try
+      AssertEquals('Flag-prefix completion should not emit an empty candidate',
+        -1, Candidates.IndexOf(''));
+      AssertTrue('Long-only parameters should complete after a long prefix',
+        Candidates.IndexOf('--name') >= 0);
+      AssertTrue('Both parameters should complete after a long prefix',
+        Candidates.IndexOf('--both') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_10_3_ApplicationOnlyVersionFlags;
+var
+  App: TCLIApplication;
+  Cmd: TRecordingCommand;
+  Output: TStringList;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.1');
+  Cmd := TRecordingCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
+  try
+    App.RegisterCommand(Cmd);
+
+    AssertEquals('Application-level long version should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--version']), Output));
+    AssertTrue('Application-level long version should be reported',
+      Pos('TestApp version 1.5.1', Output.Text) > 0);
+
+    Output.Clear;
+    AssertEquals('Application-level short version should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['-v']), Output));
+    AssertTrue('Application-level short version should be reported',
+      Pos('TestApp version 1.5.1', Output.Text) > 0);
+
+    Output.Clear;
+    AssertEquals('Named-command long version should be rejected', 1,
+      App.TestExecuteAndCapture(MakeArgs(['test', '--version']), Output));
+    AssertEquals('Rejected named-command version must not execute', 0,
+      Cmd.ExecuteCount);
+
+    Output.Clear;
+    AssertEquals('Named-command short version should be rejected', 1,
+      App.TestExecuteAndCapture(MakeArgs(['test', '-v']), Output));
+    AssertEquals('Rejected named-command short version must not execute', 0,
+      Cmd.ExecuteCount);
+
+    Candidates := App.TestComplete(MakeArgs(['test', '']));
+    try
+      AssertEquals('Named-command completion should omit --version', -1,
+        Candidates.IndexOf('--version'));
+      AssertEquals('Named-command completion should omit -v', -1,
+        Candidates.IndexOf('-v'));
+      AssertTrue('Named-command completion should retain --help',
+        Candidates.IndexOf('--help') >= 0);
+      AssertTrue('Named-command completion should retain -h',
+        Candidates.IndexOf('-h') >= 0);
+    finally
+      Candidates.Free;
+    end;
   finally
     Output.Free;
     App.Free;

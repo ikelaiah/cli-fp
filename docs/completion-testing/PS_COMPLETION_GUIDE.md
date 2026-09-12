@@ -130,17 +130,17 @@ This is standard PowerShell completion behavior - the shell needs something to c
 
 #### 3. Application Flags in Command Contexts
 
-The completion engine offers `--help`, `--version`, `-h`, and `-v` while
-completing flags at a named command:
+The completion engine offers `--help` and `-h` while completing flags at a
+named command:
 
 ```powershell
 PS> .\SubCommandDemo.exe repo init --[TAB]
-# Cycles through: --path, --bare, --help, --version
+# Cycles through: --path, --bare, --help, -h
 ```
 
-`--help` and `-h` work at any command level. Version output is currently an
-application-level operation, so `--version` and `-v` must be the executable's
-only argument even though completion also offers them in command contexts.
+`--help` and `-h` work at any command level. Version output is an
+application-level operation: `--version` and `-v` are available only as the
+executable's standalone request and are not command options.
 
 #### 4. Command Groups Have No Flags
 
@@ -148,7 +148,7 @@ Some commands are "command groups" that contain subcommands but have no flags of
 
 ```powershell
 PS> .\SubCommandDemo.exe repo --[TAB]
-# Shows only: --help, --version (global flags)
+# Shows only: --help, -h (global flags)
 # No repo-specific flags because repo is a command group
 ```
 
@@ -230,14 +230,14 @@ PS> .\SubCommandDemo.exe repo c[TAB]     # Completes to: clone
 Typing `--` shows only long-form flags:
 ```powershell
 PS> .\SubCommandDemo.exe repo init --[TAB]
-# Shows: --path, --bare, --help, --version (no short flags)
+# Shows: --path, --bare, --help (no short flags)
 ```
 
 ### 4. Use `-` for All Flags
 Typing `-` shows both short and long flags:
 ```powershell
 PS> .\SubCommandDemo.exe repo init -[TAB]
-# Shows: --path, -p, --bare, -b, --help, -h, --version, -v
+# Shows: --path, -p, --bare, -b, --help, -h
 ```
 
 ---
@@ -297,7 +297,7 @@ Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 | **Root Completion** | Commands only (without prefix) | Commands only (without prefix) |
 | **Case Sensitivity** | Case-insensitive | Case-insensitive |
 | **Reverse Cycling** | SHIFT+TAB | N/A (shows all) |
-| **Application Flags** | Help and version flags are offered in command contexts | Same |
+| **Application Flags** | Help flags are offered in command contexts | Version is standalone only |
 | **Boolean Values** | `true`/`false` | `true`/`false` |
 
 ---
@@ -346,7 +346,8 @@ Key points to remember:
 3. **SHIFT+TAB**: Goes backwards through options
 4. **Prefix required**: Type `-` or `--` after values to see flags
 5. **Case-insensitive**: Uppercase and lowercase both work
-6. **Application flags**: completion offers help and version flags in command contexts; version execution is standalone
+6. **Application flags**: completion offers help in command contexts; version
+   execution and completion are standalone application behavior
 
 ---
 

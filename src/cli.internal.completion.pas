@@ -90,8 +90,6 @@ begin
 
   if StartsStr(LowerCase(Prefix), '--help') then Suggestions.Add('--help');
   if StartsStr(LowerCase(Prefix), '-h') then Suggestions.Add('-h');
-  if StartsStr(LowerCase(Prefix), '--version') then Suggestions.Add('--version');
-  if StartsStr(LowerCase(Prefix), '-v') then Suggestions.Add('-v');
   if IncludeExtended then
   begin
     if StartsStr(LowerCase(Prefix), '--help-complete') then
@@ -110,13 +108,15 @@ var
 begin
   for Param in Command.Parameters do
   begin
-    if StartsStr(LowerCase(Prefix), LowerCase(Param.LongFlag)) then
+    if (Param.LongFlag <> '') and
+      StartsStr(LowerCase(Prefix), LowerCase(Param.LongFlag)) then
       Suggestions.Add(Param.LongFlag);
     if (Param.ShortFlag <> '') and
       StartsStr(LowerCase(Prefix), LowerCase(Param.ShortFlag)) then
       Suggestions.Add(Param.ShortFlag);
   end;
-  AddGlobalFlags(Suggestions, Prefix, Command = FRootCommand, False);
+  AddGlobalFlags(Suggestions, Prefix, Command = FRootCommand,
+    Command = FRootCommand);
 end;
 
 procedure TCLICompletionEngine.AddParameterValues(const Suggestions: TStrings;
@@ -238,7 +238,8 @@ begin
     Suggestions.Add(SubCommand.Name);
   for Param in Command.Parameters do
   begin
-    Suggestions.Add(Param.LongFlag);
+    if Param.LongFlag <> '' then
+      Suggestions.Add(Param.LongFlag);
     if Param.ShortFlag <> '' then
       Suggestions.Add(Param.ShortFlag);
   end;

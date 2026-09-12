@@ -621,8 +621,8 @@ Accessible via the `--completion-file` global flag, this generator outputs a Bas
   application options: `--help`, `-h`, `--help-complete`, `--version`, `-v`,
   `--completion-file`, and `--completion-file-pwsh`.
 - At named command levels, an empty token offers subcommands, command
-  parameters, and help; an option prefix currently also offers `--version` and
-  `-v`.
+  parameters, and help; `--version` and `-v` remain application-level requests
+  and are not command options.
 - The shell function calls the executable's hidden `__complete` entrypoint for
   live candidates. A static associative tree is still emitted for
   compatibility but is not read by the generated function.

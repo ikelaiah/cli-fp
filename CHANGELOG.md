@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-09-12
+
+### Fixed
+
+- `TBaseCommand.GetParameterValue` now honors documented case-insensitive
+  lookup for long and short flags while retaining deterministic misses.
+- Completion no longer emits empty suggestions for short-only or long-only
+  parameters.
+- Named-command `--version`/`-v` are rejected as command options; the
+  application-level version request remains supported.
+
+### Documentation
+
+- Current command-model wording now describes normal cli-fp 1.x applications
+  without tying the model to v1.4.x.
+- The API reference labels `GetParameterValue` as a protected member for
+  command descendants and current completion guidance matches runtime behavior.
+
 ## [1.5.0] - 2026-09-11
 
 ### Added
@@ -511,7 +529,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/ikelaiah/cli-fp/compare/v1.4.3...v1.5.0
 [1.4.3]: https://github.com/ikelaiah/cli-fp/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/ikelaiah/cli-fp/compare/v1.4.1...v1.4.2

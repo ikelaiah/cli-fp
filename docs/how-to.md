@@ -5,7 +5,7 @@ Short, supported recipes for common `cli-fp` tasks. Start with
 
 ## The command model used by every recipe
 
-Normal v1.4.x applications are class-based. You define a descendant, create
+Normal cli-fp 1.x applications are class-based. You define a descendant, create
 an object of that class, register its options on that object, then register the
 object with the application:
 

@@ -425,6 +425,7 @@ function TBaseCommand.GetParameterValue(const Flag: string; out Value: string): 
 var
   Param: ICommandParameter;
 begin
+  Value := '';
   Result := False;
   if not Assigned(FParsedParams) then
     Exit;
@@ -432,7 +433,7 @@ begin
   // Find the parameter object for type info
   for Param in FParameters do
   begin
-    if (Param.LongFlag = Flag) or (Param.ShortFlag = Flag) then
+    if SameText(Param.LongFlag, Flag) or SameText(Param.ShortFlag, Flag) then
     begin
       Result := TryGetParameterValue(Param, FParsedParams, Value);
       Exit;
