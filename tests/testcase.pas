@@ -93,6 +93,9 @@ type
     procedure Test_9_7_HelpExtraArgumentsAndValueMiss;
     procedure Test_9_8_EnumValuesMayContainSpaces;
     procedure Test_9_9_TerminalTextSanitization;
+
+    // 10.x - v1.5.1 Correctness and Completion Patch
+    procedure Test_10_1_DirectParameterLookupIsCaseInsensitive;
   end;
 
 implementation
@@ -1633,6 +1636,42 @@ begin
   finally
     Output.Free;
     App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_10_1_DirectParameterLookupIsCaseInsensitive;
+var
+  Cmd: TTestCommand;
+  Parsed: TStringList;
+  Value: string;
+begin
+  Cmd := TTestCommand.Create('test', 'Test command');
+  Parsed := TStringList.Create;
+  try
+    Parsed.CaseSensitive := False;
+    Parsed.Add('-n=Ada');
+    Cmd.AddStringParameter('-n', '--name', 'Name');
+    Cmd.SetParsedParams(Parsed);
+
+    AssertTrue('Direct lookup should find an exact long flag',
+      Cmd.TestGetParameterValue('--name', Value));
+    AssertEquals('Exact long lookup should return its value', 'Ada', Value);
+    AssertTrue('Direct lookup should ignore long flag case',
+      Cmd.TestGetParameterValue('--NAME', Value));
+    AssertEquals('Case-insensitive long lookup should return its value',
+      'Ada', Value);
+    AssertTrue('Direct lookup should ignore short flag case',
+      Cmd.TestGetParameterValue('-N', Value));
+    AssertEquals('Case-insensitive short lookup should return its value',
+      'Ada', Value);
+
+    Value := 'stale';
+    AssertFalse('Missing direct lookup should return False',
+      Cmd.TestGetParameterValue('--missing', Value));
+    AssertEquals('Missing direct lookup should clear its output', '', Value);
+  finally
+    Parsed.Free;
+    Cmd.Free;
   end;
 end;
 
