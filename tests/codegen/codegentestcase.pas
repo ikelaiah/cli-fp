@@ -37,6 +37,8 @@ type
     procedure TestManifestRejectsNonStringGeneratedFile;
     procedure TestManifestRejectsUserOwnedCleanupTargets;
     procedure TestManifestCleansStaleGeneratedFile;
+    procedure TestReservedGeneratedClassNamesAreDisambiguated;
+    procedure TestProgramFileSerializationUsesPortableSlashes;
     procedure TestPascalStringRenderingEscapesControls;
   end;
 
@@ -549,6 +551,58 @@ begin
     RemoveDir(GeneratedDir);
     RemoveDir(ExtractFileDir(GeneratedDir));
     RemoveDir(ProjectDir);
+  end;
+end;
+
+procedure TCodegenTests.TestReservedGeneratedClassNamesAreDisambiguated;
+begin
+  AssertEquals('Root command class should not collide with the root stub',
+    'TGeneratedRootCommand', MakeCommandClassName('root'));
+  AssertEquals('Base command class should not collide with its ancestor',
+    'TGeneratedBaseCommand', MakeCommandClassName('base'));
+  AssertEquals('Normal command class names remain stable',
+    'TGreetCommand', MakeCommandClassName('greet'));
+end;
+
+procedure TCodegenTests.TestProgramFileSerializationUsesPortableSlashes;
+var
+  Spec, Loaded: TProjectSpec;
+  SpecFile: string;
+  Options: TWriteOptions;
+  Lines: TStringList;
+begin
+  AssertEquals('New program paths should be platform-neutral',
+    'src/Demo.lpr', MakeProgramFileRelPath('demo'));
+
+  SpecFile := GetTempFileName(GetTempDir(False), 'cfg');
+  Spec := NewValidSpec;
+  try
+    Spec.ProgramFile := 'src\PortableDemo.lpr';
+    Options.DryRun := False;
+    Options.Force := True;
+    SaveProjectSpec(Spec, SpecFile, Options);
+
+    Lines := TStringList.Create;
+    try
+      Lines.LoadFromFile(SpecFile);
+      AssertTrue('Saved project spec should use forward slashes',
+        Pos('src/PortableDemo.lpr', Lines.Text) > 0);
+      AssertTrue('Saved project spec should not retain backslashes',
+        Pos('src\PortableDemo.lpr', Lines.Text) = 0);
+    finally
+      Lines.Free;
+    end;
+
+    Loaded := LoadProjectSpec(SpecFile);
+    try
+      AssertEquals('Legacy backslash paths should load canonically',
+        'src/PortableDemo.lpr', Loaded.ProgramFile);
+    finally
+      Loaded.Free;
+    end;
+  finally
+    Spec.Free;
+    DeleteFile(SpecFile);
   end;
 end;
 
