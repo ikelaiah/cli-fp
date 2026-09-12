@@ -9,34 +9,15 @@
   3. Colored console output
   4. Basic command structure
 
-  How to run (stop on error):
+  How to run (stop at the first simulated failure):
 
-  $ ErrorHandlingDemo.exe validate -p z:\fake_path -s true
-  Validating z:\fake_path\file1.txt... OK
-  Validating z:\fake_path\file2.txt... OK
-  Validating z:\fake_path\file3.txt... OK
-  Validating z:\fake_path\file4.txt... OK
-  Validating z:\fake_path\file5.txt... OK
-  Validating z:\fake_path\file6.txt... OK
-  Validating z:\fake_path\file7.txt... OK
-  Validating z:\fake_path\file8.txt... OK
-  Validating z:\fake_path\file9.txt... ERROR: Demo validation failed for: z:\fake_path\file9.txt
-  Stopping due to error (--stop-on-error)
+  $ ErrorHandlingDemo.exe validate --path . --stop-on-error
 
-  How to run (don't stop on error):
-
-  $ ErrorHandlingDemo.exe validate -p z:\fake_path -s false
-  Validating z:\fake_path\file1.txt... OK
-  Validating z:\fake_path\file2.txt... OK
-  Validating z:\fake_path\file3.txt... OK
-  Validating z:\fake_path\file4.txt... OK
-  Validating z:\fake_path\file5.txt... OK
-  Validating z:\fake_path\file6.txt... OK
-  Validating z:\fake_path\file7.txt... OK
-  Validating z:\fake_path\file8.txt... OK
-  Validating z:\fake_path\file9.txt... ERROR: Demo validation failed for: z:\fake_path\file9.txt
-  Validating z:\fake_path\file10.txt... OK
-  Validation complete with 1 errors
+  The demonstration intentionally randomizes validation results for ten
+  simulated files. The failing file and exact output vary between runs.
+  With --stop-on-error, processing stops at the first failure; without it,
+  every simulated file is processed and the command returns a non-zero exit
+  code if one or more validations fail.
 }
 program ErrorHandlingDemo;
 
@@ -106,16 +87,9 @@ begin
     try
       // In a real app, you would scan the directory here
       // This is just a simulation with hardcoded files
-      Files.Add(Path + '\file1.txt');
-      Files.Add(Path + '\file2.txt');
-      Files.Add(Path + '\file3.txt');
-      Files.Add(Path + '\file4.txt');
-      Files.Add(Path + '\file5.txt');
-      Files.Add(Path + '\file6.txt');
-      Files.Add(Path + '\file7.txt');
-      Files.Add(Path + '\file8.txt');
-      Files.Add(Path + '\file9.txt');
-      Files.Add(Path + '\file10.txt');
+      for i := 1 to 10 do
+        Files.Add(IncludeTrailingPathDelimiter(Path) +
+          Format('file%d.txt', [i]));
 
       // Process each file with error handling
       for i := 0 to Files.Count - 1 do

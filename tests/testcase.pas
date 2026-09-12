@@ -98,6 +98,9 @@ type
     procedure Test_10_1_DirectParameterLookupIsCaseInsensitive;
     procedure Test_10_2_CompletionOmitsEmptyParameterFlags;
     procedure Test_10_3_ApplicationOnlyVersionFlags;
+
+    // 11.x - v1.5.2 Safety and Documentation Corrections
+    procedure Test_11_1_ProgressCaptionTerminalSanitization;
   end;
 
 implementation
@@ -1775,6 +1778,53 @@ begin
   finally
     Output.Free;
     App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_11_1_ProgressCaptionTerminalSanitization;
+var
+  Progress: TProgressBar;
+  SavedOutput: Text;
+  OutputFileName: string;
+  Stream: TFileStream;
+  Captured: string;
+begin
+  OutputFileName := GetTempFileName(GetTempDir, 'cli-fp-progress-');
+  SavedOutput := Output;
+  AssignFile(Output, OutputFileName);
+  Rewrite(Output);
+  try
+    Progress := TProgressBar.Create(1, 1);
+    try
+      Progress.Start;
+      Progress.Update(1, 'caption' + #27 + '[31m' + #0);
+      Progress.Stop;
+    finally
+      Progress.Free;
+    end;
+  finally
+    Close(Output);
+    Output := SavedOutput;
+  end;
+
+  try
+    Stream := TFileStream.Create(OutputFileName, fmOpenRead or fmShareDenyWrite);
+    try
+      SetLength(Captured, Stream.Size);
+      if Stream.Size > 0 then
+        Stream.ReadBuffer(Captured[1], Stream.Size);
+    finally
+      Stream.Free;
+    end;
+
+    AssertEquals('Progress rendering must retain its redraw carriage return',
+      #13, Captured[1]);
+    AssertTrue('Progress captions must not emit ESC', Pos(#27, Captured) = 0);
+    AssertTrue('Progress captions must not emit NUL', Pos(#0, Captured) = 0);
+    AssertTrue('Progress captions should retain safe text',
+      Pos('caption[31m', Captured) > 0);
+  finally
+    DeleteFile(OutputFileName);
   end;
 end;
 

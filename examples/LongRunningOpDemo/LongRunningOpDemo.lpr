@@ -12,21 +12,13 @@
   How to run:
   Option 1 - Basic usage with progress bar only:
   ```
-  $ LongRunningOpDemo.exe process
-  Finding files...
-
-  [====================] 100% All files processed successfully!
+  $ LongRunningOpDemo.exe process --input .
   ```
+  The --input path is required; this demonstration uses the current directory.
 
   Option 2 - Verbose mode shows detailed progress:
   ```
-  $ LongRunningOpDemo.exe process -v true
-  Finding files...
-
-  Processing: file1.txt
-  [=======             ]  33% Processing: file2.txt
-  [=============       ]  67% Processing: file3.txt
-  [====================] 100% All files processed successfully!
+  $ LongRunningOpDemo.exe process --input . --verbose
   ```
 }
 program LongRunningOpDemo;
@@ -141,7 +133,8 @@ type
         begin
           Spinner.Update(0);
           Sleep(300);  // Simulate searching
-          Files.Add(Format('%s\file%d.txt', [InputDir, i]));
+          Files.Add(IncludeTrailingPathDelimiter(InputDir) +
+            Format('file%d.txt', [i]));
         end;
       finally
         Spinner.Stop;

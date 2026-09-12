@@ -1,6 +1,6 @@
 program ProgressDemo;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$J-}
 
 { This demo shows how to use progress indicators (spinner and progress bar)
   in a CLI application. It demonstrates:
