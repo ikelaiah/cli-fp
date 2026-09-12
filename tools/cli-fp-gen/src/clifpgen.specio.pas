@@ -14,7 +14,7 @@ procedure SaveProjectSpec(const Spec: TProjectSpec; const SpecFile: string; cons
 implementation
 
 uses
-  CliFpGen.Filesystem;
+  CliFpGen.Filesystem, CliFpGen.Naming;
 
 function RequireObjectField(const Obj: TJSONObject; const Name: string): TJSONObject;
 begin
@@ -130,7 +130,7 @@ begin
       AppObj := RequireObjectField(RootObj, 'app');
       Result.AppName := AppObj.Get('name', '');
       Result.AppVersion := AppObj.Get('version', '0.1.0');
-      Result.ProgramFile := AppObj.Get('programFile', '');
+      Result.ProgramFile := NormalizePathSlashes(AppObj.Get('programFile', ''));
 
       if RootObj.Find('rootCommand') <> nil then
       begin
@@ -190,7 +190,7 @@ begin
     AppObj := TJSONObject.Create;
     AppObj.Add('name', Spec.AppName);
     AppObj.Add('version', Spec.AppVersion);
-    AppObj.Add('programFile', Spec.ProgramFile);
+    AppObj.Add('programFile', NormalizePathSlashes(Spec.ProgramFile));
     RootObj.Add('app', AppObj);
 
     if Spec.HasRootCommand then

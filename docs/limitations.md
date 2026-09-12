@@ -2,7 +2,7 @@
 
 [How do I...?](how-to.md) · [Commands](commands.md) · [Options](options.md)
 
-These are current v1.5.2 boundaries verified against the public source and
+These are current v1.5.3 boundaries verified against the public source and
 tests. They are intentionally easy to find so a limitation does not look like
 an undocumented feature.
 
@@ -23,6 +23,8 @@ an undocumented feature.
 - An absent `AddFlag` normally yields the default string `false`; inspect the
   returned value rather than treating the helper's Boolean result as a
   “was supplied” indicator.
+- `AddBooleanParameter` accepts `true`/`false`; bare presence is also
+  interpreted as `true` for 1.x compatibility.
 - A `Path` parameter validates only that a value was provided. Check existence,
   permissions, and path policy in your command.
 - A password is an ordinary string after retrieval. Framework debug output

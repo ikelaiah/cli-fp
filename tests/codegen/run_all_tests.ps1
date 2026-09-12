@@ -145,6 +145,17 @@ try {
   Assert-True (-not (Test-Path $OldProgramPath)) "Old generated program file was not removed by manifest cleanup"
   Assert-True ((Get-Content -Raw (Join-Path $DemoProject "src\generated\.clifp-manifest.json")) -match "src/DemoRenamed\.lpr") "Manifest did not track renamed program file"
 
+  & $GenExe add command root --project $DemoProject --description "Root-named command" | Out-Null
+  & $GenExe add command base --project $DemoProject --description "Base-named command" | Out-Null
+  $CollisionProgramPath = Join-Path $DemoProject $DemoSpec.app.programFile
+  fpc `
+    "-Fu$RootDir\src" `
+    "-Fu$DemoProject\src" `
+    "-Fu$DemoProject\src\generated" `
+    "-Fu$DemoProject\src\commands" `
+    $CollisionProgramPath
+  Assert-True ($LASTEXITCODE -eq 0) "Generated root/base collision project did not compile"
+
   $DescriptionsProject = Join-Path $TmpDir "descriptions"
   & $GenExe init $DescriptionsProject --force | Out-Null
   & $GenExe add command repo --project $DescriptionsProject --description "Owner's tools" | Out-Null

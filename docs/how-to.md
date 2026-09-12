@@ -150,7 +150,8 @@ Greet.AddEnumParameter('-l', '--level', 'Log level',
 
 Use `AddFlag` when presence alone enables a feature: `--verbose` becomes
 `true`, while omission returns `false`. Use `AddBooleanParameter` when callers
-must write an explicit value such as `--verbose true` or `--verbose false`.
+need an explicit value such as `--verbose true` or `--verbose false`; bare
+presence remains accepted as `true` for 1.x compatibility.
 Option lookup is case-insensitive and repeated options use the last value.
 
 ### Path, URL, and password

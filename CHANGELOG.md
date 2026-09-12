@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.3] - 2026-09-12
+
+### Fixed
+
+- Generator stale cleanup now treats manifests as input rather than proof of ownership: it refuses user files and deletes only generated artifacts or a marker-bearing generated program file, while retaining escape and link/reparse-point protection.
+- Manifest entries must be JSON strings; malformed values fail explicitly.
+- Generated `root` and `base` command classes are collision-safe, and project specifications serialize portable `/` program paths while accepting legacy backslashes.
+- Enum completion and validation share quote-aware pipe splitting.
+- The Lazarus package now includes `CLI.Internal.Text` and `CLI.Validation`.
+
+### Documentation
+
+- Documented the existing 1.x Boolean presence compatibility and the actual scope of `ECLIException`.
+
 ## [1.5.2] - 2026-09-12
 
 ### Fixed
@@ -543,7 +557,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...HEAD
+[1.5.3]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/ikelaiah/cli-fp/compare/v1.4.3...v1.5.0

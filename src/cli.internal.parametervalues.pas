@@ -9,6 +9,7 @@ uses
 
 function FindParameterByFlag(const Command: ICommand;
   const Flag: string): ICommandParameter;
+function SplitAllowedValues(const AllowedValues: string): TStringList;
 function TryGetParameterValue(const Param: ICommandParameter;
   const ParsedParams: TStrings; out Value: string): Boolean;
 function RedactParameterValue(const Command: ICommand; const Flag,
@@ -17,6 +18,14 @@ function RedactArgument(const Command: ICommand;
   const Argument: string): string;
 
 implementation
+
+function SplitAllowedValues(const AllowedValues: string): TStringList;
+begin
+  Result := TStringList.Create;
+  Result.Delimiter := '|';
+  Result.StrictDelimiter := True;
+  Result.DelimitedText := AllowedValues;
+end;
 
 function FindParameterByFlag(const Command: ICommand;
   const Flag: string): ICommandParameter;
