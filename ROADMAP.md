@@ -162,6 +162,18 @@ common task without guessing which manual or reference page contains it.
 **Maintenance outcome:** valid v1.x CLIs remain familiar while malformed
 definitions and unsafe edge cases fail predictably.
 
+## v1.5.1 — Correctness and Completion Patch (completed 2026-09-12)
+
+- Align direct option lookup with the parser's case-insensitive flag semantics.
+- Keep completion free of empty flag candidates for one-form parameters.
+- Keep version explicitly application-level in validation and completion.
+- Clarify current API and learning documentation without changing the public
+  facade.
+
+**Maintenance outcome:** existing v1.x command implementations keep their
+runtime shape while lookup, completion, and built-in version boundaries are
+consistent and predictable.
+
 ## v1.6.0 — Finish the Application Core Boundaries
 
 - Continue internal architecture cleanup without changing the public facade.

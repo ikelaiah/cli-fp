@@ -167,7 +167,8 @@ does not receive options from its children. For a runnable nested example, see
 
 `tool --help` shows application help. `tool greet --help` shows the selected
 command. `--version` is an application-level request when used as the first
-argument. Return `0` from a command's `Execute` for success and a non-zero
+argument; named commands do not accept it as a command option. Return `0` from
+a command's `Execute` for success and a non-zero
 integer for an application failure; the setup fragments use `Halt(App.Execute)`
 to forward that result to the shell. The application owns registered commands
 through its interfaces, so do not manually free them.

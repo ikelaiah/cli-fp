@@ -109,24 +109,24 @@ $ ./SubCommandDemo.exe repo clone --url https://example.com [TAB][TAB]
 **Will work:**
 ```bash
 $ ./SubCommandDemo.exe repo clone --url https://example.com -[TAB][TAB]
---branch   --depth    --help     --path     --url      --version  -b  -d  -h  -p  -u  -v
+--branch   --depth    --help     --path     --url       -b  -d  -h  -p  -u
 ```
 
 This is standard Bash completion behavior - the shell needs something to complete.
 
 #### 3. Application Flags in Command Contexts
 
-The completion engine offers `--help`, `--version`, `-h`, and `-v` while
-completing flags at a named command:
+The completion engine offers `--help` and `-h` while completing flags at a
+named command:
 
 ```bash
 $ ./SubCommandDemo.exe repo init -[TAB][TAB]
---bare     --help     --path     --version  -b         -h         -p         -v
+--bare     --help     --path                 -b         -h         -p
 ```
 
-`--help` and `-h` work at any command level. Version output is currently an
-application-level operation, so `--version` and `-v` must be the executable's
-only argument even though completion also offers them in command contexts.
+`--help` and `-h` work at any command level. Version output is an
+application-level operation: `--version` and `-v` are available only as the
+executable's standalone request and are not command options.
 
 #### 4. Short Flags Don't Auto-Complete Further
 
@@ -163,11 +163,11 @@ $ ./SubCommandDemo.exe repo [TAB][TAB]
 ```bash
 # Show all long flags (starting with --)
 $ ./SubCommandDemo.exe repo init --[TAB][TAB]
-→ --bare  --help  --path  --version
+→ --bare  --help  --path
 
 # Show all flags (both long and short)
 $ ./SubCommandDemo.exe repo init -[TAB][TAB]
-→ --bare  --help  --path  --version  -b  -h  -p  -v
+→ --bare  --help  --path  -b  -h  -p
 
 # Complete flag by prefix
 $ ./SubCommandDemo.exe repo init --p[TAB]
@@ -196,7 +196,7 @@ $ ./SubCommandDemo.exe repo remote [TAB][TAB]
 → add  remove  --help  -h
 
 $ ./SubCommandDemo.exe repo remote add -[TAB][TAB]
-→ --help  --name  --url  --version  -h  -n  -u  -v
+→ --help  --name  --url  -h  -n  -u
 ```
 
 ---
@@ -216,7 +216,7 @@ $ ./SubCommandDemo.exe repo clone --url https://test.com --branch main -[TAB][TA
 Type `--` to see only long-form flags (more readable):
 ```bash
 $ ./SubCommandDemo.exe repo init --[TAB][TAB]
-→ --bare  --help  --path  --version  (easier to read than short forms)
+→ --bare  --help  --path  (easier to read than short forms)
 ```
 
 ### 3. Prefix Matching is Case-Insensitive
@@ -284,7 +284,7 @@ The framework automatically prevents duplicates, but bash may show both short an
 | `./app cmd --value -[TAB]` | Shows available flags | Prefix provided for matching |
 | Short flag like `-b[TAB]` | May show values (true/false) | Flag is complete, offering values |
 | `--vers[TAB]` | Completes to `--version` | Prefix matching |
-| Flags at a named command | Completion offers help and version flags | Help works at command level; version is standalone only |
+| Flags at a named command | Completion offers help flags | Version is standalone only |
 
 ---
 
@@ -298,7 +298,8 @@ The framework automatically prevents duplicates, but bash may show both short an
 
 ❌ **DON'T:**
 - Expect completions after a value without typing `-` or `--`
-- Treat a suggested command-level `--version` as valid; version is standalone
+- Do not expect named-command completion to include `--version` or `-v`; they
+  are standalone application requests only
 - Forget to source the completion script in new shells
 
 For more help, run `./SubCommandDemo.exe --help` or consult the framework documentation.

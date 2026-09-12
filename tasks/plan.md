@@ -109,29 +109,29 @@ release v1.5.1 without changing the public facade.
 
 - [x] Inspect the v1.5.0 `main` implementation, tests, docs, version metadata,
   DocKit configuration, and CI workflows.
-- [ ] Add focused failing regressions for case-insensitive descendant lookup,
+- [x] Add focused failing regressions for case-insensitive descendant lookup,
   empty completion suggestions, and named-command version rejection.
 
 ### Phase 2: Surgical runtime fixes
 
-- [ ] Make `TBaseCommand.GetParameterValue` use case-insensitive flag matching
+- [x] Make `TBaseCommand.GetParameterValue` use case-insensitive flag matching
   while preserving miss initialization.
-- [ ] Guard both flag forms independently in every relevant completion path.
-- [ ] Keep version global at application level; reject and avoid suggesting it
+- [x] Guard both flag forms independently in every relevant completion path.
+- [x] Keep version global at application level; reject and avoid suggesting it
   after named-command selection.
 
 ### Checkpoint: Runtime patch
 
-- [ ] Focused regressions fail before the fixes and pass afterward.
-- [ ] Existing v1.5.0 behavior remains covered and passing.
+- [x] Focused regressions fail before the fixes and pass afterward.
+- [x] Existing v1.5.0 behavior remains covered and passing.
 
 ### Phase 3: Documentation and release metadata
 
-- [ ] Correct stale current 1.x wording and label `GetParameterValue` as a
+- [x] Correct stale current 1.x wording and label `GetParameterValue` as a
   protected descendant member in the API reference.
-- [ ] Update authoritative current version locations to 1.5.1, add concise
+- [x] Update authoritative current version locations to 1.5.1, add concise
   changelog/release notes, update roadmap context, and add DocKit v1.5.1.
-- [ ] Preserve historical release notes and tags unchanged.
+- [x] Preserve historical release notes and tags unchanged.
 
 ### Checkpoint: Qualification
 

@@ -74,17 +74,25 @@ are no-op compatibility members in 1.x—see [limitations](limitations.md).
 ### `TBaseCommand`
 
 ```pascal
+{ Public members }
 constructor Create(const AName, ADescription: string);
 function Execute: Integer; virtual; abstract;
 procedure AddSubCommand(const Command: ICommand);
+```
+
+Protected members for descendants:
+
+```pascal
+protected
 function GetParameterValue(const Flag: string; out Value: string): Boolean;
 ```
 
 Subclass `TBaseCommand`, override `Execute`, register options during setup,
 and return `0` on success. Use an empty `AName` for a root command.
 
-`GetParameterValue` is protected, so call it from your descendant's `Execute`.
-It finds either registered flag spelling and returns values as strings.
+`GetParameterValue` is a protected member for command descendants, so call it
+from your descendant's `Execute`. It finds either registered flag spelling and
+returns values as strings.
 Lookup is case-insensitive; a missing value returns `False` and clears the
 output string.
 
@@ -189,4 +197,4 @@ Definitions are validated when commands are registered or parameters are
 added. Invalid names, flags, duplicate siblings/options, nil commands, and
 command-tree cycles raise developer-facing exceptions. The parser rejects
 unexpected positional arguments with exit code `1`; it does not implement the
-`--` terminator in v1.5.0.
+`--` terminator in v1.x.

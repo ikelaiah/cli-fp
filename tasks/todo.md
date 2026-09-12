@@ -12,11 +12,11 @@
 ## cli-fp v1.5.1
 
 - [x] Confirm v1.5.0 baseline findings
-- [ ] Add failing regression tests
-- [ ] Fix case-insensitive `GetParameterValue`
-- [ ] Prevent blank completion suggestions
-- [ ] Correct command-level version semantics
-- [ ] Update current docs, changelog, release notes, roadmap, and DocKit metadata
+- [x] Add failing regression tests
+- [x] Fix case-insensitive `GetParameterValue`
+- [x] Prevent blank completion suggestions
+- [x] Correct command-level version semantics
+- [x] Update current docs, changelog, release notes, roadmap, and DocKit metadata
 - [ ] Run local qualification and code review
 - [ ] Push branch and create PR
 - [ ] Observe CI and request merge authorization at the safety boundary
