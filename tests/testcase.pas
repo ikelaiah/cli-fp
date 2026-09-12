@@ -97,6 +97,7 @@ type
     // 10.x - v1.5.1 Correctness and Completion Patch
     procedure Test_10_1_DirectParameterLookupIsCaseInsensitive;
     procedure Test_10_2_CompletionOmitsEmptyParameterFlags;
+    procedure Test_10_3_ApplicationOnlyVersionFlags;
   end;
 
 implementation
@@ -1706,6 +1707,61 @@ begin
       Candidates.Free;
     end;
   finally
+    App.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_10_3_ApplicationOnlyVersionFlags;
+var
+  App: TCLIApplication;
+  Cmd: TRecordingCommand;
+  Output: TStringList;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.1');
+  Cmd := TRecordingCommand.Create('test', 'Test command');
+  Output := TStringList.Create;
+  try
+    App.RegisterCommand(Cmd);
+
+    AssertEquals('Application-level long version should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--version']), Output));
+    AssertTrue('Application-level long version should be reported',
+      Pos('TestApp version 1.5.1', Output.Text) > 0);
+
+    Output.Clear;
+    AssertEquals('Application-level short version should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['-v']), Output));
+    AssertTrue('Application-level short version should be reported',
+      Pos('TestApp version 1.5.1', Output.Text) > 0);
+
+    Output.Clear;
+    AssertEquals('Named-command long version should be rejected', 1,
+      App.TestExecuteAndCapture(MakeArgs(['test', '--version']), Output));
+    AssertEquals('Rejected named-command version must not execute', 0,
+      Cmd.ExecuteCount);
+
+    Output.Clear;
+    AssertEquals('Named-command short version should be rejected', 1,
+      App.TestExecuteAndCapture(MakeArgs(['test', '-v']), Output));
+    AssertEquals('Rejected named-command short version must not execute', 0,
+      Cmd.ExecuteCount);
+
+    Candidates := App.TestComplete(MakeArgs(['test', '']));
+    try
+      AssertEquals('Named-command completion should omit --version', -1,
+        Candidates.IndexOf('--version'));
+      AssertEquals('Named-command completion should omit -v', -1,
+        Candidates.IndexOf('-v'));
+      AssertTrue('Named-command completion should retain --help',
+        Candidates.IndexOf('--help') >= 0);
+      AssertTrue('Named-command completion should retain -h',
+        Candidates.IndexOf('-h') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    Output.Free;
     App.Free;
   end;
 end;
