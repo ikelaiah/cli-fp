@@ -34,6 +34,9 @@ type
     procedure TestMalformedFlagsAreRejected;
     procedure TestMalformedJsonFailsClearly;
     procedure TestMalformedManifestFailsClearly;
+    procedure TestManifestRejectsNonStringGeneratedFile;
+    procedure TestManifestRejectsUserOwnedCleanupTargets;
+    procedure TestManifestCleansStaleGeneratedFile;
     procedure TestPascalStringRenderingEscapesControls;
   end;
 
@@ -400,6 +403,149 @@ begin
   finally
     Manifest.Free;
     DeleteFile(ManifestFile);
+    RemoveDir(GeneratedDir);
+    RemoveDir(ExtractFileDir(GeneratedDir));
+    RemoveDir(ProjectDir);
+  end;
+end;
+
+procedure TCodegenTests.TestManifestRejectsNonStringGeneratedFile;
+var
+  ProjectDir, GeneratedDir, ManifestFile: string;
+  Lines, Manifest: TStringList;
+  RaisedExpectedError: Boolean;
+begin
+  ProjectDir := GetTempFileName(GetTempDir(False), 'mft');
+  DeleteFile(ProjectDir);
+  GeneratedDir := ProjectDir + DirectorySeparator + 'src' +
+    DirectorySeparator + 'generated';
+  ForceDirectories(GeneratedDir);
+  ManifestFile := GeneratedDir + DirectorySeparator + '.clifp-manifest.json';
+  Lines := TStringList.Create;
+  try
+    Lines.Text := '{"generatedFiles":["src/generated/Registry.pas",42]}';
+    Lines.SaveToFile(ManifestFile);
+  finally
+    Lines.Free;
+  end;
+
+  Manifest := nil;
+  RaisedExpectedError := False;
+  try
+    try
+      Manifest := LoadGeneratedManifest(ProjectDir);
+    except
+      on E: Exception do
+      begin
+        RaisedExpectedError := True;
+        AssertTrue('Non-string manifest item should identify its location',
+          Pos('generatedfiles[1] must be a string', LowerCase(E.Message)) > 0);
+      end;
+    end;
+    AssertTrue('Non-string manifest item must be rejected', RaisedExpectedError);
+  finally
+    Manifest.Free;
+    DeleteFile(ManifestFile);
+    RemoveDir(GeneratedDir);
+    RemoveDir(ExtractFileDir(GeneratedDir));
+    RemoveDir(ProjectDir);
+  end;
+end;
+
+procedure TCodegenTests.TestManifestRejectsUserOwnedCleanupTargets;
+const
+  ProtectedFiles: array[0..3] of string = (
+    'clifp.json', 'README.md', '.git/config', 'src/UserOwned.pas');
+var
+  ProjectDir, FileName: string;
+  Previous, Current, Lines: TStringList;
+  Options: TWriteOptions;
+  i: Integer;
+  RaisedExpectedError: Boolean;
+begin
+  ProjectDir := GetTempFileName(GetTempDir(False), 'mft');
+  DeleteFile(ProjectDir);
+  ForceDirectories(ProjectDir);
+  Options.DryRun := False;
+  Options.Force := False;
+  try
+    for i := Low(ProtectedFiles) to High(ProtectedFiles) do
+    begin
+      FileName := ProjectDir + DirectorySeparator +
+        StringReplace(ProtectedFiles[i], '/', DirectorySeparator, [rfReplaceAll]);
+      ForceDirectories(ExtractFileDir(FileName));
+      Lines := TStringList.Create;
+      try
+        Lines.Text := 'user-owned';
+        Lines.SaveToFile(FileName);
+      finally
+        Lines.Free;
+      end;
+
+      Previous := TStringList.Create;
+      Current := TStringList.Create;
+      try
+        Previous.Add(ProtectedFiles[i]);
+        RaisedExpectedError := False;
+        try
+          CleanupStaleGeneratedFiles(ProjectDir, Previous, Current, Options);
+        except
+          on E: Exception do
+          begin
+            RaisedExpectedError := True;
+            AssertTrue('Unsafe manifest path should explain the refusal',
+              Pos('not generator-owned', LowerCase(E.Message)) > 0);
+          end;
+        end;
+        AssertTrue('User-owned manifest target must be rejected', RaisedExpectedError);
+        AssertTrue('Manifest cleanup deleted a user-owned file: ' + ProtectedFiles[i],
+          FileExists(FileName));
+      finally
+        Previous.Free;
+        Current.Free;
+      end;
+    end;
+  finally
+    DeleteFile(ProjectDir + DirectorySeparator + 'clifp.json');
+    DeleteFile(ProjectDir + DirectorySeparator + 'README.md');
+    DeleteFile(ProjectDir + DirectorySeparator + '.git' + DirectorySeparator + 'config');
+    DeleteFile(ProjectDir + DirectorySeparator + 'src' + DirectorySeparator + 'UserOwned.pas');
+    RemoveDir(ProjectDir + DirectorySeparator + '.git');
+    RemoveDir(ProjectDir + DirectorySeparator + 'src');
+    RemoveDir(ProjectDir);
+  end;
+end;
+
+procedure TCodegenTests.TestManifestCleansStaleGeneratedFile;
+var
+  ProjectDir, GeneratedDir, StaleFile: string;
+  Previous, Current, Lines: TStringList;
+  Options: TWriteOptions;
+begin
+  ProjectDir := GetTempFileName(GetTempDir(False), 'mft');
+  DeleteFile(ProjectDir);
+  GeneratedDir := ProjectDir + DirectorySeparator + 'src' +
+    DirectorySeparator + 'generated';
+  ForceDirectories(GeneratedDir);
+  StaleFile := GeneratedDir + DirectorySeparator + 'Stale.pas';
+  Lines := TStringList.Create;
+  try
+    Lines.Text := 'unit Stale; interface implementation end.';
+    Lines.SaveToFile(StaleFile);
+  finally
+    Lines.Free;
+  end;
+  Previous := TStringList.Create;
+  Current := TStringList.Create;
+  Options.DryRun := False;
+  Options.Force := False;
+  try
+    Previous.Add('src/generated/Stale.pas');
+    CleanupStaleGeneratedFiles(ProjectDir, Previous, Current, Options);
+    AssertFalse('A stale generated file should be removed', FileExists(StaleFile));
+  finally
+    Previous.Free;
+    Current.Free;
     RemoveDir(GeneratedDir);
     RemoveDir(ExtractFileDir(GeneratedDir));
     RemoveDir(ProjectDir);
