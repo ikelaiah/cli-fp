@@ -96,6 +96,7 @@ type
 
     // 10.x - v1.5.1 Correctness and Completion Patch
     procedure Test_10_1_DirectParameterLookupIsCaseInsensitive;
+    procedure Test_10_2_CompletionOmitsEmptyParameterFlags;
   end;
 
 implementation
@@ -1672,6 +1673,40 @@ begin
   finally
     Parsed.Free;
     Cmd.Free;
+  end;
+end;
+
+procedure TCLIFrameworkTests.Test_10_2_CompletionOmitsEmptyParameterFlags;
+var
+  App: TCLIApplication;
+  Cmd: TTestCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.1');
+  Cmd := TTestCommand.Create('test', 'Test command');
+  try
+    Cmd.AddStringParameter('-n', '', 'Short-only parameter');
+    Cmd.AddStringParameter('', '--name', 'Long-only parameter');
+    Cmd.AddStringParameter('-b', '--both', 'Parameter with both flags');
+    App.RegisterCommand(Cmd);
+
+    Candidates := App.TestComplete(MakeArgs(['test', '']));
+    try
+      AssertEquals('Completion should not emit an empty flag candidate', -1,
+        Candidates.IndexOf(''));
+      AssertTrue('Short-only parameters should be completed',
+        Candidates.IndexOf('-n') >= 0);
+      AssertTrue('Long-only parameters should be completed',
+        Candidates.IndexOf('--name') >= 0);
+      AssertTrue('Both parameter flags should be completed',
+        Candidates.IndexOf('-b') >= 0);
+      AssertTrue('Both parameter long flags should be completed',
+        Candidates.IndexOf('--both') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
   end;
 end;
 

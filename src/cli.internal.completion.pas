@@ -110,7 +110,8 @@ var
 begin
   for Param in Command.Parameters do
   begin
-    if StartsStr(LowerCase(Prefix), LowerCase(Param.LongFlag)) then
+    if (Param.LongFlag <> '') and
+      StartsStr(LowerCase(Prefix), LowerCase(Param.LongFlag)) then
       Suggestions.Add(Param.LongFlag);
     if (Param.ShortFlag <> '') and
       StartsStr(LowerCase(Prefix), LowerCase(Param.ShortFlag)) then
@@ -238,7 +239,8 @@ begin
     Suggestions.Add(SubCommand.Name);
   for Param in Command.Parameters do
   begin
-    Suggestions.Add(Param.LongFlag);
+    if Param.LongFlag <> '' then
+      Suggestions.Add(Param.LongFlag);
     if Param.ShortFlag <> '' then
       Suggestions.Add(Param.ShortFlag);
   end;
