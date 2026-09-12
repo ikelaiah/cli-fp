@@ -13,7 +13,7 @@ unit CLI.Progress;
 interface
 
 uses
-  Classes, SysUtils, CLI.Interfaces, CLI.Console;
+  Classes, SysUtils, CLI.Interfaces, CLI.Console, CLI.Internal.Text;
 
 const
   MaxProgressBarWidth = 200;
@@ -147,11 +147,13 @@ end;
 
 procedure TProgressIndicator.RenderText(const Text: string);
 var
+  SanitizedText: string;
   CurrentLength: Integer;
 begin
-  CurrentLength := Length(Text);
+  SanitizedText := SanitizeTerminalText(Text);
+  CurrentLength := Length(SanitizedText);
   Write(#13);
-  Write(Text);
+  Write(SanitizedText);
   if CurrentLength < FLastRenderLength then
     Write(StringOfChar(' ', FLastRenderLength - CurrentLength));
   FLastRenderLength := CurrentLength;
