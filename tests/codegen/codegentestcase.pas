@@ -412,10 +412,13 @@ begin
 end;
 
 procedure TCodegenTests.TestManifestRejectsNonStringGeneratedFile;
+const
+  InvalidValues: array[0..4] of string = ('42', 'true', 'null', '{}', '[]');
 var
   ProjectDir, GeneratedDir, ManifestFile: string;
   Lines, Manifest: TStringList;
   RaisedExpectedError: Boolean;
+  i: Integer;
 begin
   ProjectDir := GetTempFileName(GetTempDir(False), 'mft');
   DeleteFile(ProjectDir);
@@ -423,30 +426,37 @@ begin
     DirectorySeparator + 'generated';
   ForceDirectories(GeneratedDir);
   ManifestFile := GeneratedDir + DirectorySeparator + '.clifp-manifest.json';
-  Lines := TStringList.Create;
   try
-    Lines.Text := '{"generatedFiles":["src/generated/Registry.pas",42]}';
-    Lines.SaveToFile(ManifestFile);
-  finally
-    Lines.Free;
-  end;
+    for i := Low(InvalidValues) to High(InvalidValues) do
+    begin
+      Lines := TStringList.Create;
+      try
+        Lines.Text := '{"generatedFiles":["src/generated/Registry.pas",' +
+          InvalidValues[i] + ']}';
+        Lines.SaveToFile(ManifestFile);
+      finally
+        Lines.Free;
+      end;
 
-  Manifest := nil;
-  RaisedExpectedError := False;
-  try
-    try
-      Manifest := LoadGeneratedManifest(ProjectDir);
-    except
-      on E: Exception do
-      begin
-        RaisedExpectedError := True;
-        AssertTrue('Non-string manifest item should identify its location',
-          Pos('generatedfiles[1] must be a string', LowerCase(E.Message)) > 0);
+      Manifest := nil;
+      RaisedExpectedError := False;
+      try
+        try
+          Manifest := LoadGeneratedManifest(ProjectDir);
+        except
+          on E: Exception do
+          begin
+            RaisedExpectedError := True;
+            AssertTrue('Non-string manifest item should identify its location',
+              Pos('generatedfiles[1] must be a string', LowerCase(E.Message)) > 0);
+          end;
+        end;
+        AssertTrue('Non-string manifest item must be rejected', RaisedExpectedError);
+      finally
+        Manifest.Free;
       end;
     end;
-    AssertTrue('Non-string manifest item must be rejected', RaisedExpectedError);
   finally
-    Manifest.Free;
     DeleteFile(ManifestFile);
     RemoveDir(GeneratedDir);
     RemoveDir(ExtractFileDir(GeneratedDir));
