@@ -186,6 +186,18 @@ consistent and predictable.
 **Maintenance outcome:** progress output and example documentation remain safe,
 portable, and truthful without changing the v1.x command model or public API.
 
+## v1.5.3 — Generator Safety & Contract Corrections (completed 2026-09-12)
+
+- Constrain stale generator cleanup to provably generator-owned outputs and
+  reject malformed manifest entries without weakening escape or link guards.
+- Make collision-prone generated command names compile, serialize project
+  paths portably, and include all runtime dependencies in the Lazarus package.
+- Align enum completion with validation and correct Boolean/exception contract
+  documentation without changing normal v1.x parser behavior.
+
+**Maintenance outcome:** generated projects remain safe to regenerate across
+platforms while normal 1.x runtime APIs and parser grammar remain stable.
+
 ## v1.6.0 — Finish the Application Core Boundaries
 
 - Continue internal architecture cleanup without changing the public facade.

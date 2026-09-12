@@ -68,8 +68,12 @@ explicit error; they are never silently treated as empty configuration.
 
 Command descriptions are escaped as Pascal string expressions during
 generation, so apostrophes and control characters cannot produce invalid
-source. Generated files remain constrained to the project-owned paths listed
-by the manifest.
+source. The manifest is not proof that a path is generator-owned. Stale cleanup
+only removes artifacts under src/generated/ or a marker-bearing generated .lpr
+program under src/; it refuses clifp.json, command stubs, README files, .git
+content, arbitrary source, malformed manifest entries, path escapes, and
+symbolic-link/reparse traversal. New specs and manifests serialize
+project-relative paths with /; existing specs using backslashes remain readable.
 
 ## Project specification
 
