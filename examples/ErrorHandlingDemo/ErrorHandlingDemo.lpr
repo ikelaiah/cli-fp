@@ -13,11 +13,9 @@
 
   $ ErrorHandlingDemo.exe validate --path . --stop-on-error
 
-  The demonstration intentionally randomizes validation results for ten
-  simulated files. The failing file and exact output vary between runs.
-  With --stop-on-error, processing stops at the first failure; without it,
-  every simulated file is processed and the command returns a non-zero exit
-  code if one or more validations fail.
+  The fifth of ten simulated files deterministically fails validation. With
+  --stop-on-error, processing stops at that failure; without it, every file is
+  processed and the command returns a non-zero exit code after its summary.
 }
 program ErrorHandlingDemo;
 
@@ -34,8 +32,6 @@ uses
   CLI.Interfaces,    // Core interfaces
   CLI.Application,   // Application creation
   CLI.Command,       // Command base class
-  CLI.Parameter,     // Parameter handling
-  CLI.Progress,      // Progress indicators
   CLI.Console;       // Colored output
 
 type
@@ -58,115 +54,66 @@ type
 function TValidateCommand.Execute: Integer;
 var
   Path: string;           // Path parameter from command line
-  StopOnErrorStr: string; // Raw string value of stop-on-error flag
-  StopOnError: Boolean;   // Parsed boolean value of stop-on-error flag
-  Files: TStringList;     // List to hold files to validate
-  ErrorCount: Integer;    // Tracks number of validation failures
-  i: Integer;            // Loop counter
+  StopOnErrorStr: string;
+  StopOnError: Boolean;
+  Files: TStringList;
+  ErrorCount: Integer;
+  i: Integer;
 begin
   Result := 0;
   ErrorCount := 0;
 
-  // Get the required path parameter
-  // GetParameterValue is a helper method from TBaseCommand
   if not GetParameterValue('--path', Path) then
   begin
     TConsole.WriteLn('Error: Path is required', ccRed);
     Exit(1);
   end;
 
-  // Get stop-on-error flag and convert to boolean
-  // This demonstrates handling optional boolean parameters
-  StopOnError := False; // Default value
-  if GetParameterValue('--stop-on-error', StopOnErrorStr) then
-    StopOnError := StrToBoolDef(StopOnErrorStr, False);
+  // AddFlag supplies "false" when the flag is absent.
+  GetParameterValue('--stop-on-error', StopOnErrorStr);
+  StopOnError := SameText(StopOnErrorStr, 'true');
 
-  // Create file list and use try-finally for cleanup
   Files := TStringList.Create;
   try
-    try
-      // In a real app, you would scan the directory here
-      // This is just a simulation with hardcoded files
-      for i := 1 to 10 do
-        Files.Add(IncludeTrailingPathDelimiter(Path) +
-          Format('file%d.txt', [i]));
+    // In an application this list could come from a directory scan. The fixed
+    // sample set makes the error-handling output repeatable for learners.
+    for i := 1 to 10 do
+      Files.Add(IncludeTrailingPathDelimiter(Path) +
+        Format('file%d.txt', [i]));
 
-      // Process each file with error handling
-      for i := 0 to Files.Count - 1 do
-      begin
-        // Show current file being processed
-        TConsole.Write('Validating ' + Files[i] + '... ', ccCyan);
-
-        try
-          // Attempt to validate the file
-          if ValidateFile(Files[i]) then
-            TConsole.WriteLn('OK', ccGreen)
-          else
-          begin
-            // Handle validation failure
-            TConsole.WriteLn('FAILED', ccRed);
-            Inc(ErrorCount);
-
-            // Check if we should stop on first error
-            if StopOnError then
-            begin
-              TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
-              Exit(1);
-            end;
-          end;
-        except
-          // Handle any unexpected exceptions during validation
-          on E: Exception do
-          begin
-            TConsole.WriteLn('ERROR: ' + E.Message, ccRed);
-            Inc(ErrorCount);
-
-            if StopOnError then
-            begin
-              TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
-              Exit(1);
-            end;
-          end;
-        end;
-      end;
-
-      // Show final summary with color-coded output
-      if ErrorCount > 0 then
-      begin
-        TConsole.WriteLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow);
-        Result := 1;
-      end
+    for i := 0 to Files.Count - 1 do
+    begin
+      TConsole.Write('Validating ' + Files[i] + '... ', ccCyan);
+      if ValidateFile(Files[i]) then
+        TConsole.WriteLn('OK', ccGreen)
       else
-        TConsole.WriteLn('All files validated successfully', ccGreen);
-
-    except
-      // Handle any unexpected errors in the main process
-      on E: Exception do
       begin
-        TConsole.WriteLn('Fatal error: ' + E.Message, ccRed);
-        Result := 1;
-      end;
+        TConsole.WriteLn('FAILED', ccRed);
+        Inc(ErrorCount);
+        if StopOnError then
+        begin
+          TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
+          Exit(1);
+        end;
+      end
     end;
+
+    if ErrorCount > 0 then
+    begin
+      TConsole.WriteLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow);
+      Result := 1;
+    end
+    else
+      TConsole.WriteLn('All files validated successfully', ccGreen);
   finally
-    // Always clean up resources
     Files.Free;
   end;
 end;
 
 function TValidateCommand.ValidateFile(const Path: string): Boolean;
 begin
-  // Demo: Simulate validation with random failures
-  // In a real application, you would:
-  // 1. Check if file exists
-  // 2. Verify read permissions
-  // 3. Validate file contents
-  // 4. etc.
-  
-  Sleep(100);  // Simulate some work
-  Result := Random(10) > 4;  // 50% chance of failure
-  
-  if not Result then
-    raise Exception.CreateFmt('Demo validation failed for: %s', [Path]);
+  Sleep(50); // Simulate validation work without making the example flaky.
+  Result := not SameText(ExtractFileName(Path), 'file5.txt');
 end;
 
 // Main program setup
@@ -195,7 +142,7 @@ begin
     'Stop processing on first error' // Description
   );
 
-  // Register command and run the application
+  // Return the framework's execution result to the operating system.
   App.RegisterCommand(Cmd);
-  ExitCode := App.Execute;
+  Halt(App.Execute);
 end.
