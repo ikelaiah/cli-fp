@@ -43,6 +43,27 @@ begin
     not (Flag[2] in ['=']);
 end;
 
+function IsAllowedEnumValue(const Value, AllowedValues: string): Boolean;
+var
+  Values: TStringList;
+  i: Integer;
+begin
+  Values := TStringList.Create;
+  try
+    // Keep parsing and comparison consistent with CLI.Internal.ParameterValues
+    // and TCLIApplication.ValidateParameterValue in the runtime.
+    Values.Delimiter := '|';
+    Values.StrictDelimiter := True;
+    Values.DelimitedText := AllowedValues;
+    Result := False;
+    for i := 0 to Values.Count - 1 do
+      if SameText(Value, Values[i]) then
+        Exit(True);
+  finally
+    Values.Free;
+  end;
+end;
+
 function IsAbsoluteLikePath(const S: string): Boolean;
 begin
   Result := (ExtractFileDrive(S) <> '') or
@@ -102,11 +123,18 @@ begin
           Param.DefaultValue := 'false';
       end;
 
-      if (Param.Kind = pkEnum) and
-        (Trim(Param.AllowedValues) = '') then
-        raise Exception.CreateFmt(
-          '%s: enum parameter "%s" requires allowedValues',
-          [CommandLabel, Param.LongFlag]);
+      if Param.Kind = pkEnum then
+      begin
+        if Trim(Param.AllowedValues) = '' then
+          raise Exception.CreateFmt(
+            '%s: enum parameter "%s" requires allowedValues',
+            [CommandLabel, Param.LongFlag]);
+        if (Param.DefaultValue <> '') and
+          not IsAllowedEnumValue(Param.DefaultValue, Param.AllowedValues) then
+          raise Exception.CreateFmt(
+            '%s: enum default "%s" is not one of allowedValues (%s)',
+            [CommandLabel, Param.DefaultValue, Param.AllowedValues]);
+      end;
 
       if Trim(Param.LongFlag) <> '' then
       begin

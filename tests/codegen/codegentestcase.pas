@@ -37,6 +37,10 @@ type
     procedure TestParameterWithoutFlagsIsRejected;
     procedure TestMalformedFlagsAreRejected;
     procedure TestDuplicateParameterFlagsAreRejected;
+    procedure TestEnumDefaultMatchesAllowedValuesCaseInsensitively;
+    procedure TestEnumDefaultOutsideAllowedValuesIsRejected;
+    procedure TestEnumWithoutAllowedValuesIsRejected;
+    procedure TestEnumWithoutDefaultIsAccepted;
     procedure TestMalformedJsonFailsClearly;
     procedure TestMalformedManifestFailsClearly;
     procedure TestManifestRejectsNonStringGeneratedFile;
@@ -464,6 +468,91 @@ begin
     Param.Description := 'Quiet output';
     Cmd.Parameters.Add(Param);
     AssertValidationFails(Spec, 'duplicate parameter flag');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumDefaultMatchesAllowedValuesCaseInsensitively;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Param.AllowedValues := '"normal mode"|fast mode';
+    Param.DefaultValue := 'NORMAL MODE';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumDefaultOutsideAllowedValuesIsRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Param.AllowedValues := 'debug|info';
+    Param.DefaultValue := 'warn';
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'enum default "warn" is not one of allowedValues');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumWithoutAllowedValuesIsRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'requires allowedValues');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumWithoutDefaultIsAccepted;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Param.AllowedValues := 'debug|info';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
   finally
     Spec.Free;
   end;
