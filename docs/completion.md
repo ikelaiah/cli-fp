@@ -6,6 +6,9 @@
 `cli-fp` can generate completion scripts from your registered command tree.
 Built-in completion supplies commands, subcommands, options, Boolean values,
 and enum values; it does not currently support dynamic application callbacks.
+The generated shell function calls the application's internal `__complete`
+entrypoint, so candidates always reflect the command tree in the executable
+that generated the script.
 
 ## Bash
 
@@ -26,16 +29,18 @@ the script path is stable.
 ```
 
 The scripts register completion for the executable name and common relative
-invocation forms. Generated executable values are quoted so names and paths
-containing spaces or shell-sensitive characters remain usable. PowerShell
-cycles candidates with Tab; Bash normally lists matches according to its
-configured completion behavior.
+invocation forms. Generated executable names, paths, and metadata are quoted
+for their target shell, including values containing spaces or shell-sensitive
+characters. PowerShell cycles candidates with Tab; Bash normally lists matches
+according to its configured completion behavior. Build and try
+[SimpleDemo](examples.md#choose-by-goal) for a runnable command/subcommand
+completion example.
 
 ## Boundaries
 
-Completion-script requests are handled when they are the first argument.
-`--help` works at application and selected-command scope; `--version` is an
-application-level request when used alone. For detailed shell-specific
-troubleshooting and historical verification records, see the archived
-[Bash guide](https://github.com/ikelaiah/cli-fp/blob/main/docs/completion-testing/BASH_COMPLETION_GUIDE.md)
-and [PowerShell guide](https://github.com/ikelaiah/cli-fp/blob/main/docs/completion-testing/PS_COMPLETION_GUIDE.md).
+Completion-script requests are handled only when they are the first argument.
+The first non-option token selects a named command; later non-option tokens
+can select its subcommands. `--help` works at application and selected-command
+scope, while `--version` is an application-level request when used alone.
+Historical completion qualification material is retained in the
+[archive](archive/completion-testing/README.md), not in the user guide.

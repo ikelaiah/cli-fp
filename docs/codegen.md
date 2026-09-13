@@ -33,6 +33,37 @@ fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Mya
 Adjust the first `-Fu` path when the generated project is not two directories
 below the `cli-fp` repository.
 
+## A minimal root-command project
+
+`clifp.json` is the source of truth. This is a complete small project with a
+default action and one option; generate it with `cli-fp-gen generate`.
+
+```json
+{
+  "schemaVersion": 1,
+  "app": {
+    "name": "hello",
+    "version": "1.0.0",
+    "programFile": "src/Hello.lpr"
+  },
+  "rootCommand": {
+    "description": "Print a greeting",
+    "parameters": [
+      {
+        "kind": "string",
+        "short": "-n",
+        "long": "--name",
+        "description": "Name to greet",
+        "required": false,
+        "default": "World",
+        "allowedValues": ""
+      }
+    ]
+  },
+  "commands": []
+}
+```
+
 ## Everyday commands
 
 ```text
@@ -82,9 +113,29 @@ path such as `repo/remote` in `parent` to make a nested command. A
 `rootCommand` object is optional and creates the default action for
 `myapp [options]`.
 
+### Fields
+
+| Location | Field | Meaning |
+| --- | --- | --- |
+| root | `schemaVersion` | Required schema version; current generator supports `1`. |
+| `app` | `name`, `version` | Application name and display version. `version` defaults to `0.1.0` when omitted. |
+| `app` | `programFile` | Required project-relative `.lpr` path under `src/`; use `/` in new specs. |
+| `rootCommand` | `description`, `parameters` | Optional default action for `myapp [options]`. |
+| `commands[]` | `name`, `parent`, `description`, `parameters` | Named commands. `parent` is empty for a top-level command or a slash path such as `repo`. |
+| `parameters[]` | `kind`, `short`, `long`, `description`, `required`, `default`, `allowedValues` | An option definition. At least one of `short` or `long` is required; flags are case-insensitive and unique within a command. |
+
+Use `short` such as `-v`, `long` such as `--verbose`, or both. Long flags must
+start with `--`; short flags are exactly one printable character after `-`.
+Supported `kind` values are `string`, `integer`, `float`, `flag`, `boolean`,
+`path`, `enum`, `datetime`, `array`, `password`, and `url`.
+
+`default` is optional. For `enum`, `allowedValues` is a required `|`-separated
+list and a non-empty default must match one listed value case-insensitively,
+using the same quoting and comparison behavior as the runtime. For example,
+`"normal mode"|fast mode` accepts `NORMAL MODE` as a default.
+
 Supported parameter kinds are `string`, `integer`, `float`, `flag`, `boolean`,
-`path`, `enum`, `datetime`, `array`, `password`, and `url`. An enum needs
-`allowedValues`.
+`path`, `enum`, `datetime`, `array`, `password`, and `url`.
 
 ## Safe regeneration
 
@@ -93,6 +144,18 @@ Supported parameter kinds are `string`, `integer`, `float`, `flag`, `boolean`,
 is constrained to the project directory and refuses cleanup through symbolic
 links or Windows reparse points; `--force` does not bypass that path-safety
 check.
+
+`--force` changes only overwrite policy: it permits replacing an existing
+`clifp.json` during `init` and user-owned command stubs during generation. It
+does not relax validation or filesystem-safety checks. `--dry-run` prints every
+directory, create, overwrite, skip, and deletion it would perform without
+writing the spec or any generated file.
+
+`remove command repo` removes that command from `clifp.json`; it refuses to
+remove a parent with children unless `--cascade` is also supplied. Regenerate
+after manual specification edits. Removing a command does not delete its
+user-owned stub automatically: it may contain work you want to keep, and a
+later regeneration creates a new stub only when the command is present again.
 
 For the internal unit map, extension checklist, and generator test details,
 read [Generator maintenance](technical-docs.md#generator-maintenance).
