@@ -85,7 +85,7 @@ begin
       if (Trim(Param.ShortFlag) = '') and (Trim(Param.LongFlag) = '') then
         raise Exception.CreateFmt('%s: parameter %d must define a short or long flag',
           [CommandLabel, j]);
-      if not IsValidLongFlag(Param.LongFlag) then
+      if (Trim(Param.LongFlag) <> '') and not IsValidLongFlag(Param.LongFlag) then
         raise Exception.CreateFmt('%s: invalid long flag "%s"',
           [CommandLabel, Param.LongFlag]);
       if (Trim(Param.ShortFlag) <> '') and not IsValidShortFlag(Param.ShortFlag) then
@@ -108,10 +108,13 @@ begin
           '%s: enum parameter "%s" requires allowedValues',
           [CommandLabel, Param.LongFlag]);
 
-      if SeenFlags.IndexOf(AnsiLowerCase(Param.LongFlag)) >= 0 then
-        raise Exception.CreateFmt('%s: duplicate parameter flag "%s"',
-          [CommandLabel, Param.LongFlag]);
-      SeenFlags.Add(AnsiLowerCase(Param.LongFlag));
+      if Trim(Param.LongFlag) <> '' then
+      begin
+        if SeenFlags.IndexOf(AnsiLowerCase(Param.LongFlag)) >= 0 then
+          raise Exception.CreateFmt('%s: duplicate parameter flag "%s"',
+            [CommandLabel, Param.LongFlag]);
+        SeenFlags.Add(AnsiLowerCase(Param.LongFlag));
+      end;
 
       if Trim(Param.ShortFlag) <> '' then
       begin
