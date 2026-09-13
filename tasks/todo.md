@@ -35,9 +35,9 @@
 
 ## cli-fp v1.5.4
 
-- [ ] Establish and record a clean v1.5.3 baseline
-- [ ] Correct generator flag and enum-default validation with regressions
-- [ ] Repair and compile all canonical examples
-- [ ] Correct current documentation and archive historical material
-- [ ] Qualify Lazarus, repository hygiene, and full test matrix
+- [x] Establish and record a clean v1.5.3 baseline
+- [x] Correct generator flag and enum-default validation with regressions
+- [x] Repair and compile all canonical examples
+- [x] Correct current documentation and archive historical material
+- [x] Qualify Lazarus, repository hygiene, and full test matrix
 - [ ] Update release metadata, review, PR, CI, merge, tag, release, and Pages

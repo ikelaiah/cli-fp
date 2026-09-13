@@ -271,38 +271,49 @@ and qualify the Lazarus package from clean inputs before release.
 
 ### Phase 0: baseline
 
-- [ ] Record the v1.5.3 candidate SHA and run the Windows-equivalent framework,
+- [x] Record the v1.5.3 candidate SHA and run the Windows-equivalent framework,
   generator, example-cleanup, and Lazarus package qualifications.
 
 ### Phase 1: generator validation contracts
 
-- [ ] Add failing regressions for short-only, long-only, dual, missing,
+- [x] Add failing regressions for short-only, long-only, dual, missing,
   malformed, and duplicate flags.
-- [ ] Add failing enum default/allowed-value regressions using the actual
+- [x] Add failing enum default/allowed-value regressions using the actual
   runtime casing behaviour.
-- [ ] Apply the minimal validator corrections and run focused generator tests.
+- [x] Apply the minimal validator corrections and run focused generator tests.
 
 ### Phase 2: executable examples
 
-- [ ] Repair the confirmed ErrorHandlingDemo and LongRunningOpDemo teaching
+- [x] Repair the confirmed ErrorHandlingDemo and LongRunningOpDemo teaching
   defects and audit all eight canonical examples for concrete issues.
-- [ ] Compile all examples on the local Windows toolchain.
+- [x] Compile all examples on the local Windows toolchain.
 
 ### Phase 3: accurate current documentation and archive
 
-- [ ] Correct verified current-doc/API/codegen/completion inaccuracies.
-- [ ] Archive release notes, PR records, completion work logs, and historical
+- [x] Correct verified current-doc/API/codegen/completion inaccuracies.
+- [x] Archive release notes, PR records, completion work logs, and historical
   output with an archive index; update navigation and relative links.
-- [ ] Inspect tracked artifacts and simplify ignore rules only where justified.
+- [x] Inspect tracked artifacts and simplify ignore rules only where justified.
 
 ### Checkpoint: v1.5.4 qualification
 
-- [ ] Run framework, generator unit/golden/operations/compile-smoke, all
+- [x] Run framework, generator unit/golden/operations/compile-smoke, all
   examples, cleanup smoke, clean Lazarus package build, docs/link checks, and
   diff checks.
-- [ ] Update version metadata, changelog, roadmap, and release documentation.
+- [x] Update version metadata, changelog, roadmap, and current release
+  documentation.
 - [ ] Review, commit, push, open PR, observe Windows/Linux CI, merge, tag,
   publish, and verify Pages before starting v1.6.0.
+
+### Qualification record
+
+- v1.5.3 baseline: `216aefb` (`v1.5.3`); release candidate branch:
+  `release/v1.5.4`.
+- Windows/FPC 3.2.2: 63 framework tests; 28 generator unit tests plus golden,
+  lifecycle/operations, and compile-smoke; all eight examples; cleanup smoke;
+  normal and isolated `lazbuild --build-all packages/lazarus/cli_fp.lpk`.
+- Documentation local-link and diff checks pass. Generated compiler byproducts
+  are absent from the candidate and no build artifacts are tracked.
 
 ## Deferred by release boundary
 
