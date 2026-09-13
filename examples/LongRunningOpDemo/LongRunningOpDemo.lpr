@@ -5,7 +5,7 @@
   indicators for long-running operations. It showcases several key features of the CLI framework:
 
   1. Progress indicators (spinner and progress bar)
-  2. Command parameters (verbose flag)
+  2. Typed command parameters and framework defaults
   3. Colored console output
   4. Basic command structure
 
@@ -15,6 +15,8 @@
   $ LongRunningOpDemo.exe process --input .
   ```
   The --input path is required; this demonstration uses the current directory.
+  Add --output <directory> to see the simulated destination paths in verbose
+  output.
 
   Option 2 - Verbose mode shows detailed progress:
   ```
@@ -36,7 +38,6 @@ uses
   CLI.Interfaces,    // Core interfaces
   CLI.Application,   // Application creation
   CLI.Command,       // Command base class
-  CLI.Parameter,     // Parameter handling
   CLI.Progress,      // Progress indicators
   CLI.Console;       // Colored output
 
@@ -44,8 +45,9 @@ type
   { Define a command that processes files with progress indication }
   TProcessCommand = class(TBaseCommand)
   private
-    { Simulates processing a single file }
-    procedure ProcessFile(const FileName: string);
+    { Simulates processing a source file into the selected output directory. }
+    procedure ProcessFile(const FileName, OutputDir: string;
+      const Verbose: Boolean);
   public
     { Main execution method for the command }
     function Execute: integer; override;
@@ -57,24 +59,20 @@ type
     Progress: IProgressIndicator;
     Spinner: IProgressIndicator;
     i: integer;
-    VerboseStr, CountStr, LogLevelStr, TagsStr, StartAfterStr, ApiKeyStr: string;
+    VerboseStr, CountStr, LogLevelStr, TagsStr, ApiKeyStr: string;
     InputDir, OutputDir: string;
     FileCount: Integer;
     Verbose: boolean;
     Tags: TStringList;
-    StartAfterDate: TDateTime;
   begin
     Files := TStringList.Create;
     Tags := TStringList.Create;
     try
-      // Get basic parameters
-      Verbose := False;
-      if GetParameterValue('--verbose', VerboseStr) then
-        Verbose := StrToBoolDef(VerboseStr, False);
-
-      FileCount := 5;  // Default value
-      if GetParameterValue('--count', CountStr) then
-        FileCount := StrToIntDef(CountStr, 5);
+      // The framework supplies these declared defaults when the options are absent.
+      GetParameterValue('--verbose', VerboseStr);
+      Verbose := SameText(VerboseStr, 'true');
+      GetParameterValue('--count', CountStr);
+      FileCount := StrToInt(CountStr);
 
       // Get path parameters
       if not GetParameterValue('--input', InputDir) then
@@ -86,26 +84,14 @@ type
       if not GetParameterValue('--output', OutputDir) then
         OutputDir := InputDir;  // Default to input directory
 
-      // Get advanced parameters
-      GetParameterValue('--log-level', LogLevelStr);  // Will use default from parameter
+      // --log-level supplies its declared "info" default when it is absent.
+      GetParameterValue('--log-level', LogLevelStr);
       
       if GetParameterValue('--tags', TagsStr) then
       begin
         Tags.Delimiter := ',';
+        Tags.StrictDelimiter := True;
         Tags.DelimitedText := TagsStr;
-      end;
-
-      if GetParameterValue('--start-after', StartAfterStr) then
-      begin
-        try
-          StartAfterDate := StrToDateTime(StartAfterStr);
-        except
-          on E: Exception do
-          begin
-            TConsole.WriteLn('Error: Invalid date/time format. Use YYYY-MM-DD HH:MM', ccRed);
-            Exit(1);
-          end;
-        end;
       end;
 
       // API key is sensitive - don't log it
@@ -118,8 +104,6 @@ type
       TConsole.WriteLn(Format('  Log Level: %s', [LogLevelStr]), ccCyan);
       if Tags.Count > 0 then
         TConsole.WriteLn(Format('  Tags: %s', [Tags.DelimitedText]), ccCyan);
-      if StartAfterStr <> '' then
-        TConsole.WriteLn(Format('  Processing files after: %s', [StartAfterStr]), ccCyan);
       if ApiKeyStr <> '' then
         TConsole.WriteLn('  API Key: ***', ccCyan);
 
@@ -146,15 +130,12 @@ type
       try
         for i := 0 to Files.Count - 1 do
         begin
-          if Verbose then
-            TConsole.WriteLn(Format(' Processing: %s', [Files[i]]), ccCyan);
-
-          ProcessFile(Files[i]);
+          ProcessFile(Files[i], OutputDir, Verbose);
           Progress.Update(i + 1);
           Sleep(500); // Simulate work
         end;
 
-        TConsole.WriteLn(' All files processed successfully!', ccGreen);
+        TConsole.WriteLn('All files processed successfully!', ccGreen);
         Result := 0;
       finally
         Progress.Stop;
@@ -165,9 +146,16 @@ type
     end;
   end;
 
-  procedure TProcessCommand.ProcessFile(const FileName: string);
+  procedure TProcessCommand.ProcessFile(const FileName, OutputDir: string;
+    const Verbose: Boolean);
+  var
+    OutputFileName: string;
   begin
-    // Simulate file processing
+    OutputFileName := IncludeTrailingPathDelimiter(OutputDir) +
+      ExtractFileName(FileName);
+    if Verbose then
+      TConsole.WriteLn(Format('Simulating %s -> %s',
+        [FileName, OutputFileName]), ccCyan);
     Sleep(100);
   end;
 
@@ -180,7 +168,7 @@ begin
   App := CreateCLIApplication('MyApp', '1.0.0');
 
   // Create and configure the process command
-  Cmd := TProcessCommand.Create('process', 'Process files');
+  Cmd := TProcessCommand.Create('process', 'Process simulated files');
   
   // Basic parameters
   Cmd.AddFlag('-v', '--verbose', 'Show detailed progress');
@@ -193,7 +181,6 @@ begin
   // Advanced parameter types
   Cmd.AddEnumParameter('-l', '--log-level', 'Logging verbosity level', 'debug|info|warn|error', False, 'info');
   Cmd.AddArrayParameter('-t', '--tags', 'Tags to apply to processed files');
-  Cmd.AddDateTimeParameter('-s', '--start-after', 'Only process files modified after this date/time');
   Cmd.AddPasswordParameter('-k', '--api-key', 'API key for external service');
 
   // Register command and run the application
