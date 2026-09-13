@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.4] - 2026-09-13
+
+### Fixed
+
+- Generator specifications now accept valid short-only parameters and reject
+  non-empty enum defaults that are not among `allowedValues`, using the same
+  case-insensitive comparison as the runtime.
+- ErrorHandlingDemo now demonstrates a deterministic validation failure with
+  one coherent return-value error-handling path.
+- LongRunningOpDemo now relies on declared framework defaults, uses its input
+  and output paths in the simulated operation, and removes an unused date
+  filter.
+
+### Changed
+
+- Corrected current generator, completion, API, example-binary, and project
+  guidance; historical release, PR, completion, and test-output records now
+  live under `docs/archive/` with working links and explicit historical labels.
+- Removed redundant example-specific ignore rules while retaining generic
+  compiler and Lazarus artifact protection.
+
 ## [1.5.3] - 2026-09-12
 
 ### Fixed
@@ -557,7 +578,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.4...HEAD
+[1.5.4]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...v1.5.1
