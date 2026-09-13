@@ -7,7 +7,7 @@
 [![Lazarus](https://img.shields.io/badge/Lazarus-package-60A5FA.svg)](https://github.com/ikelaiah/cli-fp/blob/main/packages/lazarus/cli_fp.lpk)
 ![Supports Windows](https://img.shields.io/badge/support-Windows-F59E0B?logo=Windows)
 ![Supports Linux](https://img.shields.io/badge/support-Linux-F59E0B?logo=Linux)
-[![Version](https://img.shields.io/badge/version-1.5.2-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.3-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
 [![Documentation](https://img.shields.io/badge/Docs-Website-brightgreen.svg)](https://ikelaiah.github.io/cli-fp/)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
 

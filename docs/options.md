@@ -61,9 +61,10 @@ setup with `App.RegisterCommand(Cmd)`, where `App` is the `ICLIApplication`
 variable created with `CreateCLIApplication` as shown in [How-To](how-to.md).
 
 `AddFlag` is a presence flag: it is `false` when omitted and becomes `true`
-when present. `AddBooleanParameter` expects an explicit `true` or `false`
-value, such as `--color true`. Flag matching is case-insensitive, and when an
-option is supplied more than once, the last occurrence wins.
+when present. `AddBooleanParameter` accepts explicit `true` or `false` values,
+such as `--color true`; for existing 1.x compatibility, bare presence also
+normalizes to `true`. Flag matching is case-insensitive, and when an option is
+supplied more than once, the last occurrence wins.
 
 ## Use a validated value
 

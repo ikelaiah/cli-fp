@@ -195,7 +195,7 @@ end;
 // must be referenced by the exact same casing in build scripts.
 function MakeProgramFileRelPath(const AppName: string): string;
 begin
-  Result := 'src' + PathDelim + MakeProgramIdentifier(AppName) + '.lpr';
+  Result := 'src/' + MakeProgramIdentifier(AppName) + '.lpr';
 end;
 
 function MakeRegistryUnitName(const AppName: string): string;
@@ -216,6 +216,10 @@ end;
 function MakeCommandClassName(const CommandPath: string): string;
 begin
   Result := 'T' + PathToPascal(CommandPath) + 'Command';
+  // Keep normal output stable, but avoid the two exact names emitted by the
+  // root stub and framework ancestor when users choose those CLI tokens.
+  if SameText(Result, 'TRootCommand') or SameText(Result, 'TBaseCommand') then
+    Result := 'TGenerated' + Copy(Result, 2, Length(Result));
 end;
 
 function MakeCommandVarName(const CommandPath: string): string;

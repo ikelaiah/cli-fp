@@ -983,12 +983,8 @@ begin
         if Param.AllowedValues = '' then
           Exit;
           
-        AllowedValues := TStringList.Create;
+        AllowedValues := SplitAllowedValues(Param.AllowedValues);
         try
-          AllowedValues.Delimiter := '|';
-          AllowedValues.StrictDelimiter := True;
-          AllowedValues.DelimitedText := Param.AllowedValues;
-          
           Result := False;
           for i := 0 to AllowedValues.Count - 1 do
             if SameText(Value, AllowedValues[i]) then

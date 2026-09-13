@@ -24,7 +24,8 @@ uses
 
 function PathCombine(const BaseDir, RelPath: string): string;
 begin
-  Result := ExpandFileName(IncludeTrailingPathDelimiter(BaseDir) + RelPath);
+  Result := ExpandFileName(IncludeTrailingPathDelimiter(BaseDir) +
+    StringReplace(NormalizePathSlashes(RelPath), '/', PathDelim, [rfReplaceAll]));
 end;
 
 function FindCommandByFullPath(const Spec: TProjectSpec; const FullPath: string): TCommandSpec;

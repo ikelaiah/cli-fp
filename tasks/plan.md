@@ -164,3 +164,83 @@ new dependencies remain out of scope.
 | Removing command-level version suggestions changes completion output | Keep application-level handling unchanged and add explicit root/named tests. |
 | A one-flag parameter regresses completion | Test short-only, long-only, and two-flag definitions through the real engine. |
 | Current-version edits rewrite history | Limit edits to active metadata/current docs and preserve v1.5.0 release sources. |
+
+---
+
+# Implementation Plan: cli-fp v1.5.3 Generator Safety & Contract Corrections
+
+## Overview
+
+Deliver a conservative patch release from the immutable v1.5.2 baseline. The
+release prevents a manifest from claiming arbitrary user files, fixes proven
+generator contracts, preserves normal 1.x runtime behavior, and records only
+the directly related documentation and version metadata.
+
+## Architecture decisions
+
+- A stale manifest is input, not proof of file ownership. Cleanup accepts only
+  the generated program file under `src/` and generated artifacts under
+  `src/generated/`; command stubs remain user-owned.
+- Generator specs and manifests use `/` on disk while path conversion happens
+  at the filesystem boundary, retaining `\\` input compatibility.
+- Collision resolution will be deterministic and narrowly applied only where
+  an emitted class conflicts with a framework/generated identifier.
+- Enum parsing will have one shared internal implementation for validation and
+  completion; Boolean parser behavior will remain unchanged.
+
+## Task list
+
+### Phase 1: Safety boundary
+
+- [ ] Add failing manifest ownership, malformed JSON/type, stale-file, and
+  portable-path regressions using isolated temporary projects.
+- [ ] Implement ownership enforcement and resource-safe manifest loading.
+- [ ] Verify path-escape and link/reparse protections remain effective.
+
+### Checkpoint: generator safety
+
+- [ ] Focused generator tests pass and malicious manifests leave user files
+  untouched while legitimate stale generated output is removed.
+
+### Phase 2: Generator/package correctness
+
+- [ ] Reproduce generated `root`/`base` collisions with actual compile smoke
+  tests and apply the smallest collision-safe naming correction.
+- [ ] Canonicalize emitted program paths, retain legacy input compatibility,
+  and update Lazarus package unit metadata after clean-package verification.
+
+### Checkpoint: generator correctness
+
+- [ ] Generator unit, golden, operations/lifecycle, and compile-smoke tests
+  pass; generated collision projects compile.
+
+### Phase 3: Runtime-contract characterization and documentation
+
+- [ ] Add completion/validation enum consistency and Boolean behavior tests
+  without changing Boolean runtime semantics.
+- [ ] Correct current documentation for Boolean usage, actual exception
+  behavior, generator ownership, and portable paths.
+- [ ] Update only current v1.5.3 metadata, changelog, roadmap, and DocKit
+  registry; preserve historical release sources.
+
+### Checkpoint: qualification and review
+
+- [ ] Run framework, generator, examples, clean package, clean checkout,
+  documentation, and diff checks.
+- [ ] Perform code review, commit the qualified candidate, push the release
+  branch, create the PR, and observe Linux/Windows CI.
+
+### Phase 4: authorization-gated release
+
+- [ ] Stop after green PR CI for explicit merge authorization.
+- [ ] After authorization only: squash merge, annotate/push v1.5.3, publish,
+  verify tag CI/Pages/current and immutable docs, and clean state.
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Invalid stale manifest causes data loss | Refuse unowned entries before delete and test representative protected files. |
+| Naming correction churns normal output | Limit the change to reserved collisions and compile generated projects. |
+| Portable-path fix breaks existing specs | Normalize on load, serialize canonically, and test both separators. |
+| Package build masks missing units through source search paths | Inspect package graph and build from a clean isolated checkout. |

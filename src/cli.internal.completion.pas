@@ -134,10 +134,8 @@ begin
   end
   else if Param.ParamType = ptEnum then
   begin
-    Values := TStringList.Create;
+    Values := SplitAllowedValues(Param.AllowedValues);
     try
-      Values.Delimiter := '|';
-      Values.DelimitedText := Param.AllowedValues;
       for i := 0 to Values.Count - 1 do
         Suggestions.Add(Values[i]);
     finally
