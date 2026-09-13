@@ -244,3 +244,76 @@ the directly related documentation and version metadata.
 | Naming correction churns normal output | Limit the change to reserved collisions and compile generated projects. |
 | Portable-path fix breaks existing specs | Normalize on load, serialize canonically, and test both separators. |
 | Package build masks missing units through source search paths | Inspect package graph and build from a clean isolated checkout. |
+
+---
+
+# Implementation Plan: cli-fp v1.5.4 Validation, Examples & Documentation Accuracy
+
+## Overview
+
+Deliver a narrow patch from the released `v1.5.3` baseline. Verify the two
+reported generator contracts against the runtime, repair only proven example
+and documentation defects, archive historical material without losing links,
+and qualify the Lazarus package from clean inputs before release.
+
+## Architecture decisions
+
+- Generator enum/default validation will use the runtime's existing
+  case-comparison semantics; no second enum policy will be introduced.
+- A parameter may have either a valid short or valid long flag, matching the
+  public runtime API.
+- The automatically generated Lazarus package unit remains unchanged unless a
+  clean package build proves its metadata is defective.
+- Historical material will move under `docs/archive/`, with current guides
+  retaining canonical navigation and corrected relative links.
+
+## Task list
+
+### Phase 0: baseline
+
+- [ ] Record the v1.5.3 candidate SHA and run the Windows-equivalent framework,
+  generator, example-cleanup, and Lazarus package qualifications.
+
+### Phase 1: generator validation contracts
+
+- [ ] Add failing regressions for short-only, long-only, dual, missing,
+  malformed, and duplicate flags.
+- [ ] Add failing enum default/allowed-value regressions using the actual
+  runtime casing behaviour.
+- [ ] Apply the minimal validator corrections and run focused generator tests.
+
+### Phase 2: executable examples
+
+- [ ] Repair the confirmed ErrorHandlingDemo and LongRunningOpDemo teaching
+  defects and audit all eight canonical examples for concrete issues.
+- [ ] Compile all examples on the local Windows toolchain.
+
+### Phase 3: accurate current documentation and archive
+
+- [ ] Correct verified current-doc/API/codegen/completion inaccuracies.
+- [ ] Archive release notes, PR records, completion work logs, and historical
+  output with an archive index; update navigation and relative links.
+- [ ] Inspect tracked artifacts and simplify ignore rules only where justified.
+
+### Checkpoint: v1.5.4 qualification
+
+- [ ] Run framework, generator unit/golden/operations/compile-smoke, all
+  examples, cleanup smoke, clean Lazarus package build, docs/link checks, and
+  diff checks.
+- [ ] Update version metadata, changelog, roadmap, and release documentation.
+- [ ] Review, commit, push, open PR, observe Windows/Linux CI, merge, tag,
+  publish, and verify Pages before starting v1.6.0.
+
+## Deferred by release boundary
+
+The completion-renderer extraction, test-suite restructuring, required
+completion CI, and architecture ADRs are v1.6.0 work and will not be mixed
+into this patch.
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Validator changes drift from runtime | Characterize runtime enum matching first, then test generator inputs. |
+| Historical moves break user links | Search inbound links and validate all relative links after each move. |
+| Local Lazarus cache masks package issues | Build from an isolated clean copy and output directory. |
