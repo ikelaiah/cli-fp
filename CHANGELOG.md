@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.4] - 2026-09-13
+
+### Fixed
+
+- Generator specifications now accept valid short-only parameters and reject
+  non-empty enum defaults that are not among `allowedValues`, using the same
+  case-insensitive comparison as the runtime.
+- ErrorHandlingDemo now demonstrates a deterministic validation failure with
+  one coherent return-value error-handling path.
+- LongRunningOpDemo now relies on declared framework defaults, uses its input
+  and output paths in the simulated operation, and removes an unused date
+  filter.
+
+### Changed
+
+- Corrected current generator, completion, API, example-binary, and project
+  guidance; historical release, PR, completion, and test-output records now
+  live under `docs/archive/` with working links and explicit historical labels.
+- Removed redundant example-specific ignore rules while retaining generic
+  compiler and Lazarus artifact protection.
+
 ## [1.5.3] - 2026-09-12
 
 ### Fixed
@@ -347,7 +368,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Completion directive system (`CD_ERROR`, `CD_NOSPACE`, `CD_NOFILE`, `CD_KEEPORDER`) for shell integration
 
 - **Comprehensive Documentation**
-  - Complete Bash completion documentation in `docs/completion-testing/`:
+  - Complete Bash completion documentation in
+    `docs/archive/completion-testing/`:
     - User guide with "commands first" design principle explained (BASH_COMPLETION_GUIDE.md)
     - 30 manual test cases with full verification results (BASH_COMPLETION_TESTS.md)
     - Test analysis and summary documents
@@ -386,7 +408,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `examples/MyApp/` (redundant with SimpleDemo)
   - Removed `examples/MyGit/` (redundant with SubCommandDemo)
 - Reorganized completion-related files for better maintainability:
-  - Moved all documentation to `docs/completion-testing/` (8 files)
+  - Moved all documentation to `docs/archive/completion-testing/` (8 files)
   - Moved all test scripts to `tests/completion-tests/` (15 files)
   - `example-bin/` now contains only executables and completion scripts
   - Added README.md files to each directory for navigation
@@ -409,14 +431,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tested on Bash 4.4.23 via Git Bash (Windows)
   - All root-level, command, subcommand, and flag completions verified
   - Multi-level command structures working correctly
-  - Full test documentation: `docs/completion-testing/BASH_COMPLETION_TESTS.md`
+  - Full test documentation:
+    `docs/archive/completion-testing/BASH_COMPLETION_TESTS.md`
 
 - **PowerShell Completion: 30/30 tests pass (100%)** ✅
   - Tested on PowerShell 7.5.4 (Windows)
   - All completion features working as designed
   - Initial 26/30 "failures" analyzed and confirmed as expected behavior
-  - Full test documentation: `docs/completion-testing/PS_COMPLETION_TESTS.md`
-  - Technical analysis: `docs/completion-testing/PS_COMPLETION_SUMMARY.md`
+  - Full test documentation:
+    `docs/archive/completion-testing/PS_COMPLETION_TESTS.md`
+  - Technical analysis:
+    `docs/archive/completion-testing/PS_COMPLETION_SUMMARY.md`
 
 - **All built-in completion features thoroughly verified:**
   - Commands and subcommands
@@ -557,7 +582,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.4...HEAD
+[1.5.4]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/ikelaiah/cli-fp/compare/v1.5.0...v1.5.1

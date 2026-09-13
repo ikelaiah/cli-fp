@@ -31,7 +31,16 @@ type
     procedure TestNonObjectParameterReportsItsLocation;
     procedure TestMalformedParameterDoesNotLeakOwnedSpecs;
     procedure TestRootCommandSpecRoundTrips;
+    procedure TestShortOnlyParameterIsAccepted;
+    procedure TestLongOnlyParameterIsAccepted;
+    procedure TestShortAndLongParameterIsAccepted;
+    procedure TestParameterWithoutFlagsIsRejected;
     procedure TestMalformedFlagsAreRejected;
+    procedure TestDuplicateParameterFlagsAreRejected;
+    procedure TestEnumDefaultMatchesAllowedValuesCaseInsensitively;
+    procedure TestEnumDefaultOutsideAllowedValuesIsRejected;
+    procedure TestEnumWithoutAllowedValuesIsRejected;
+    procedure TestEnumWithoutDefaultIsAccepted;
     procedure TestMalformedJsonFailsClearly;
     procedure TestMalformedManifestFailsClearly;
     procedure TestManifestRejectsNonStringGeneratedFile;
@@ -333,6 +342,82 @@ begin
   end;
 end;
 
+procedure TCodegenTests.TestShortOnlyParameterIsAccepted;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.ShortFlag := '-v';
+    Param.Description := 'Verbose output';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestLongOnlyParameterIsAccepted;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--verbose';
+    Param.Description := 'Verbose output';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestShortAndLongParameterIsAccepted;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.ShortFlag := '-v';
+    Param.LongFlag := '--verbose';
+    Param.Description := 'Verbose output';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestParameterWithoutFlagsIsRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.Description := 'Missing flags';
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'must define a short or long flag');
+  finally
+    Spec.Free;
+  end;
+end;
+
 procedure TCodegenTests.TestMalformedFlagsAreRejected;
 var
   Spec: TProjectSpec;
@@ -358,6 +443,116 @@ begin
     Param.Description := 'Name';
     Cmd.Parameters.Add(Param);
     AssertValidationFails(Spec, 'invalid long flag');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestDuplicateParameterFlagsAreRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.ShortFlag := '-v';
+    Param.LongFlag := '--verbose';
+    Param.Description := 'Verbose output';
+    Cmd.Parameters.Add(Param);
+    Param := TParameterSpec.Create;
+    Param.ShortFlag := '-q';
+    Param.LongFlag := '--verbose';
+    Param.Description := 'Quiet output';
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'duplicate parameter flag');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumDefaultMatchesAllowedValuesCaseInsensitively;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Param.AllowedValues := '"normal mode"|fast mode';
+    Param.DefaultValue := 'NORMAL MODE';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumDefaultOutsideAllowedValuesIsRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Param.AllowedValues := 'debug|info';
+    Param.DefaultValue := 'warn';
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'enum default "warn" is not one of allowedValues');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumWithoutAllowedValuesIsRejected;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Cmd.Parameters.Add(Param);
+    AssertValidationFails(Spec, 'requires allowedValues');
+  finally
+    Spec.Free;
+  end;
+end;
+
+procedure TCodegenTests.TestEnumWithoutDefaultIsAccepted;
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+begin
+  Spec := NewValidSpec;
+  try
+    Cmd := AddCommand(Spec, 'run');
+    Param := TParameterSpec.Create;
+    Param.LongFlag := '--mode';
+    Param.Description := 'Run mode';
+    Param.Kind := pkEnum;
+    Param.AllowedValues := 'debug|info';
+    Cmd.Parameters.Add(Param);
+    ValidateProjectSpec(Spec);
   finally
     Spec.Free;
   end;

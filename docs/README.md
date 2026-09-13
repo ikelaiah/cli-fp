@@ -21,6 +21,6 @@ For local repository work, the reader-facing source pages are:
 - [Technical design](technical-docs.md) and [contributing/support](project.md)
   — maintainer-oriented material.
 
-Release snapshots, completion test reports and the historical test output stay
-in the repository for maintainers but are intentionally not part of the normal
-site navigation.
+Release snapshots, completion test reports and historical test output live in
+the [documentation archive](archive/README.md). They remain useful evidence
+for maintainers, but are intentionally not part of normal site navigation.

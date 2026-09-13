@@ -2,7 +2,7 @@
 
 [How do I...?](how-to.md) · [Commands](commands.md) · [Options](options.md)
 
-These are current v1.5.3 boundaries verified against the public source and
+These are current v1.5.4 boundaries verified against the public source and
 tests. They are intentionally easy to find so a limitation does not look like
 an undocumented feature.
 

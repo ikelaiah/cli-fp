@@ -32,10 +32,8 @@ These scripts were used during development to:
 
 ## For Formal Testing
 
-For comprehensive completion testing, see:
-- **[docs/completion-testing/](../../docs/completion-testing/)** - Formal test documentation
-- **[docs/completion-testing/BASH_COMPLETION_TESTS.md](../../docs/completion-testing/BASH_COMPLETION_TESTS.md)** - 30 manual test cases
-- **[docs/completion-testing/BASH_COMPLETION_GUIDE.md](../../docs/completion-testing/BASH_COMPLETION_GUIDE.md)** - User guide
+Historical manual qualification material is kept in the
+[documentation archive](../../docs/archive/completion-testing/README.md).
 
 ## Usage
 
@@ -44,7 +42,8 @@ These are development scripts and typically don't need to be run unless:
 - Testing low-level shell behavior
 - Verifying argument passing
 
-Most users should use the formal test suite in `docs/completion-testing/` instead.
+Most users should use the current [completion guide](../../docs/completion.md)
+and the repository's automated tests instead.
 
 ## Note
 

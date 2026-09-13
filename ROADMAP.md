@@ -198,6 +198,20 @@ portable, and truthful without changing the v1.x command model or public API.
 **Maintenance outcome:** generated projects remain safe to regenerate across
 platforms while normal 1.x runtime APIs and parser grammar remain stable.
 
+## v1.5.4 — Validation, Examples & Documentation Accuracy (completed 2026-09-13)
+
+- Keep generator option definitions aligned with the runtime: either flag form
+  is valid and enum defaults must be valid case-insensitive enum values.
+- Make the error-handling and long-running examples deterministic, purposeful,
+  and executable on the supported platforms.
+- Move historical release, PR, completion, and test records behind a clear
+  documentation archive while keeping current guides and links authoritative.
+- Verify the Lazarus package from clean inputs; do not change generated package
+  metadata when it already qualifies.
+
+**Maintenance outcome:** users can trust the generator, examples, and current
+documentation without any public API change.
+
 ## v1.6.0 — Finish the Application Core Boundaries
 
 - Continue internal architecture cleanup without changing the public facade.

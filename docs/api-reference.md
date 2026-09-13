@@ -21,6 +21,7 @@ variables or states the command pattern it depends on.
 | `CLI.Console` | Coloured terminal output and cursor control |
 | `CLI.Progress` | Spinners and progress bars |
 | `CLI.Errors` | Framework exception type |
+| `CLI.Validation` | Supported definition-validation helpers; registration normally calls them for you |
 
 ## Application
 
@@ -85,6 +86,7 @@ Protected members for descendants:
 ```pascal
 protected
 function GetParameterValue(const Flag: string; out Value: string): Boolean;
+procedure ShowHelp;
 ```
 
 Subclass `TBaseCommand`, override `Execute`, register options during setup,
@@ -94,7 +96,13 @@ and return `0` on success. Use an empty `AName` for a root command.
 from your descendant's `Execute`. It finds either registered flag spelling and
 returns values as strings.
 Lookup is case-insensitive; a missing value returns `False` and clears the
-output string.
+output string. `ShowHelp` is also protected, for a command that intentionally
+acts as a help-only group.
+
+Date/time and array values are retrieved through the same protected string
+helper: date/time text uses `YYYY-MM-DD HH:MM`, and arrays are returned as the
+raw comma-separated text. cli-fp 1.x has no separate typed getter; convert or
+split these values in the command that owns their application meaning.
 
 ### Register parameters
 
@@ -201,3 +209,11 @@ added. Invalid names, flags, duplicate siblings/options, nil commands, and
 command-tree cycles raise developer-facing exceptions. The parser rejects
 unexpected positional arguments with exit code `1`; it does not implement the
 `--` terminator in v1.x.
+
+## Supporting validation
+
+`CLI.Validation` exposes `ValidateCommandName`,
+`ValidateParameterDefinition`, `ValidateCommandTree`, and
+`CommandTreeContainsName`. They are supported library helpers for advanced
+integration and tests; normal application setup should use `TBaseCommand` and
+`RegisterCommand`, which enforce these definition checks automatically.

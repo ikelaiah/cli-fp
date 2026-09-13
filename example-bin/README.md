@@ -26,7 +26,7 @@ Pre-generated completion scripts for the examples:
 **Usage:**
 ```bash
 source simpledemo_completion.bash
-./SimpleDemo.exe [TAB][TAB]
+./SimpleDemo [TAB][TAB]
 ```
 
 ### PowerShell Completion
@@ -44,7 +44,7 @@ Any cli-fp application can generate its own completion scripts:
 
 ```bash
 # Bash
-./YourApp.exe --completion-file > yourapp_completion.bash
+./YourApp --completion-file > yourapp_completion.bash
 source yourapp_completion.bash
 
 # PowerShell
@@ -57,11 +57,11 @@ source yourapp_completion.bash
 Each example includes `--help` to show usage:
 
 ```bash
-./SimpleDemo.exe --help
-./QuickStartDemo.exe --name Gus
-./RootCommandDemo.exe --name Gus
-./SubCommandDemo.exe repo --help
-./ProgressDemo.exe process --help
+./SimpleDemo --help
+./QuickStartDemo --name Gus
+./RootCommandDemo --name Gus
+./SubCommandDemo repo --help
+./ProgressDemo process --help
 ```
 
 ## Source Code
@@ -101,7 +101,7 @@ removed with the matching cleanup script.
 
 For detailed completion documentation, see:
 - [docs/completion.md](../docs/completion.md) - Completion usage
-- [docs/completion-testing/](../docs/completion-testing/) - Historical testing documentation
+- [archived completion testing](../docs/archive/completion-testing/README.md) - Historical testing documentation
 
 ## Notes
 

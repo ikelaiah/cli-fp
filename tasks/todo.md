@@ -32,3 +32,12 @@
 - [ ] Correct related current documentation and v1.5.3 metadata
 - [ ] Complete local qualification, review, PR, and Linux/Windows CI
 - [ ] Stop for explicit merge authorization; do not begin v1.6.0
+
+## cli-fp v1.5.4
+
+- [x] Establish and record a clean v1.5.3 baseline
+- [x] Correct generator flag and enum-default validation with regressions
+- [x] Repair and compile all canonical examples
+- [x] Correct current documentation and archive historical material
+- [x] Qualify Lazarus, repository hygiene, and full test matrix
+- [ ] Update release metadata, review, PR, CI, merge, tag, release, and Pages

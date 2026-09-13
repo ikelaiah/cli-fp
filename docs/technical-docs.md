@@ -440,8 +440,9 @@ type
 These exception types are available to application code, but the current
 `TCLIApplication` execution path does not raise them for parser or validation
 failures. It writes those errors and returns exit code `1`; command exceptions
-are caught as `Exception` and reported as execution errors. Duplicate command
-registration currently raises a generic `Exception`.
+are caught as `Exception` and reported as execution errors. Definition errors,
+including duplicate command registration, use the standard `SysUtils`
+argument-exception types documented by `CLI.Validation`.
 
 2. **Parameter Validation**
 - Required parameter checks
@@ -532,7 +533,7 @@ end;
 try
   Result := Command.Execute;
 except
-  on E: ECommandExecutionException do
+  on E: Exception do
   begin
     TConsole.WriteLn('Error: ' + E.Message, ccRed);
     Result := 1;
