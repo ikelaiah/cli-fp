@@ -50,5 +50,5 @@
 - [x] Improve completion test ownership without reducing coverage
 - [x] Make deterministic Bash and PowerShell completion checks required in CI
 - [x] Document internal architecture and `CLI.Errors` compatibility scope
-- [ ] Update 1.6.0 metadata and complete clean cross-platform qualification
+- [x] Update 1.6.0 metadata and complete clean cross-platform qualification
 - [ ] Review, PR, merge, tag, release, Pages verification, and clean-tree handoff

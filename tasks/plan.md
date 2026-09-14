@@ -434,7 +434,7 @@ behavioural coverage, and record the resulting internal boundaries. The public
 
 - [x] Update current 1.6.0 metadata, changelog, roadmap, and DocKit metadata;
   preserve historical release sources.
-- [ ] From clean inputs run framework and completion suites, all generator
+- [x] From clean inputs run framework and completion suites, all generator
   checks, eight example builds, cleanup smoke, normal and isolated Lazarus
   package builds, documentation/link checks, public-API comparison with
   `v1.5.4`, and repository-hygiene checks.
@@ -443,6 +443,25 @@ behavioural coverage, and record the resulting internal boundaries. The public
 - [ ] Annotate the exact merged commit `v1.6.0`, create the GitHub Release,
   verify tag/Pages deployment and the live documentation, then verify a clean
   working tree.
+
+### Qualification record
+
+- Windows/FPC 3.2.2: 65 FPCUnit tests (57 general framework and 8 focused
+  completion tests); the required PowerShell completion fixture/parser check
+  passed.
+- Git Bash exercised the Linux script path locally: the required Bash fixture
+  generated and syntax-checked its script. All four Bash generator checks and
+  the Windows aggregate generator suite passed (unit, golden, operations, and
+  compile smoke).
+- The isolated cleanup smoke compiled all eight canonical examples and removed
+  each generated executable. Generator compile calls now keep units in their
+  temporary project outputs and fail directly if `src/` receives artifacts.
+- The Lazarus 1.6 package built normally and from a fresh temporary clone.
+  The global Lazarus package-cache write warning is external to the package;
+  both compiler invocations completed successfully.
+- Current docs registry JSON and new decision links resolve, `git diff --check`
+  passes, `src/` contains no compiler artifacts, and canonical public interface
+  comparison found the v1.5.4 public units unchanged.
 
 ## Risks and mitigations
 
