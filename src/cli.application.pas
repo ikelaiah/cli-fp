@@ -237,7 +237,8 @@ implementation
 
 uses
   StrUtils, CLI.Internal.ParameterValues, CLI.Internal.Help,
-  CLI.Internal.Completion, CLI.Internal.Text, CLI.Validation;
+  CLI.Internal.Completion, CLI.Internal.CompletionScripts,
+  CLI.Internal.Text, CLI.Validation;
 
 { Constructor: Initializes a new CLI application instance
   @param AName The name of the application
@@ -1098,240 +1099,33 @@ begin
 end;
 {$ENDIF}
 
-function QuoteForBash(const Value: string): string;
-begin
-  Result := #39 + StringReplace(Value, #39,
-    #39 + '"' + #39 + '"' + #39, [rfReplaceAll]) + #39;
-end;
-
-function QuoteForPowerShell(const Value: string): string;
-begin
-  Result := #39 + StringReplace(Value, #39, #39 + #39,
-    [rfReplaceAll]) + #39;
-end;
-
-function ShellIdentifier(const Value: string): string;
-var
-  i: Integer;
-  Character: Char;
-begin
-  Result := '';
-  for i := 1 to Length(Value) do
-  begin
-    Character := Value[i];
-    if ((Character >= 'a') and (Character <= 'z')) or
-      ((Character >= 'A') and (Character <= 'Z')) or
-      ((Character >= '0') and (Character <= '9')) or
-      (Character = '_') then
-      Result := Result + Character
-    else
-      Result := Result + '_';
-  end;
-  if Result = '' then
-    Result := 'cli';
-end;
-
 { OutputBashCompletionScript: Outputs a Bash completion script for the application }
 procedure TCLIApplication.OutputBashCompletionScript;
-  procedure OutputBashTree(const Cmd: ICommand; const Path: string);
-  var
-    Sub: ICommand;
-    Param: ICommandParameter;
-    SubNames, ParamFlags: string;
-  begin
-    // Output subcommands for this path
-    SubNames := '';
-    for Sub in Cmd.SubCommands do
-    begin
-      if SubNames <> '' then SubNames := SubNames + ' ';
-      SubNames := SubNames + Sub.Name;
-    end;
-    // Output parameters for this path
-    ParamFlags := '';
-    for Param in Cmd.Parameters do
-    begin
-      if ParamFlags <> '' then ParamFlags := ParamFlags + ' ';
-      ParamFlags := ParamFlags + Param.LongFlag;
-      if Param.ShortFlag <> '' then
-        ParamFlags := ParamFlags + ' ' + Param.ShortFlag;
-    end;
-    // Only add -h and --help as global flags for non-root nodes
-    if ParamFlags <> '' then
-      ParamFlags := ParamFlags + ' ';
-    ParamFlags := ParamFlags + '--help -h';
-    // Output Bash associative arrays for this path (no leading spaces)
-    TConsole.WriteLn('tree[' + QuoteForBash(Path + '|subcommands') + ']=' +
-      QuoteForBash(SubNames));
-    TConsole.WriteLn('tree[' + QuoteForBash(Path + '|params') + ']=' +
-      QuoteForBash(ParamFlags));
-    // Recurse for subcommands
-    for Sub in Cmd.SubCommands do
-      OutputBashTree(Sub, Path + ' ' + Sub.Name);
-  end;
 var
-  Cmd: ICommand;
-  Param: ICommandParameter;
-  BashFunc, AppName, ExecutablePath, RootSubNames, RootParamFlags: string;
+  Script: TCompletionScript;
+  Line: TCompletionScriptLine;
 begin
-  AppName := ExtractFileName(ParamStr(0));
-  ExecutablePath := ParamStr(0);
-  BashFunc := '_' + LowerCase(ShellIdentifier(FName)) + '_completions';
-
-  TConsole.WriteLn('#!/bin/bash');
-  TConsole.WriteLn('declare -A tree');
-
-  // Output the root (empty path) entry for top-level completions
-  RootSubNames := '';
-  RootParamFlags := '';
-  for Cmd in FCommands do
-  begin
-    if RootSubNames <> '' then RootSubNames := RootSubNames + ' ';
-    RootSubNames := RootSubNames + Cmd.Name;
-  end;
-  if Assigned(FRootCommand) then
-  begin
-    for Param in FRootCommand.Parameters do
-    begin
-      if RootParamFlags <> '' then
-        RootParamFlags := RootParamFlags + ' ';
-      RootParamFlags := RootParamFlags + Param.LongFlag;
-      if Param.ShortFlag <> '' then
-        RootParamFlags := RootParamFlags + ' ' + Param.ShortFlag;
-    end;
-  end;
-  if RootParamFlags <> '' then
-    RootParamFlags := RootParamFlags + ' ';
-  // Add global flags for root only
-  RootParamFlags := RootParamFlags +
-    '--help --help-complete --version --completion-file --completion-file-pwsh -h -v';
-  // Use a special root key for Bash associative array (no leading spaces)
-  TConsole.WriteLn('tree[' + QuoteForBash('__root__|subcommands') + ']=' +
-    QuoteForBash(RootSubNames));
-  TConsole.WriteLn('tree[' + QuoteForBash('__root__|params') + ']=' +
-    QuoteForBash(RootParamFlags));
-
-  // Output the command tree
-  for Cmd in FCommands do
-    OutputBashTree(Cmd, Cmd.Name);
-
-  TConsole.WriteLn('');
-  WriteOutput(BashFunc+'()');
-  TConsole.WriteLn('{');
-  TConsole.WriteLn('  local cur words cword args out dir candidates');
-  WriteOutput('  executable=' + QuoteForBash(ExecutablePath));
-  if FDebugMode then
-  begin
-    TConsole.WriteLn('  # DEBUG: Print function call and COMP_WORDS');
-    TConsole.WriteLn('  echo "[DEBUG] Called: $FUNCNAME, COMP_WORDS=(\"${COMP_WORDS[@]}\") COMP_CWORD=$COMP_CWORD" >&2');
-  end;
-  TConsole.WriteLn('  cur="${COMP_WORDS[COMP_CWORD]}"');
-  TConsole.WriteLn('  words=("${COMP_WORDS[@]}")');
-  TConsole.WriteLn('  cword=$COMP_CWORD');
-  TConsole.WriteLn('  # Build args for __complete and call the application');
-  TConsole.WriteLn('  args=()');
-  TConsole.WriteLn('  for ((i=1;i<cword;i++)); do args+=("${words[i]}"); done');
-  TConsole.WriteLn('  # If cursor is after a space, append empty token to indicate new word');
-  TConsole.WriteLn('  if [[ "${COMP_LINE: -1}" == " " ]]; then');
-  TConsole.WriteLn('    args+=("")');
-  TConsole.WriteLn('  else');
-  TConsole.WriteLn('    args+=("${words[cword]}")');
-  TConsole.WriteLn('  fi');
-  WriteOutput('  out=$("$executable" __complete "${args[@]}")');
-  TConsole.WriteLn('  # Last line is directive in form :<number>');
-  TConsole.WriteLn('  dir="$(printf "%s\n" "$out" | tail -n1)"');
-  TConsole.WriteLn('  if [[ $dir =~ ^:([0-9]+)$ ]]; then');
-  TConsole.WriteLn('    candidates="$(printf "%s\n" "$out" | sed ''$d'')"');
-  TConsole.WriteLn('    directive=${BASH_REMATCH[1]}');
-  TConsole.WriteLn('  else');
-  TConsole.WriteLn('    candidates="$out"');
-  TConsole.WriteLn('    directive=0');
-  TConsole.WriteLn('  fi');
-  if FDebugMode then
-  begin
-    TConsole.WriteLn('  # DEBUG: Print completion call information');
-    TConsole.WriteLn('  echo "[DEBUG] args=(${args[@]}) out=\"$out\" directive=$directive cur=[$cur] candidates=[$candidates]" >&2');
-  end;
-  TConsole.WriteLn('  # Populate COMPREPLY with matching candidates');
-  TConsole.WriteLn('  while IFS='''' read -r comp; do');
-  TConsole.WriteLn('    [[ -z "$comp" ]] && continue');
-  TConsole.WriteLn('    COMPREPLY+=("$comp")');
-  TConsole.WriteLn('  done < <(compgen -W "$candidates" -- "$cur")');
-  TConsole.WriteLn('  return 0');
-  TConsole.WriteLn('}');
-  TConsole.WriteLn('complete -F '+BashFunc+' -- '+QuoteForBash(AppName));
-  TConsole.WriteLn('complete -F '+BashFunc+' -- '+QuoteForBash('./'+AppName));
+  Script := RenderBashCompletionScript(FName, CommandSnapshot, FRootCommand,
+    ExtractFileName(ParamStr(0)), ParamStr(0), FDebugMode);
+  for Line in Script do
+    if Line.CaptureThroughApplication then
+      WriteOutput(Line.Text)
+    else
+      TConsole.WriteLn(Line.Text);
 end;
 
 { OutputPowerShellCompletionScript: Outputs a PowerShell completion script for the application }
 procedure TCLIApplication.OutputPowerShellCompletionScript;
 var
-  AppName, ExecutablePath: string;
+  Script: TCompletionScript;
+  Line: TCompletionScriptLine;
 begin
-  AppName := ExtractFileName(ParamStr(0));
-  ExecutablePath := ParamStr(0);
-  WriteOutput('# Usage: ./' + AppName + ' --completion-file-pwsh > myapp-completion.ps1');
-  WriteOutput('# Then in PowerShell:');
-  WriteOutput('#   . ./myapp-completion.ps1');
-  WriteOutput('# To make it permanent, add the above line to your $PROFILE');
-  TConsole.WriteLn('# PowerShell argument completer for ' + AppName);
-  TConsole.WriteLn('');
-  TConsole.WriteLn('$scriptBlock = {');
-  TConsole.WriteLn('  param($wordToComplete, $commandAst, $cursorPosition)');
-  TConsole.WriteLn('  $line = $commandAst.ToString()');
-  TConsole.WriteLn('  $words = $line -split " +" | Where-Object { $_ -ne '''' }');
-  TConsole.WriteLn('  $argsList = @($words | Select-Object -Skip 1)');
-  TConsole.WriteLn('  if ($line.EndsWith(" ")) { $argsList += "" }');
-  WriteOutput('$cliFpExecutable = ' + QuoteForPowerShell(ExecutablePath));
-  WriteOutput('  $out = & $cliFpExecutable __complete @argsList 2>$null');
-  TConsole.WriteLn('  if (-not $out) { return @() }');
-  TConsole.WriteLn('  # Extract directive and candidates');
-  TConsole.WriteLn('  $directive = 0');
-  TConsole.WriteLn('  $candidates = @()');
-  TConsole.WriteLn('  foreach ($line in $out) {');
-  TConsole.WriteLn('    if ($line -match "^:([0-9]+)$") {');
-  TConsole.WriteLn('      $directive = [int]$Matches[1]');
-  TConsole.WriteLn('    } else {');
-  TConsole.WriteLn('      $candidates += $line');
-  TConsole.WriteLn('    }');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('  $results = @()');
-  TConsole.WriteLn('  if ($candidates.Count -eq 0) { return @() }');
-  TConsole.WriteLn('  foreach ($c in $candidates) {');
-  TConsole.WriteLn('    # Skip empty candidates');
-  TConsole.WriteLn('    if ([string]::IsNullOrWhiteSpace($c)) { continue }');
-  TConsole.WriteLn('    # Filter by prefix');
-  TConsole.WriteLn('    if ([string]::IsNullOrEmpty($wordToComplete) -or $c.StartsWith($wordToComplete, [StringComparison]::CurrentCultureIgnoreCase)) {');
-  TConsole.WriteLn('      if (($directive -band 2) -ne 0) {');
-  TConsole.WriteLn('        $results += [System.Management.Automation.CompletionResult]::new($c, $c, "ParameterName", $c)');
-  TConsole.WriteLn('      } else {');
-  TConsole.WriteLn('        $results += [System.Management.Automation.CompletionResult]::new($c, $c, "ParameterValue", $c)');
-  TConsole.WriteLn('      }');
-  TConsole.WriteLn('    }');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('  return $results');
-  TConsole.WriteLn('}');
-  TConsole.WriteLn('');
-  TConsole.WriteLn('# Register for all common invocation patterns');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
-    QuoteForPowerShell(AppName) + ' -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
-    QuoteForPowerShell(ChangeFileExt(AppName, '')) + ' -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
-    QuoteForPowerShell('./' + AppName) + ' -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
-    QuoteForPowerShell('.\' + AppName) + ' -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ' +
-    QuoteForPowerShell('.\\' + AppName) + ' -ScriptBlock $scriptBlock');
-  TConsole.WriteLn('');
-  TConsole.WriteLn('# Try -Native flag if PowerShell 7+');
-  TConsole.WriteLn('if ($PSVersionTable.PSVersion.Major -ge 7) {');
-  TConsole.WriteLn('  Register-ArgumentCompleter -Native -CommandName ' +
-    QuoteForPowerShell(ChangeFileExt(AppName, '')) + ' -ScriptBlock {');
-  TConsole.WriteLn('    param($wordToComplete, $commandAst, $cursorPosition)');
-  TConsole.WriteLn('    & $scriptBlock $wordToComplete $commandAst $cursorPosition');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('}');
+  Script := RenderPowerShellCompletionScript(ExtractFileName(ParamStr(0)),
+    ParamStr(0));
+  for Line in Script do
+    if Line.CaptureThroughApplication then
+      WriteOutput(Line.Text)
+    else
+      TConsole.WriteLn(Line.Text);
 end;
-
-// To enable: add a CLI flag (e.g. --completion-file-pwsh) to call OutputPowerShellCompletionScript.
 end.

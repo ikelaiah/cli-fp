@@ -48,6 +48,11 @@ SOFTWARE. "/>
         <AddToUsesPkgSection Value="False"/>
       </Item>
       <Item>
+        <Filename Value="..\..\src\cli.internal.completionscripts.pas"/>
+        <UnitName Value="CLI.Internal.CompletionScripts"/>
+        <AddToUsesPkgSection Value="False"/>
+      </Item>
+      <Item>
         <Filename Value="..\..\src\cli.command.pas"/>
         <UnitName Value="CLI.Command"/>
       </Item>

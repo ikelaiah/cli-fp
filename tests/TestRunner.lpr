@@ -3,7 +3,7 @@ program TestRunner;
 {$mode objfpc}{$H+}{$J-}
 
 uses
-  Classes, consoletestrunner, TestCase;
+  Classes, consoletestrunner, TestCase, Test_Completion_Scripts;
 
 type
 
