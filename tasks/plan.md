@@ -302,7 +302,7 @@ and qualify the Lazarus package from clean inputs before release.
   diff checks.
 - [x] Update version metadata, changelog, roadmap, and current release
   documentation.
-- [ ] Review, commit, push, open PR, observe Windows/Linux CI, merge, tag,
+- [x] Review, commit, push, open PR, observe Windows/Linux CI, merge, tag,
   publish, and verify Pages before starting v1.6.0.
 
 ### Qualification record
@@ -314,6 +314,14 @@ and qualify the Lazarus package from clean inputs before release.
   normal and isolated `lazbuild --build-all packages/lazarus/cli_fp.lpk`.
 - Documentation local-link and diff checks pass. Generated compiler byproducts
   are absent from the candidate and no build artifacts are tracked.
+- Merge commit: `1f755e8ec8367daf35fcfc201b5e0cae7ecc74c4`; annotated `v1.5.4`
+  and its GitHub Release target that exact commit. The successful Linux and
+  Windows post-merge jobs each covered the complete suite. An earlier Windows
+  attempt was cancelled during Chocolatey/Lazarus installation, before tests,
+  and is recorded as toolchain infrastructure rather than a test failure.
+- The `v1.5.4` Pages deployment completed successfully and
+  `https://ikelaiah.github.io/cli-fp/` returned HTTP 200 with the released
+  version before `release/v1.6.0` was created from `main`.
 
 ## Deferred by release boundary
 
@@ -328,3 +336,119 @@ into this patch.
 | Validator changes drift from runtime | Characterize runtime enum matching first, then test generator inputs. |
 | Historical moves break user links | Search inbound links and validate all relative links after each move. |
 | Local Lazarus cache masks package issues | Build from an isolated clean copy and output directory. |
+
+---
+
+# Implementation Plan: cli-fp v1.6.0 Internal Architecture, Test Structure & Maintainability
+
+## Overview
+
+Deliver a maintenance-focused minor release from the released `v1.5.4` merge
+commit `1f755e8ec8367daf35fcfc201b5e0cae7ecc74c4`. Make completion-script
+rendering independently testable, make completion checks visible and required
+in both CI environments, improve test ownership only where it preserves
+behavioural coverage, and record the resulting internal boundaries. The public
+1.x API and command model remain unchanged.
+
+## Architecture decisions
+
+- `TCLIApplication` remains the public application facade. Its public
+  completion entry points, command selection, parsing coordination, dispatch,
+  help orchestration, validation interaction, and completion orchestration stay
+  owned by the facade unless a small cohesive move proves lower-risk.
+- A single internal `CLI.Internal.CompletionScripts` unit will own Bash and
+  PowerShell rendering, shell quoting, and command-tree formatting. It will
+  return ordered rendered lines with their existing output-routing marker, so
+  the facade can preserve the current distinction between direct console output
+  and framework-test capture without changing generated script text.
+- The extraction is a characterization refactor: generated output is not
+  intentionally changed. Full deterministic Bash and PowerShell renderings,
+  including shell-sensitive names, will have regression coverage before the
+  implementation is moved.
+- Test organisation will be changed only after the completion contracts are
+  protected. Completion behaviour may move to a focused FPCUnit test unit with
+  shared fixture helpers; unrelated tests remain in place if a split creates
+  coupling or runner risk.
+- The existing `CLI.Errors` hierarchy remains public 1.x compatibility API.
+  Documentation will state its actual runtime scope; no exception-routing
+  redesign, deletion, or deprecation is planned.
+
+## Non-goals
+
+- Do not replace `TCLIApplication`, introduce an execution context or v2
+  contract, redesign parameters, remove compatibility APIs, add dependencies,
+  or split files merely to reduce line counts.
+- Do not make `CLI.Errors` a breaking runtime contract, invent speculative
+  abstractions, or change generated completion output without a separately
+  demonstrated defect.
+
+## Task list
+
+### Phase 0: baseline and release record
+
+- [x] Confirm `v1.5.4`, GitHub Release, Pages, clean tree, and the exact
+  `main` commit before branching `release/v1.6.0`.
+- [ ] Run and record the isolated framework baseline, including current
+  completion behaviour, before structural changes.
+
+### Phase 1: characterize and extract completion scripts
+
+- [ ] Add failing deterministic full-rendering characterization tests for
+  Bash and PowerShell scripts, including quoting, tree metadata, debug output,
+  and the existing capture-routing contract.
+- [ ] Create the internal completion-script renderer and retain thin
+  `TCLIApplication` wrappers that delegate to it without public API changes.
+- [ ] Add the internal unit to the Lazarus package with
+  `AddToUsesPkgSection=False` and prove normal plus isolated clean-package
+  builds resolve it.
+
+### Checkpoint: completion renderer
+
+- [ ] Framework tests demonstrate byte-for-byte expected script lines and
+  pre-existing completion candidates remain unchanged.
+- [ ] The resulting `CLI.Application` has a documented, coherent facade role;
+  no further application split is made without a similarly cohesive boundary.
+
+### Phase 2: test ownership and required completion CI
+
+- [ ] Move completion-focused FPCUnit cases into a focused unit only if the
+  runner keeps all existing behaviour and test count intact; add only the new
+  characterization coverage required by Phase 1.
+- [ ] Add deterministic Bash completion qualification to Linux CI and
+  PowerShell completion qualification to Windows CI, with direct failures and
+  no best-effort or fake-green steps.
+- [ ] Keep ad-hoc historical shell probes separate from the required test
+  path and update their documentation accordingly.
+
+### Phase 3: maintenance documentation
+
+- [ ] Document the retained application-facade responsibilities and internal
+  completion-renderer boundary in the technical documentation; add a concise
+  ADR if it provides durable decision context.
+- [ ] Document `CLI.Errors` as retained public compatibility types with the
+  current execution-path behaviour, without API churn.
+- [ ] Correct stale comments, naming/casing guidance, completion-registration
+  labels, and documentation-fragment conventions only where verified.
+
+### Phase 4: qualification and release
+
+- [ ] Update current 1.6.0 metadata, changelog, roadmap, and DocKit metadata;
+  preserve historical release sources.
+- [ ] From clean inputs run framework and completion suites, all generator
+  checks, eight example builds, cleanup smoke, normal and isolated Lazarus
+  package builds, documentation/link checks, public-API comparison with
+  `v1.5.4`, and repository-hygiene checks.
+- [ ] Perform code review, push the release branch, open a PR, and verify the
+  required Linux and Windows suites on the merged commit.
+- [ ] Annotate the exact merged commit `v1.6.0`, create the GitHub Release,
+  verify tag/Pages deployment and the live documentation, then verify a clean
+  working tree.
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Refactor alters generated shell text or test capture | Characterize full ordered lines and retain a line-routing marker in the internal model. |
+| Test splitting loses registration or coverage | Keep FPCUnit registration explicit and compare counts/behaviour before and after. |
+| Shell checks vary by host | Use deterministic rendered-script assertions plus Bash on Linux and PowerShell on Windows. |
+| Internal cleanup leaks into a public redesign | Keep the application facade and exported units unchanged; compare the v1.5.4 public API before release. |

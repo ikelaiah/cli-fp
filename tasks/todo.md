@@ -40,4 +40,15 @@
 - [x] Repair and compile all canonical examples
 - [x] Correct current documentation and archive historical material
 - [x] Qualify Lazarus, repository hygiene, and full test matrix
-- [ ] Update release metadata, review, PR, CI, merge, tag, release, and Pages
+- [x] Update release metadata, review, PR, CI, merge, tag, release, and Pages
+
+## cli-fp v1.6.0
+
+- [x] Verify the v1.5.4 release and branch from updated main
+- [ ] Characterize and extract the internal completion-script renderer
+- [ ] Retain the cohesive application facade and document its responsibilities
+- [ ] Improve completion test ownership without reducing coverage
+- [ ] Make deterministic Bash and PowerShell completion checks required in CI
+- [ ] Document internal architecture and `CLI.Errors` compatibility scope
+- [ ] Update 1.6.0 metadata and complete clean cross-platform qualification
+- [ ] Review, PR, merge, tag, release, Pages verification, and clean-tree handoff
