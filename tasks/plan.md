@@ -388,51 +388,51 @@ behavioural coverage, and record the resulting internal boundaries. The public
 
 - [x] Confirm `v1.5.4`, GitHub Release, Pages, clean tree, and the exact
   `main` commit before branching `release/v1.6.0`.
-- [ ] Run and record the isolated framework baseline, including current
+- [x] Run and record the isolated framework baseline, including current
   completion behaviour, before structural changes.
 
 ### Phase 1: characterize and extract completion scripts
 
-- [ ] Add failing deterministic full-rendering characterization tests for
+- [x] Add failing deterministic full-rendering characterization tests for
   Bash and PowerShell scripts, including quoting, tree metadata, debug output,
   and the existing capture-routing contract.
-- [ ] Create the internal completion-script renderer and retain thin
+- [x] Create the internal completion-script renderer and retain thin
   `TCLIApplication` wrappers that delegate to it without public API changes.
-- [ ] Add the internal unit to the Lazarus package with
+- [x] Add the internal unit to the Lazarus package with
   `AddToUsesPkgSection=False` and prove normal plus isolated clean-package
   builds resolve it.
 
 ### Checkpoint: completion renderer
 
-- [ ] Framework tests demonstrate byte-for-byte expected script lines and
+- [x] Framework tests demonstrate byte-for-byte expected script lines and
   pre-existing completion candidates remain unchanged.
-- [ ] The resulting `CLI.Application` has a documented, coherent facade role;
+- [x] The resulting `CLI.Application` has a documented, coherent facade role;
   no further application split is made without a similarly cohesive boundary.
 
 ### Phase 2: test ownership and required completion CI
 
-- [ ] Move completion-focused FPCUnit cases into a focused unit only if the
+- [x] Move completion-focused FPCUnit cases into a focused unit only if the
   runner keeps all existing behaviour and test count intact; add only the new
   characterization coverage required by Phase 1.
-- [ ] Add deterministic Bash completion qualification to Linux CI and
+- [x] Add deterministic Bash completion qualification to Linux CI and
   PowerShell completion qualification to Windows CI, with direct failures and
   no best-effort or fake-green steps.
-- [ ] Keep ad-hoc historical shell probes separate from the required test
+- [x] Keep ad-hoc historical shell probes separate from the required test
   path and update their documentation accordingly.
 
 ### Phase 3: maintenance documentation
 
-- [ ] Document the retained application-facade responsibilities and internal
+- [x] Document the retained application-facade responsibilities and internal
   completion-renderer boundary in the technical documentation; add a concise
   ADR if it provides durable decision context.
-- [ ] Document `CLI.Errors` as retained public compatibility types with the
+- [x] Document `CLI.Errors` as retained public compatibility types with the
   current execution-path behaviour, without API churn.
-- [ ] Correct stale comments, naming/casing guidance, completion-registration
+- [x] Correct stale comments, naming/casing guidance, completion-registration
   labels, and documentation-fragment conventions only where verified.
 
 ### Phase 4: qualification and release
 
-- [ ] Update current 1.6.0 metadata, changelog, roadmap, and DocKit metadata;
+- [x] Update current 1.6.0 metadata, changelog, roadmap, and DocKit metadata;
   preserve historical release sources.
 - [ ] From clean inputs run framework and completion suites, all generator
   checks, eight example builds, cleanup smoke, normal and isolated Lazarus

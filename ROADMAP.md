@@ -212,23 +212,23 @@ platforms while normal 1.x runtime APIs and parser grammar remain stable.
 **Maintenance outcome:** users can trust the generator, examples, and current
 documentation without any public API change.
 
-## v1.6.0 — Finish the Application Core Boundaries
+## v1.6.0 — Internal Architecture, Test Structure & Maintainability (completed 2026-09-14)
 
-- Continue internal architecture cleanup without changing the public facade.
-- Separate command selection and execution orchestration from parsing and
-  validation.
-- Extract Bash and PowerShell script rendering from `TCLIApplication`, building
-  on the completion engine introduced in v1.3.3.
-- Deduplicate command lookup, path-building, and output helpers.
-- Improve console/progress internals and test seams.
-- Strengthen the internal help and completion boundaries introduced in v1.3.3
-  without exposing them as new public APIs.
-- Preserve existing observable behaviour with the v1.3.3 characterization
-  tests and focused tests around each extracted component.
-- Keep these internal changes behind the stable public facade.
+- Retain the cohesive `TCLIApplication` façade after review; it continues to
+  own application setup, command selection, parsing coordination, dispatch,
+  help orchestration, and completion orchestration.
+- Extract Bash and PowerShell script rendering and shell quoting to
+  `CLI.Internal.CompletionScripts` without adding a public API or changing
+  generated script behaviour.
+- Characterize complete rendered scripts and group completion behaviour in a
+  focused FPCUnit suite while preserving all prior coverage.
+- Require generated Bash syntax validation on Linux and generated PowerShell
+  parser validation on Windows CI.
+- Record the internal boundary in ADR-001 and retain `CLI.Errors` as public
+  1.x compatibility API with its documented current runtime scope.
 
-**Maintenance outcome:** changes to help, completion, parsing, and execution
-can be made and tested independently.
+**Maintenance outcome:** completion scripts and behaviour can be changed and
+tested independently while the public application façade remains stable.
 
 ## v2.0.0 — Make Execution State Explicit
 
