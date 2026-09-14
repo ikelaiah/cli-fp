@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made generated completion scripts required CI contracts: Linux compiles a
   fixture and syntax-checks Bash output; Windows compiles the same fixture and
   parses PowerShell output.
+- Isolated generated-project compile output in the generator suites and made
+  source-artifact leakage a direct test failure.
 
 ### Documentation
 
