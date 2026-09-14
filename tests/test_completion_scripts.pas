@@ -3,7 +3,7 @@ unit Test_Completion_Scripts;
 {$mode objfpc}{$H+}{$J-}
 
 { Characterization tests for the internal completion-script renderer.
-  The expected lines preserve the v1.5.4 shell output exactly while allowing
+  The expected lines preserve the shell output contract while allowing
   the renderer to be exercised without redirecting the process console. }
 
 interface
@@ -30,8 +30,8 @@ type
     procedure Test_ApplicationScriptOutputContract;
     procedure Test_SingleFlagParameterCompletion;
     procedure Test_EnumCompletionMatchesValidation;
-    procedure Test_BashRenderingPreservesV154Contract;
-    procedure Test_PowerShellRenderingPreservesV154Contract;
+    procedure Test_BashRenderingContract;
+    procedure Test_PowerShellRenderingContract;
   end;
 
 implementation
@@ -112,7 +112,7 @@ begin
   Deploy := TCompletionFixtureCommand.Create('deploy', 'Deploy an application');
   Target := TCompletionFixtureCommand.Create('target', 'Manage deployment targets');
   try
-    Deploy.AddFlag('-v', '--verbose', 'Verbose output');
+    Deploy.AddFlag('-d', '--verbose', 'Verbose output');
     Deploy.AddEnumParameter('-m', '--mode', 'Deployment mode',
       'safe|fast');
     Deploy.AddSubCommand(Target);
@@ -304,7 +304,7 @@ begin
   end;
 end;
 
-procedure TCompletionScriptTests.Test_BashRenderingPreservesV154Contract;
+procedure TCompletionScriptTests.Test_BashRenderingContract;
 var
   Deploy, Target: TCompletionFixtureCommand;
   Commands: array of ICommand;
@@ -327,9 +327,9 @@ begin
       'tree[''__root__|subcommands'']=''deploy''',
       'tree[''__root__|params'']=''--help --help-complete --version --completion-file --completion-file-pwsh -h -v''',
       'tree[''deploy|subcommands'']=''target''',
-      'tree[''deploy|params'']=''--output -o --help -h''',
+      'tree[''deploy|params'']=''--output -o --help -h --version -v''',
       'tree[''deploy target|subcommands'']=''''',
-      'tree[''deploy target|params'']=''--help -h''',
+      'tree[''deploy target|params'']=''--help -h --version -v''',
       '',
       '_my_app_unsafe_completions()',
       '{',
@@ -385,7 +385,7 @@ begin
   end;
 end;
 
-procedure TCompletionScriptTests.Test_PowerShellRenderingPreservesV154Contract;
+procedure TCompletionScriptTests.Test_PowerShellRenderingContract;
 var
   Script: TCompletionScript;
 begin

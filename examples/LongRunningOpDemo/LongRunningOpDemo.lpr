@@ -171,7 +171,7 @@ begin
   Cmd := TProcessCommand.Create('process', 'Process simulated files');
   
   // Basic parameters
-  Cmd.AddFlag('-v', '--verbose', 'Show detailed progress');
+  Cmd.AddFlag('-d', '--verbose', 'Show detailed progress');
   Cmd.AddIntegerParameter('-c', '--count', 'Number of files to process', False, '5');
   
   // File and path handling

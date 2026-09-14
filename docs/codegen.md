@@ -32,11 +32,19 @@ fpc "-Fu..\..\src" "-Fu.\src" "-Fu.\src\generated" "-Fu.\src\commands" .\src\Mya
 
 Adjust the first `-Fu` path when the generated project is not two directories
 below the `cli-fp` repository.
+Start in a fresh target directory. The build creates `src/Myapp` (Windows:
+`src/Myapp.exe`); the final command shows generated `greet` help and exits 0.
 
 ## A minimal root-command project
 
 `clifp.json` is the source of truth. This is a complete small project with a
-default action and one option; generate it with `cli-fp-gen generate`.
+default action and one option. Replace the initialized project's `clifp.json`
+with this object, then, from `build-temp/myapp`, run
+`../../tools/cli-fp-gen/cli_fp_gen generate --project .` (PowerShell:
+`..\..\tools\cli-fp-gen\cli_fp_gen.exe generate --project .`).
+Recompile with the same unit paths as above but source `src/Hello.lpr`.
+The stub prints a TODO message until you implement its root command; the
+specification supplies metadata and registration, not greeting logic.
 
 ```json
 {
@@ -74,6 +82,10 @@ cli-fp-gen remove command <cmd/path> [--cascade] [--project <dir-or-spec-file>] 
 ```
 
 Use `init` once. Use `add command` or edit `clifp.json`, then run `generate`.
+The generator tool's own `init --version <value>` sets application metadata;
+it is distinct from a generated application's reserved version request.
+In generated specifications, `-v` and `--version` (including case variants)
+cannot be registered as user options at any scope. Use `-d`/`--verbose`.
 Use `remove command` for a command entry; add `--cascade` when its nested
 commands should be removed too. Try `--dry-run` before a substantial change.
 
@@ -124,7 +136,7 @@ path such as `repo/remote` in `parent` to make a nested command. A
 | `commands[]` | `name`, `parent`, `description`, `parameters` | Named commands. `parent` is empty for a top-level command or a slash path such as `repo`. |
 | `parameters[]` | `kind`, `short`, `long`, `description`, `required`, `default`, `allowedValues` | An option definition. At least one of `short` or `long` is required; flags are case-insensitive and unique within a command. |
 
-Use `short` such as `-v`, `long` such as `--verbose`, or both. Long flags must
+Use `short` such as `-d`, `long` such as `--verbose`, or both. Long flags must
 start with `--`; short flags are exactly one printable character after `-`.
 Supported `kind` values are `string`, `integer`, `float`, `flag`, `boolean`,
 `path`, `enum`, `datetime`, `array`, `password`, and `url`.

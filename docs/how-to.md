@@ -81,7 +81,7 @@ var
   Root: TRootCommand;
 begin
   Root := TRootCommand.Create('', 'Run the default action');
-  Root.AddFlag('-v', '--verbose', 'Show detailed output');
+  Root.AddFlag('-d', '--verbose', 'Show detailed output');
   App := CreateCLIApplication('myapp', '1.0.0', Root);
   Halt(App.Execute);
 end.
@@ -125,17 +125,18 @@ This creates `tool repo clone --url https://example.com/project.git`. The
 
 ## How do I add options?
 
-Each registration below is a **program-setup fragment** placed immediately
-after `Greet := TGreetCommand.Create(...)` in the setup at the top of this
-page. `Greet` is therefore the concrete `TGreetCommand` instance that owns
-the registered option.
+These are **program-setup fragments** for the concrete `Greet` instance above.
+Replace the existing `Greet.AddStringParameter('-n', '--name', ...)` line
+with the entire first block below; do not add a second `--name` registration.
+Insert the other blocks after that replacement and before
+`App.RegisterCommand(Greet)`. Each flag is unique, so the blocks can be combined.
 
 ### String, integer, and float
 
 ```pascal
 Greet.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
 Greet.AddIntegerParameter('-c', '--count', 'Number of runs', True);
-Greet.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
+Greet.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1');
 ```
 
 ### Required, default, flag, and enum
@@ -143,16 +144,19 @@ Greet.AddFloatParameter('-r', '--rate', 'Processing rate', False, '1.0');
 ```pascal
 Greet.AddStringParameter('-f', '--file', 'Input file', True);
 Greet.AddStringParameter('-o', '--output', 'Output file', False, 'out.txt');
-Greet.AddFlag('-v', '--verbose', 'Show detailed output');
+Greet.AddFlag('-d', '--verbose', 'Show detailed output');
 Greet.AddEnumParameter('-l', '--level', 'Log level',
   'debug|info|warn|error', False, 'info');
 ```
 
-Use `AddFlag` when presence alone enables a feature: `--verbose` becomes
-`true`, while omission returns `false`. Use `AddBooleanParameter` when callers
-need an explicit value such as `--verbose true` or `--verbose false`; bare
-presence remains accepted as `true` for 1.x compatibility.
-Option lookup is case-insensitive and repeated options use the last value.
+Both `AddFlag` and `AddBooleanParameter` register Boolean options and accept
+explicit `true`/`false`, including `--verbose=false`. Bare presence means
+`true` for both. `AddFlag` is optional with default `'false'` unless overridden;
+`AddBooleanParameter` requires you to supply requiredness and default arguments.
+Option lookup is case-insensitive; the last occurrence wins across short and
+long aliases. `-v`/`--version` are reserved at every scope; use `-d` for verbose.
+Float parsing uses the process locale's decimal separator; the integer-looking
+default `'1'` above works with either dot or comma decimal separators.
 
 ### Path, URL, and password
 
@@ -194,14 +198,20 @@ end;
 
 `GetParameterValue` is protected, so it belongs in the command class—not the
 program setup. Values remain strings after validation; use `TryStrToFloat` for
-a float. An absent `AddFlag` normally supplies `false`. `GetParameterValue`
-returns `False` and clears its output string when the option has no value.
+a float, using the same locale as validation. An absent `AddFlag` normally
+supplies `'false'` and returns `True` because a default exists. The Boolean
+result is not a presence indicator: an omitted Boolean with no default returns
+`False` but leaves `'false'` in the output. See the exact
+[lookup cases](api-reference.md#tbasecommand).
 
 ## How do I return a non-zero exit code?
 
 Set `Result` in the command's `Execute`, then let the application return it to
 the shell. This complete **command-method fragment** assumes
-`TCheckCommand = class(TBaseCommand)` is declared in the same unit:
+`TCheckCommand = class(TBaseCommand)` is declared in the same unit and its
+instance registers `AddStringParameter('-f', '--file', 'Input file')` before
+being registered with the application. This optional registration lets the
+method return 1 itself when the file value is missing:
 
 ```pascal
 function TCheckCommand.Execute: Integer;
@@ -221,13 +231,10 @@ fragment such as the one at the top of this page.
 
 ## How do I print coloured output?
 
-Inside a command's `Execute`, import `CLI.Console` and call the `TConsole`
-class directly; there is no console object to construct:
+Add `CLI.Console` to the program/unit's `uses` clause. Put these statements
+inside a command's `Execute`; there is no console object to construct:
 
 ```pascal
-uses
-  CLI.Console;
-
 TConsole.WriteLn('Created project', ccGreen);
 TConsole.WriteLn('Could not create project', ccRed);
 ```
@@ -293,6 +300,9 @@ Use a progress bar when the total is known; otherwise use a spinner.
 
 ## How do I generate Bash completion?
 
+These shell examples assume the compiled executable `myapp` is in the current
+directory. Replace its name/path with your actual binary.
+
 ```bash
 ./myapp --completion-file > myapp-completion.bash
 source ./myapp-completion.bash
@@ -303,8 +313,9 @@ for installation and behavior.
 
 On Windows, quote the unit path and descriptions with PowerShell's normal
 quoting rules, for example `fpc "-Fu.\src" .\src\Myapp.lpr`; do not paste Bash
-line-continuation or variable syntax into PowerShell. On Linux, filename and
-unit casing must match exactly.
+line-continuation or variable syntax into PowerShell. Pascal identifiers and
+unit names are case-insensitive; Linux filesystem paths are case-sensitive.
+Use the actual source paths and the lowercase unit filenames shipped here.
 
 ## How do I generate PowerShell completion?
 
@@ -323,9 +334,16 @@ is the runnable reference.
 
 ## How do I scaffold a project with `cli-fp-gen`?
 
+From the repository root:
+
 ```bash
 fpc -Futools/cli-fp-gen/src tools/cli-fp-gen/cli_fp_gen.lpr
 ./tools/cli-fp-gen/cli_fp_gen init ./build-temp/myapp --name myapp
+```
+
+```powershell
+fpc "-Futools\cli-fp-gen\src" .\tools\cli-fp-gen\cli_fp_gen.lpr
+.\tools\cli-fp-gen\cli_fp_gen.exe init .\build-temp\myapp --name myapp
 ```
 
 Use `generate` after changing `clifp.json`; keep application logic in the

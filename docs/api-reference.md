@@ -36,6 +36,9 @@ function CreateCLIApplication(const Name, Version: string;
 Use the two-argument overload for a command-first application. Use the
 three-argument overload when an unnamed root command should run for
 `myapp [options]`.
+The factory constructs the application; it does not parse process arguments.
+`Name` is display metadata, not a compiler output filename. Invoke the actual
+binary produced by FPC; parsing and dispatch happen when you call `App.Execute`.
 
 The following **program-setup fragment** needs `CLI.Interfaces` and
 `CLI.Application`. It assumes `TRootCommand` is a declared `TBaseCommand`
@@ -95,8 +98,23 @@ and return `0` on success. Use an empty `AName` for a root command.
 `GetParameterValue` is a protected member for command descendants, so call it
 from your descendant's `Execute`. It finds either registered flag spelling and
 returns values as strings.
-Lookup is case-insensitive; a missing value returns `False` and clears the
-output string. `ShowHelp` is also protected, for a command that intentionally
+Lookup is case-insensitive and uses the last occurrence across both aliases.
+The Boolean return indicates an available value or non-empty default, not
+whether the user supplied the option. After parsing:
+
+| Case | Return | Output string |
+| --- | --- | --- |
+| Non-empty supplied value | `True` | Supplied value |
+| Omitted option with a non-empty default | `True` | Default |
+| Empty non-Boolean value with a non-empty default | `True` | Default |
+| Omitted/empty non-Boolean without a default | `False` | `''` |
+| Bare Boolean or `--bool=` | `True` | `'true'` |
+| Omitted Boolean without a default | `False` | `'false'` |
+| Unknown flag, or lookup before a parsed list is attached | `False` | `''` |
+
+An omitted `AddFlag` normally returns `True` with `'false'` because its default
+is non-empty. Requiredness and type validation use this same lookup contract.
+`ShowHelp` is also protected, for a command that intentionally
 acts as a help-only group.
 
 Date/time and array values are retrieved through the same protected string
@@ -124,6 +142,12 @@ split these values in the command that owns their application meaning.
 All parameters use `string` flag and description arguments. `AllowedValues` is
 a pipe-separated string, such as `debug|info|warn`. See [options](options.md)
 for validation behavior and [How do I...?](how-to.md) for minimal examples.
+
+`AddFlag` and `AddBooleanParameter` both register `ptBoolean`, accept explicit
+false, and interpret bare presence as true. `AddFlag` always sets
+`Required=False` and its default argument is `'false'`; `AddBooleanParameter`
+requires explicit `Required` and `DefaultValue` arguments. Float validation
+and conversion use the process locale through `TryStrToFloat`.
 
 ### Parameter kinds
 
@@ -176,6 +200,9 @@ For cursor-oriented terminal work, `TConsole` also provides foreground and
 background colour setters, `ResetColors`, `ClearLine`, cursor movement, and
 save/restore cursor methods. `TConsoleColor` offers standard and bright colour
 values, including `ccGreen`, `ccYellow`, and `ccRed`.
+Coloured writes reset to default colours, not arbitrary previous colour state.
+They disable colour when stdout is redirected or `NO_COLOR` is non-empty;
+an empty `NO_COLOR` value alone does not disable colour.
 
 ## Progress
 
@@ -201,6 +228,12 @@ application introduces, or broader `Exception` only where useful recovery or
 context is possible.
 
 Applications receive `-h`/`--help`, `--help-complete`, and `-v`/`--version`.
+From v1.6.1, `-v`/`--version` are reserved case-insensitively throughout command
+trees. Used as options, they print the application version, return 0, and skip
+validation/dispatch at root, named and nested scopes. An equals-form value such
+as `--name=--version` remains a value. Conflicting definitions now raise a
+developer-facing exception; migrate verbose aliases to `-d` or long-only
+`--verbose`. `-V` is also reserved because matching is case-insensitive.
 When it is the first argument, `--completion-file` prints a Bash script and
 `--completion-file-pwsh` prints a PowerShell script. See
 [shell completion](completion.md) for usage.

@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'README.md'
+      - 'docs/**'
       - 'tools/cli-fp-gen/**'
       - 'tests/**'
       - 'src/**'
@@ -13,6 +15,8 @@ on:
       - '.github/workflows/tests.yml'
   pull_request:
     paths:
+      - 'README.md'
+      - 'docs/**'
       - 'tools/cli-fp-gen/**'
       - 'tests/**'
       - 'src/**'
@@ -39,6 +43,8 @@ jobs:
         run: bash tests/run_tests.sh
       - name: Bash Completion Script Contract
         run: bash tests/completion-tests/run_ci_bash.sh
+      - name: Documented Recipes
+        run: node tests/docs/verify-recipes.cjs
       - name: Example Build and Cleanup Smoke Test
         run: bash tests/run_cleanup_smoke.sh
       - name: Generator Unit Tests
@@ -77,6 +83,8 @@ jobs:
       - name: PowerShell Completion Script Contract
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File tests\completion-tests\run_ci_pwsh.ps1
+      - name: Documented Recipes
+        run: node tests/docs/verify-recipes.cjs
       - name: Example Build and Cleanup Smoke Test
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File tests\run_cleanup_smoke.ps1

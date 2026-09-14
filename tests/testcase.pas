@@ -92,7 +92,7 @@ type
 
     // 10.x - v1.5.1 Correctness and Completion Patch
     procedure Test_10_1_DirectParameterLookupIsCaseInsensitive;
-    procedure Test_10_3_ApplicationOnlyVersionFlags;
+    procedure Test_10_3_VersionFlagsAtAllScopes;
 
     // 11.x - v1.5.2 Safety and Documentation Corrections
     procedure Test_11_1_ProgressCaptionTerminalSanitization;
@@ -622,7 +622,7 @@ begin
   Cmd := TTestCommand.Create('test', 'Test command');
   App := TCLIApplication.Create('TestApp', '1.0.0');
   try
-    Cmd.AddFlag('-v', '--verbose', 'Verbose flag');
+    Cmd.AddFlag('-d', '--verbose', 'Verbose flag');
     App.RegisterCommand(Cmd);
     App.CurrentCommand := Cmd;
     Cmd.SetParsedParams(App.ParsedParams);
@@ -651,7 +651,7 @@ begin
   try
     Cmd.AddStringParameter('-n', '--name', 'Name parameter');
     Cmd.AddIntegerParameter('-c', '--count', 'Count parameter');
-    Cmd.AddFlag('-v', '--verbose', 'Verbose flag');
+    Cmd.AddFlag('-d', '--verbose', 'Verbose flag');
     App.RegisterCommand(Cmd);
     App.CurrentCommand := Cmd;
     
@@ -1510,7 +1510,7 @@ begin
   end;
 end;
 
-procedure TCLIFrameworkTests.Test_10_3_ApplicationOnlyVersionFlags;
+procedure TCLIFrameworkTests.Test_10_3_VersionFlagsAtAllScopes;
 var
   App: TCLIApplication;
   Cmd: TRecordingCommand;
@@ -1535,23 +1535,23 @@ begin
       Pos('TestApp version 1.5.1', Output.Text) > 0);
 
     Output.Clear;
-    AssertEquals('Named-command long version should be rejected', 1,
+    AssertEquals('Named-command long version should succeed', 0,
       App.TestExecuteAndCapture(MakeArgs(['test', '--version']), Output));
-    AssertEquals('Rejected named-command version must not execute', 0,
+    AssertEquals('Handled named-command version must not execute', 0,
       Cmd.ExecuteCount);
 
     Output.Clear;
-    AssertEquals('Named-command short version should be rejected', 1,
+    AssertEquals('Named-command short version should succeed', 0,
       App.TestExecuteAndCapture(MakeArgs(['test', '-v']), Output));
-    AssertEquals('Rejected named-command short version must not execute', 0,
+    AssertEquals('Handled named-command short version must not execute', 0,
       Cmd.ExecuteCount);
 
     Candidates := App.TestComplete(MakeArgs(['test', '']));
     try
-      AssertEquals('Named-command completion should omit --version', -1,
-        Candidates.IndexOf('--version'));
-      AssertEquals('Named-command completion should omit -v', -1,
-        Candidates.IndexOf('-v'));
+      AssertTrue('Named-command completion should include --version',
+        Candidates.IndexOf('--version') >= 0);
+      AssertTrue('Named-command completion should include -v',
+        Candidates.IndexOf('-v') >= 0);
       AssertTrue('Named-command completion should retain --help',
         Candidates.IndexOf('--help') >= 0);
       AssertTrue('Named-command completion should retain -h',

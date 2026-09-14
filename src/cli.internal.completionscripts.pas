@@ -104,7 +104,7 @@ begin
   end;
   if ParamFlags <> '' then
     ParamFlags := ParamFlags + ' ';
-  ParamFlags := ParamFlags + '--help -h';
+  ParamFlags := ParamFlags + '--help -h --version -v';
 
   AddLine(Script, 'tree[' + QuoteForBash(Path + '|subcommands') + ']=' +
     QuoteForBash(SubNames));

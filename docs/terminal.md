@@ -9,9 +9,11 @@ progress bar. These calls normally live inside the `Execute` method of your
 prints.
 
 Colour is disabled when stdout is redirected or when the `NO_COLOR` environment
-variable is set. Terminal text removes NUL and ESC control characters while
-preserving ordinary prose, Unicode, and line breaks. Coloured writes restore
-the previous terminal state even if the underlying output raises an error.
+variable has a non-empty value (even `NO_COLOR=0` disables colour); an empty
+value does not disable colour by itself. Terminal text removes NUL and ESC
+control characters while preserving ordinary prose, Unicode, and line breaks.
+Coloured writes reset to default colours in `finally`, including when output
+raises an error. They do not restore arbitrary colours set by an earlier call.
 
 ## Coloured output
 
@@ -20,9 +22,6 @@ directly—there is no console instance to declare. This is an **`Execute`-body
 fragment**:
 
 ```pascal
-uses
-  CLI.Console;
-
 TConsole.WriteLn('Done', ccGreen);
 TConsole.WriteLn('Could not connect', ccRed);
 ```

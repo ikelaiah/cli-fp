@@ -1,19 +1,19 @@
 #!/bin/bash
 declare -A tree
 tree["__root__|subcommands"]="repo"
-tree["__root__|params"]="--help --help-complete --version --completion-file --completion-file-pwsh -h"
+tree["__root__|params"]="--help --help-complete --version --completion-file --completion-file-pwsh -h -v"
 tree["repo|subcommands"]="init clone remote"
-tree["repo|params"]="--help -h"
+tree["repo|params"]="--help -h --version -v"
 tree["repo init|subcommands"]=""
-tree["repo init|params"]="--path -p --bare -b --help -h"
+tree["repo init|params"]="--path -p --bare -b --help -h --version -v"
 tree["repo clone|subcommands"]=""
-tree["repo clone|params"]="--url -u --path -p --branch -b --depth -d --help -h"
+tree["repo clone|params"]="--url -u --path -p --branch -b --depth -d --help -h --version -v"
 tree["repo remote|subcommands"]="add remove"
-tree["repo remote|params"]="--help -h"
+tree["repo remote|params"]="--help -h --version -v"
 tree["repo remote add|subcommands"]=""
-tree["repo remote add|params"]="--name -n --url -u --help -h"
+tree["repo remote add|params"]="--name -n --url -u --help -h --version -v"
 tree["repo remote remove|subcommands"]=""
-tree["repo remote remove|params"]="--name -n --help -h"
+tree["repo remote remove|params"]="--name -n --help -h --version -v"
 
 _repomanager_completions()
 {

@@ -2,7 +2,7 @@
 
 [How do I...?](how-to.md) · [Commands](commands.md) · [Options](options.md)
 
-These are current v1.6.0 boundaries verified against the public source and
+These are current v1.6.1 boundaries verified against the public source and
 tests. They are intentionally easy to find so a limitation does not look like
 an undocumented feature.
 
@@ -15,6 +15,8 @@ an undocumented feature.
   subcommands do not inherit them.
 - The framework has no persistent/global option model across a command tree.
 - A command group does not inherit child options.
+- Built-in `-v`/`--version` are reserved case-insensitively at every scope and
+  skip execution. This is independent of the lack of inherited user options.
 
 ## Values and validation
 
@@ -36,7 +38,12 @@ an undocumented feature.
   `--count=-1` or `--count -1` form. For another value beginning with `-`, use
   the equals form so it is not read as a new option.
 - Option flags are matched case-insensitively. If an option appears more than
-  once, the last occurrence wins.
+  once, the last occurrence wins across short and long aliases. Equals syntax
+  is supported for long options; short aliases take separated values.
+- Float parsing uses the process locale's decimal separator.
+- An omitted Boolean without a default returns `False` from lookup but places
+  `'false'` in the output. Empty non-Boolean values fall back to a non-empty
+  default; otherwise lookup returns `False` with an empty string.
 
 ## Completion
 

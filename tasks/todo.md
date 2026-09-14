@@ -52,3 +52,11 @@
 - [x] Document internal architecture and `CLI.Errors` compatibility scope
 - [x] Update 1.6.0 metadata and complete clean cross-platform qualification
 - [ ] Review, PR, merge, tag, release, Pages verification, and clean-tree handoff
+
+## cli-fp v1.6.1
+
+- [x] Reproduce and fix version scopes and mixed aliases
+- [x] Align generator, help, completion, fixtures and examples
+- [x] Audit current guides and execute corrected Markdown recipes
+- [ ] Qualify final revision and update release metadata
+- [ ] Review, PR, merge, exact-merge CI, tag, release, Pages and clean tree

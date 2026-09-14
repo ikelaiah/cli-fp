@@ -232,6 +232,10 @@ tested independently while the public application façade remains stable.
 
 ## v2.0.0 — Make Execution State Explicit
 
+Before the v2 work, v1.6.1 (2026-09-15) corrects version-flag reservation and
+mixed-alias ordering, and qualifies current reader guides using executable
+Markdown recipes. See the changelog for the intentional registration change.
+
 - Evaluate actual positional-argument support and `--` terminator semantics
   together as one parser design.
 - Adopt an explicit execution-context contract for commands.

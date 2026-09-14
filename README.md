@@ -7,7 +7,7 @@
 [![Lazarus](https://img.shields.io/badge/Lazarus-package-60A5FA.svg)](https://github.com/ikelaiah/cli-fp/blob/main/packages/lazarus/cli_fp.lpk)
 ![Supports Windows](https://img.shields.io/badge/support-Windows-F59E0B?logo=Windows)
 ![Supports Linux](https://img.shields.io/badge/support-Linux-F59E0B?logo=Linux)
-[![Version](https://img.shields.io/badge/version-1.6.0-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.1-8B5CF6.svg)](https://github.com/ikelaiah/cli-fp/blob/main/CHANGELOG.md)
 [![Documentation](https://img.shields.io/badge/Docs-Website-brightgreen.svg)](https://ikelaiah.github.io/cli-fp/)
 [![Tests](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml/badge.svg)](https://github.com/ikelaiah/cli-fp/actions/workflows/tests.yml)
 
@@ -77,9 +77,11 @@ begin
 end.
 ```
 
-Compile from a clone of this repository:
+Clone the repository, enter it, then build and run (Bash):
 
 ```bash
+git clone https://github.com/ikelaiah/cli-fp.git
+cd cli-fp
 fpc -Fu./src ./examples/QuickStartDemo/QuickStartDemo.lpr
 ./examples/QuickStartDemo/QuickStartDemo --name Ada
 ```
@@ -89,22 +91,42 @@ $ ./examples/QuickStartDemo/QuickStartDemo --name Ada
 Hello, Ada!
 ```
 
-On PowerShell, use `fpc "-Fu.\src" .\examples\QuickStartDemo\QuickStartDemo.lpr`
-and run `.\examples\QuickStartDemo\QuickStartDemo.exe --name Ada`.
+PowerShell equivalent:
+
+```powershell
+git clone https://github.com/ikelaiah/cli-fp.git
+Set-Location cli-fp
+fpc "-Fu.\src" .\examples\QuickStartDemo\QuickStartDemo.lpr
+.\examples\QuickStartDemo\QuickStartDemo.exe --name Ada
+```
 
 The empty name in `THelloCommand.Create('', ...)` marks the root/default
-command, so the invocation is `hello --name Ada`, not `hello greet --name Ada`.
+command, so no command name is needed before `--name`.
+`CreateCLIApplication('hello', ...)` sets display metadata; it does not rename
+the binary. FPC builds `QuickStartDemo` (Windows: `QuickStartDemo.exe`).
+The factory constructs the application; `App.Execute` parses and validates
+arguments, handles built-ins, and dispatches the selected command.
 Keep the command and application references and let the `ICLIApplication` own
 the registered command tree; do not manually free registered commands.
 `Halt(App.Execute)` is the beginner-recommended program tail.
 
 Quick self-checks are:
 
-```text
-hello --help       # generated usage and --name
-hello --version    # hello version 1.0.0
-hello --name Ada   # Hello, Ada!
+```bash
+./examples/QuickStartDemo/QuickStartDemo --help
+./examples/QuickStartDemo/QuickStartDemo --version
+./examples/QuickStartDemo/QuickStartDemo --name Ada
 ```
+
+```powershell
+.\examples\QuickStartDemo\QuickStartDemo.exe --help
+.\examples\QuickStartDemo\QuickStartDemo.exe --version
+.\examples\QuickStartDemo\QuickStartDemo.exe --name Ada
+```
+
+These show generated usage, `hello version 1.0.0`, and `Hello, Ada!`,
+respectively, with exit status 0. Throughout the guides, `tool` and `myapp`
+stand for your compiled executable; use its actual path.
 
 ## Choose a CLI shape
 
@@ -141,8 +163,9 @@ way to start.
 - Windows and Linux run the repository's CI checks.
 - The runtime has no third-party dependencies. The generator uses FCL JSON
   units.
-- On Linux, filenames and unit names are case-sensitive; a casing mismatch
-  that Windows tolerates can prevent compilation.
+- Pascal identifiers, including unit names, are case-insensitive. Linux paths
+  and filenames are case-sensitive: use the files' actual paths and FPC's
+  unit-file lookup conventions (this repository uses lowercase unit files).
 
 ## Contributing
 

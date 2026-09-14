@@ -40,7 +40,7 @@ begin
   CmdGreet := TGreetCommand.Create;
   CmdGreet.UpdateDescription('Say hello');
   CmdGreet.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
-  CmdGreet.AddFlag('-v', '--verbose', 'Verbose output', 'false');
+  CmdGreet.AddFlag('-d', '--verbose', 'Verbose output', 'false');
   CmdGreet.AddEnumParameter('-m', '--mode', 'Greeting mode', 'normal|formal', False, 'normal');
   App.RegisterCommand(CmdGreet);
   CmdRepo := TRepoCommand.Create;

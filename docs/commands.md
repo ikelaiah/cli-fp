@@ -3,7 +3,7 @@
 [Start here](getting-started.md) · [How do I...?](how-to.md) ·
 [Options](options.md) · [Limitations](limitations.md)
 
-In normal v1.5.x code, a command is an object you define by subclassing
+In normal 1.x code, a command is an object you define by subclassing
 `TBaseCommand`. The object owns its registered options; the application owns
 the command tree and calls the selected object's `Execute` method.
 
@@ -56,7 +56,7 @@ var
   Root: TRootCommand;
 begin
   Root := TRootCommand.Create('', 'Run the default action');
-  Root.AddFlag('-v', '--verbose', 'Show detailed output');
+  Root.AddFlag('-d', '--verbose', 'Show detailed output');
   App := CreateCLIApplication('hello', '1.0.0', Root);
   Halt(App.Execute);
 end.
@@ -166,8 +166,12 @@ does not receive options from its children. For a runnable nested example, see
 ## Help and exit codes
 
 `tool --help` shows application help. `tool greet --help` shows the selected
-command. `--version` is an application-level request when used as the first
-argument; named commands do not accept it as a command option. Return `0` from
+command. `-v`/`--version` print the application version at root, named, and
+nested scopes (`tool repo clone -v`), return 0, and skip command execution.
+These flags are reserved case-insensitively; `-V` cannot mean verbose.
+Use `--name=--version` when that text is an option value. This intentionally
+corrects the pre-v1.6.1 named-command rejection and conflicting registrations.
+Return `0` from
 a command's `Execute` for success and a non-zero
 integer for an application failure; the setup fragments use `Halt(App.Execute)`
 to forward that result to the shell. The application owns registered commands

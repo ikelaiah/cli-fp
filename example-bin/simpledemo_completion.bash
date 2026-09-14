@@ -1,9 +1,9 @@
 #!/bin/bash
 declare -A tree
 tree["__root__|subcommands"]="greet"
-tree["__root__|params"]="--help --help-complete --version --completion-file --completion-file-pwsh -h"
+tree["__root__|params"]="--help --help-complete --version --completion-file --completion-file-pwsh -h -v"
 tree["greet|subcommands"]=""
-tree["greet|params"]="--name -n --count -c --verbose -v --mode -m --help -h"
+tree["greet|params"]="--name -n --count -c --verbose -d --mode -m --help -h --version -v"
 
 _myapp_completions()
 {

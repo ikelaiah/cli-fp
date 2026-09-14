@@ -1,9 +1,9 @@
 # Contributing and support
 
 `cli-fp` is a small open-source framework maintained around a deliberately
-small public API. v1.6.0 makes its completion rendering and test boundaries
-easier to maintain while preserving the supported class-based runtime described
-in these guides.
+small public API. v1.6.1 reserves version flags at every command scope, fixes
+mixed-alias value ordering, and verifies the current guides with executable
+Markdown recipes. The runtime remains class-based.
 
 ## Supported environments
 
