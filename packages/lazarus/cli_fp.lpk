@@ -36,7 +36,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. "/>
-    <Version Major="1" Minor="5" Release="4"/>
+    <Version Major="1" Minor="6" Release="0"/>
     <Files>
       <Item>
         <Filename Value="..\..\src\cli.application.pas"/>
@@ -45,6 +45,11 @@ SOFTWARE. "/>
       <Item>
         <Filename Value="..\..\src\cli.internal.completion.pas"/>
         <UnitName Value="CLI.Internal.Completion"/>
+        <AddToUsesPkgSection Value="False"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\src\cli.internal.completionscripts.pas"/>
+        <UnitName Value="CLI.Internal.CompletionScripts"/>
         <AddToUsesPkgSection Value="False"/>
       </Item>
       <Item>

@@ -80,18 +80,24 @@ try {
   Write-Host "Golden test passed"
 
   # Compile smoke check
+  $GoldenOutput = Join-Path $GoldenProject "build"
+  $GoldenUnits = Join-Path $GoldenOutput "units"
+  New-Item -ItemType Directory -Force -Path $GoldenUnits | Out-Null
   fpc `
     "-Fu$RootDir\src" `
     "-Fu$GoldenProject\src" `
     "-Fu$GoldenProject\src\generated" `
     "-Fu$GoldenProject\src\commands" `
+    "-FE$GoldenOutput" `
+    "-FU$GoldenUnits" `
     (Join-Path $GoldenProject "src\GoldenDemo.lpr")
   Assert-True ($LASTEXITCODE -eq 0) "Failed to compile generated golden project"
 
-  & (Join-Path $GoldenProject "src\GoldenDemo.exe") --help | Out-Null
-  $RootOutput = (& (Join-Path $GoldenProject "src\GoldenDemo.exe") --root-name Gus) | Out-String
+  $GoldenExe = Join-Path $GoldenOutput "GoldenDemo.exe"
+  & $GoldenExe --help | Out-Null
+  $RootOutput = (& $GoldenExe --root-name Gus) | Out-String
   Assert-True ($RootOutput -match "TODO: Implement the root command") "Generated root command did not execute"
-  & (Join-Path $GoldenProject "src\GoldenDemo.exe") repo | Out-Null
+  & $GoldenExe repo | Out-Null
 
   Write-Host "Compile smoke test passed"
 
@@ -148,11 +154,16 @@ try {
   & $GenExe add command root --project $DemoProject --description "Root-named command" | Out-Null
   & $GenExe add command base --project $DemoProject --description "Base-named command" | Out-Null
   $CollisionProgramPath = Join-Path $DemoProject $DemoSpec.app.programFile
+  $CollisionOutput = Join-Path $DemoProject "build"
+  $CollisionUnits = Join-Path $CollisionOutput "units"
+  New-Item -ItemType Directory -Force -Path $CollisionUnits | Out-Null
   fpc `
     "-Fu$RootDir\src" `
     "-Fu$DemoProject\src" `
     "-Fu$DemoProject\src\generated" `
     "-Fu$DemoProject\src\commands" `
+    "-FE$CollisionOutput" `
+    "-FU$CollisionUnits" `
     $CollisionProgramPath
   Assert-True ($LASTEXITCODE -eq 0) "Generated root/base collision project did not compile"
 
@@ -170,15 +181,22 @@ try {
   & $GenExe generate --project $DescriptionsProject | Out-Null
 
   $ProgramPath = Join-Path $DescriptionsProject $DescriptionsSpec.app.programFile
+  $DescriptionsOutput = Join-Path $DescriptionsProject "build"
+  $DescriptionsUnits = Join-Path $DescriptionsOutput "units"
+  New-Item -ItemType Directory -Force -Path $DescriptionsUnits | Out-Null
   fpc `
     "-Fu$RootDir\src" `
     "-Fu$DescriptionsProject\src" `
     "-Fu$DescriptionsProject\src\generated" `
     "-Fu$DescriptionsProject\src\commands" `
+    "-FE$DescriptionsOutput" `
+    "-FU$DescriptionsUnits" `
     $ProgramPath
   Assert-True ($LASTEXITCODE -eq 0) "Failed to compile generated descriptions project"
 
-  $ExePath = [System.IO.Path]::ChangeExtension($ProgramPath, ".exe")
+  $ExePath = Join-Path $DescriptionsOutput (
+    [System.IO.Path]::ChangeExtension([System.IO.Path]::GetFileName($ProgramPath), ".exe")
+  )
   $HelpOutput = (& $ExePath repo --help) | Out-String
   Assert-True ($HelpOutput -match "Repo team's tools") "Regenerated command description did not update runtime help"
 
@@ -227,6 +245,15 @@ try {
   Assert-True ($LASTEXITCODE -ne 0) "Expected a manifest entry through a junction to fail cleanup"
   Assert-True ($LinkGuardOutput -match "symbolic link or reparse point") "Generator did not report the linked manifest path"
   Assert-True (Test-Path $LinkGuardVictim) "Manifest cleanup followed a junction and deleted an external file"
+
+  $SourceArtifacts = @(
+    Get-ChildItem -LiteralPath (Join-Path $RootDir "src") -File |
+      Where-Object { $_.Extension -in ".o", ".ppu", ".or", ".a" }
+  )
+  Assert-True ($SourceArtifacts.Count -eq 0) (
+    "Generated compiler artifacts escaped the test temporary directories: " +
+    ($SourceArtifacts.Name -join ", ")
+  )
 
   Write-Host "Ops test passed"
 }

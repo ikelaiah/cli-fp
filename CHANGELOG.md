@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-14
+
+### Changed
+
+- Moved Bash and PowerShell completion-script construction and shell quoting
+  to internal `CLI.Internal.CompletionScripts`, while retaining the public
+  `TCLIApplication` façade, completion flags, and output-capture behaviour.
+- Grouped completion behaviour in a focused FPCUnit suite. Full deterministic
+  Bash and PowerShell renderings now characterize generated script lines and
+  their existing output routing.
+- Made generated completion scripts required CI contracts: Linux compiles a
+  fixture and syntax-checks Bash output; Windows compiles the same fixture and
+  parses PowerShell output.
+- Isolated generated-project compile output in the generator suites and made
+  source-artifact leakage a direct test failure.
+
+### Documentation
+
+- Recorded the retained application-facade boundary in ADR-001 and clarified
+  that `CLI.Errors` remains public 1.x compatibility API rather than the
+  general parser/runtime error contract.
+
 ## [1.5.4] - 2026-09-13
 
 ### Fixed
@@ -582,7 +604,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.5.4...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/ikelaiah/cli-fp/compare/v1.5.4...v1.6.0
 [1.5.4]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/ikelaiah/cli-fp/compare/v1.5.1...v1.5.2

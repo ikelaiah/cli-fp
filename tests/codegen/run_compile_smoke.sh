@@ -20,16 +20,26 @@ mkdir -p "$TMP_DIR/project"
 cp "$FIXTURE_DIR/clifp.json" "$TMP_DIR/project/clifp.json"
 "$GEN_BIN" generate --project "$TMP_DIR/project" >/dev/null
 
+mkdir -p "$TMP_DIR/project/build/units"
 fpc \
   -Fu"$ROOT_DIR/src" \
   -Fu"$TMP_DIR/project/src" \
   -Fu"$TMP_DIR/project/src/generated" \
   -Fu"$TMP_DIR/project/src/commands" \
+  -FE"$TMP_DIR/project/build" \
+  -FU"$TMP_DIR/project/build/units" \
   "$TMP_DIR/project/src/GoldenDemo.lpr" >/dev/null
 
-"$TMP_DIR/project/src/GoldenDemo" --help >/dev/null
-"$TMP_DIR/project/src/GoldenDemo" --root-name Gus | grep -q \
+"$TMP_DIR/project/build/GoldenDemo" --help >/dev/null
+"$TMP_DIR/project/build/GoldenDemo" --root-name Gus | grep -q \
   'TODO: Implement the root command'
-"$TMP_DIR/project/src/GoldenDemo" repo >/dev/null
+"$TMP_DIR/project/build/GoldenDemo" repo >/dev/null
+
+if find "$ROOT_DIR/src" -maxdepth 1 -type f \
+  \( -name '*.o' -o -name '*.ppu' -o -name '*.or' -o -name '*.a' \) \
+  -print -quit | grep -q .; then
+  echo "Compiler artifacts escaped the test temporary directories"
+  exit 1
+fi
 
 echo "Compile smoke test passed"

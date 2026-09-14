@@ -1,6 +1,22 @@
-# Completion Test Scripts
+# Completion tests
 
-This directory contains low-level test scripts used during development of the Bash and PowerShell completion functionality.
+This directory contains the required shell-specific completion contracts and
+low-level scripts retained for manual development investigation.
+
+## Required CI contracts
+
+- `run_ci_bash.sh` compiles `completion_fixture.lpr`, generates a Bash script,
+  checks its syntax with `bash -n`, and verifies its registration metadata on
+  Linux.
+- `run_ci_pwsh.ps1` compiles the same fixture, generates a PowerShell script,
+  and parses it with the PowerShell language parser on Windows. It parses only;
+  it does not register a completer in the CI host session.
+
+The renderer's full deterministic line-by-line contract is covered by the
+FPCUnit `Test_Completion_Scripts` suite. The shell checks deliberately exercise
+the public executable generation path as a separate, required CI step.
+
+## Manual development scripts
 
 ## Files
 
@@ -30,14 +46,14 @@ These scripts were used during development to:
 3. Verify `__complete` command output
 4. Test different shell environments
 
-## For Formal Testing
+## Historical qualification material
 
 Historical manual qualification material is kept in the
 [documentation archive](../../docs/archive/completion-testing/README.md).
 
 ## Usage
 
-These are development scripts and typically don't need to be run unless:
+The manual development scripts typically do not need to be run unless:
 - Debugging completion issues
 - Testing low-level shell behavior
 - Verifying argument passing
@@ -47,4 +63,5 @@ and the repository's automated tests instead.
 
 ## Note
 
-These scripts were kept for historical reference and debugging purposes. They may not be actively maintained as the formal test suite (in docs/) is the primary testing method.
+These scripts are retained for debugging and historical reference. The required
+FPCUnit and CI contracts above are the maintained formal test path.

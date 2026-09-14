@@ -1,6 +1,6 @@
 # cli-fp user manual
 
-This page remains as a stable starting point for existing links. The v1.5.4
+This page remains as a stable starting point for existing links. The v1.6.0
 documentation is organized by the job you want to do rather than as one long
 manual.
 

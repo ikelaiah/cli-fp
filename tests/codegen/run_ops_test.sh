@@ -124,14 +124,17 @@ test -f "$description_program" || {
   exit 1
 }
 
+mkdir -p "$TMP_DIR/descriptions/build/units"
 fpc \
   -Fu"$ROOT_DIR/src" \
   -Fu"$TMP_DIR/descriptions/src" \
   -Fu"$TMP_DIR/descriptions/src/generated" \
   -Fu"$TMP_DIR/descriptions/src/commands" \
+  -FE"$TMP_DIR/descriptions/build" \
+  -FU"$TMP_DIR/descriptions/build/units" \
   "$description_program"
 
-description_executable="${description_program%.lpr}"
+description_executable="$TMP_DIR/descriptions/build/$(basename "${description_program%.lpr}")"
 "$description_executable" repo --help | grep -q "Repo team's tools" || {
   echo "Regenerated command description did not update runtime help"
   exit 1
@@ -243,6 +246,13 @@ PY
     echo "Manifest cleanup deleted a file from a differently-cased sibling directory"
     exit 1
   }
+fi
+
+if find "$ROOT_DIR/src" -maxdepth 1 -type f \
+  \( -name '*.o' -o -name '*.ppu' -o -name '*.or' -o -name '*.a' \) \
+  -print -quit | grep -q .; then
+  echo "Compiler artifacts escaped the test temporary directories"
+  exit 1
 fi
 
 echo "Ops test passed"
