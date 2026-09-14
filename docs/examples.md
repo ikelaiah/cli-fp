@@ -13,6 +13,7 @@ Run these commands from a clone of the repository. The tested compiler is FPC
 3.2.2; Lazarus is optional.
 
 ```bash
+mkdir -p example-bin
 fpc -Fu./src -FE./example-bin ./examples/RootCommandDemo/RootCommandDemo.lpr
 ./example-bin/RootCommandDemo --help
 ```
@@ -20,6 +21,7 @@ fpc -Fu./src -FE./example-bin ./examples/RootCommandDemo/RootCommandDemo.lpr
 On Windows, quote the unit path so PowerShell passes it to FPC as one option:
 
 ```powershell
+New-Item -ItemType Directory -Force example-bin | Out-Null
 fpc "-Fu.\src" "-FE.\example-bin" .\examples\RootCommandDemo\RootCommandDemo.lpr
 .\example-bin\RootCommandDemo.exe --help
 ```

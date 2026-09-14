@@ -101,14 +101,14 @@ type
       Required: Boolean = False; const DefaultValue: string = '');
     
     { Helper: Adds a boolean flag parameter
-      @param ShortFlag Short form flag (e.g., '-v')
+      @param ShortFlag Short form flag (e.g., '-d'; -v is reserved)
       @param LongFlag Long form flag (e.g., '--verbose')
       @param Description Parameter description
       @param DefaultValue Default value if not provided }
     procedure AddFlag(const ShortFlag, LongFlag, Description: string;
       const DefaultValue: string = 'false');
     
-    { Helper: Adds a boolean parameter that requires explicit true/false value  
+    { Helper: Adds a Boolean parameter; bare presence is accepted as true
       @param ShortFlag Short form flag (e.g., '-c')
       @param LongFlag Long form flag (e.g., '--colorful')
       @param Description Parameter description
@@ -328,7 +328,8 @@ begin
   AddParameter(ShortFlag, LongFlag, Description, False, ptBoolean, DefaultValue);
 end;
 
-{ Adds a boolean parameter that requires explicit true/false value }
+{ Adds a Boolean parameter with caller-selected requiredness and default.
+  Bare presence is accepted as true for 1.x compatibility. }
 procedure TBaseCommand.AddBooleanParameter(const ShortFlag, LongFlag, Description: string;
   Required: Boolean; const DefaultValue: string);
 begin

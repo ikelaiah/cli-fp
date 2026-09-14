@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-09-15
+
+### Fixed
+
+- Reserved `-v` and `--version` case-insensitively throughout root, named and
+  nested commands. Version requests print the application version and return
+  success without validation or command execution. Parsing-aware detection
+  preserves option values such as `--name=--version`.
+- Repeated options now resolve to their last occurrence across short/long
+  aliases, case variants, and supported long equals forms. Validation and
+  command lookup agree; negative numeric values and password redaction remain
+  supported.
+
+### Compatibility correction
+
+- Registrations/specifications that use `-v`, `-V`, or `--version` (including
+  other case variants) for user options now fail with a clear definition error.
+  Migrate verbosity to `-d`/`--verbose` or long-only `--verbose`. Named-command
+  version requests previously rejected by the framework now succeed. Help,
+  completion, examples and generator fixtures follow the corrected contract.
+- The generator's own `init --version <value>` still sets generated application
+  metadata; it is distinct from the generated application's version request.
+
+### Documentation and qualification
+
+- Corrected the beginner clone/build/run paths, metadata/factory explanation,
+  duplicate How-To registration instructions and option-table collisions.
+- Clarified Boolean defaults/requiredness, lookup return/output cases, default
+  colour reset, non-empty `NO_COLOR`, float locale dependence, and Pascal
+  identifier versus filesystem casing.
+- Added required Linux and Windows checks that compile current Markdown
+  snippets and execute documented build/run recipes with output/exit checks.
+  Historical documentation is preserved.
+
 ## [1.6.0] - 2026-09-14
 
 ### Changed
@@ -604,7 +638,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/ikelaiah/cli-fp/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ikelaiah/cli-fp/compare/v1.5.4...v1.6.0
 [1.5.4]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/ikelaiah/cli-fp/compare/v1.5.2...v1.5.3

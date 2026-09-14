@@ -12,6 +12,9 @@ that generated the script.
 
 ## Bash
 
+Start in the directory containing your compiled `myapp` executable (replace
+this placeholder with the actual name, for example `QuickStartDemo`).
+
 ```bash
 ./myapp --completion-file > myapp-completion.bash
 source ./myapp-completion.bash
@@ -41,6 +44,8 @@ completion example.
 Completion-script requests are handled only when they are the first argument.
 The first non-option token selects a named command; later non-option tokens
 can select its subcommands. `--help` works at application and selected-command
-scope, while `--version` is an application-level request when used alone.
+scope. Reserved `-v`/`--version` requests display the application version at
+root, named and nested scopes, and are offered in command-option completions.
+Use `-d` or long-only `--verbose` for verbosity; `-V` is also a version request.
 Historical completion qualification material is retained in the
 [archive](archive/completion-testing/README.md), not in the user guide.

@@ -471,3 +471,39 @@ behavioural coverage, and record the resulting internal boundaries. The public
 | Test splitting loses registration or coverage | Keep FPCUnit registration explicit and compare counts/behaviour before and after. |
 | Shell checks vary by host | Use deterministic rendered-script assertions plus Bash on Linux and PowerShell on Windows. |
 | Internal cleanup leaks into a public redesign | Keep the application facade and exported units unchanged; compare the v1.5.4 public API before release. |
+
+## v1.6.1: runtime contracts and reader journey
+
+Baseline: fetched `main` at `c92505bcea90273f98c3ed45dbd1e10b5f4dea9f`.
+The user authorises implementation through publication and Pages verification.
+
+1. Reproduce version scope/reserved-definition and mixed-alias bugs with
+   FPCUnit tests. Preserve option-value boundaries, negative numbers, and
+   registered-password redaction.
+2. Reserve version flags throughout runtime trees and generator specifications;
+   update help, completion, and conflicting current fixtures/examples. Make
+   ordered alias lookup shared by validation and retrieval.
+3. Audit the complete current documentation journey against source. Correct
+   setup/insertion instructions, executable paths, Boolean/default semantics,
+   terminal and locale explanations. Preserve historical sources.
+4. Compile and execute corrected Markdown recipes from their stated directory;
+   record outputs and status. Run Windows and Linux CI suites, package builds,
+   docs build/link checks and rendered-page inspection where available.
+5. Update release metadata; review the final PR revision, merge after checks,
+   qualify the exact merge SHA, annotate v1.6.1, publish, and verify live Pages
+   and a clean tree. Record evidence in release notes and the final report.
+
+Acceptance: version requests skip dispatch at all supported scopes, values
+remain values, aliases resolve by occurrence order, documentation recipes run,
+and both operating systems qualify the tagged merge commit.
+
+Local evidence (2026-09-15): baseline regression run reproduced eight framework
+failures and one generator reservation failure. Corrected Windows runs pass
+78 framework tests, all generator checks and the PowerShell completion contract.
+The Markdown runner passes 18 programs and 68 compiler/process invocations;
+DocKit 1.0.0 checks/builds all 14 published pages. Isolated Edge inspection
+loads all pages with no logged browser errors and visible 1.6.1 metadata.
+Normal Lazarus package build succeeds; its user-cache permission warning is
+external to compilation. Exact committed clean-clone builds and Linux/Windows
+PR plus merge qualification follow before tagging. Review covers parser token
+boundaries, alias/default semantics, redaction, generator parity, and docs.

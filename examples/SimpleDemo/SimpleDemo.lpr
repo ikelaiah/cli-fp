@@ -97,7 +97,7 @@ begin
       - Default value }
     Cmd.AddStringParameter('-n', '--name', 'Name to greet', False, 'World');
     Cmd.AddIntegerParameter('-c', '--count', 'Number of times to greet', False, '1');
-    Cmd.AddBooleanParameter('-v', '--verbose', 'Enable verbose output', False, 'false');
+    Cmd.AddBooleanParameter('-d', '--verbose', 'Enable verbose output', False, 'false');
     Cmd.AddEnumParameter('-m', '--mode', 'Greeting mode', 'normal|friendly|formal', False, 'normal');
 
     { Register the command with the application

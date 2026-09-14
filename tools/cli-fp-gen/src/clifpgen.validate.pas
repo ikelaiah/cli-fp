@@ -103,6 +103,11 @@ begin
     begin
       Param := Parameters[j];
 
+      if SameText(Param.ShortFlag, '-v') or SameText(Param.LongFlag, '--version') then
+        raise Exception.CreateFmt(
+          '%s: -v and --version are reserved for application version requests; use -d/--verbose or long-only --verbose',
+          [CommandLabel]);
+
       if (Trim(Param.ShortFlag) = '') and (Trim(Param.LongFlag) = '') then
         raise Exception.CreateFmt('%s: parameter %d must define a short or long flag',
           [CommandLabel, j]);

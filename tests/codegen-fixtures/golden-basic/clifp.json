@@ -36,7 +36,7 @@
         },
         {
           "kind": "flag",
-          "short": "-v",
+          "short": "-d",
           "long": "--verbose",
           "description": "Verbose output",
           "required": false,

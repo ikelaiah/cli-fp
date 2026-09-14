@@ -193,6 +193,10 @@ begin
 
   if (Style = chsApplication) and (Length(SubCommands) > 0) then
     ShowCommandExamples(SubCommands, CommandPath, Style);
+  WriteLine('');
+  WriteLine('Built-in options:', ccCyan);
+  WriteLine('  -h, --help           Show command help');
+  WriteLine('  -v, --version        Show application version information');
 end;
 
 procedure TCLIHelpRenderer.ShowCommandExamples(

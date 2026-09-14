@@ -51,9 +51,18 @@ begin
   if not Assigned(Param) or not Assigned(ParsedParams) then
     Exit;
 
-  Index := ParsedParams.IndexOfName(Param.LongFlag);
-  if Index = -1 then
-    Index := ParsedParams.IndexOfName(Param.ShortFlag);
+  // The parser preserves occurrence order across both aliases. Compare
+  // explicitly so custom parameter receivers need not configure TStrings.
+  Index := ParsedParams.Count - 1;
+  while Index >= 0 do
+  begin
+    if ((Param.LongFlag <> '') and
+        SameText(ParsedParams.Names[Index], Param.LongFlag)) or
+       ((Param.ShortFlag <> '') and
+        SameText(ParsedParams.Names[Index], Param.ShortFlag)) then
+      Break;
+    Dec(Index);
+  end;
 
   if Index <> -1 then
   begin

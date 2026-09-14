@@ -49,6 +49,7 @@ type
     procedure TestReservedGeneratedClassNamesAreDisambiguated;
     procedure TestProgramFileSerializationUsesPortableSlashes;
     procedure TestPascalStringRenderingEscapesControls;
+    procedure TestVersionFlagsAreReservedAtEveryScope;
   end;
 
 implementation
@@ -59,6 +60,45 @@ uses
   CliFpGen.Validate,
   CliFpGen.Renderer,
   CliFpGen.Manifest;
+
+procedure TCodegenTests.TestVersionFlagsAreReservedAtEveryScope;
+const
+  Flags: array[0..3] of string = ('-v', '-V', '--version', '--VERSION');
+var
+  Spec: TProjectSpec;
+  Cmd: TCommandSpec;
+  Param: TParameterSpec;
+  Scope, i: Integer;
+begin
+  for Scope := 0 to 2 do
+    for i := Low(Flags) to High(Flags) do
+    begin
+      Spec := NewValidSpec;
+      try
+        Param := TParameterSpec.Create;
+        if Length(Flags[i]) = 2 then
+          Param.ShortFlag := Flags[i]
+        else
+          Param.LongFlag := Flags[i];
+        Param.Description := 'Conflicting option';
+        if Scope = 0 then
+        begin
+          Spec.HasRootCommand := True;
+          Spec.RootCommand.Parameters.Add(Param);
+        end
+        else
+        begin
+          Cmd := AddCommand(Spec, 'run');
+          if Scope = 2 then
+            Cmd := AddCommand(Spec, 'child', 'run');
+          Cmd.Parameters.Add(Param);
+        end;
+        AssertValidationFails(Spec, 'reserved');
+      finally
+        Spec.Free;
+      end;
+    end;
+end;
 
 procedure TCodegenTests.AssertSpecLoadFails(const JsonText,
   ExpectedMessagePart: string);
@@ -352,7 +392,7 @@ begin
   try
     Cmd := AddCommand(Spec, 'run');
     Param := TParameterSpec.Create;
-    Param.ShortFlag := '-v';
+    Param.ShortFlag := '-d';
     Param.Description := 'Verbose output';
     Cmd.Parameters.Add(Param);
     ValidateProjectSpec(Spec);
@@ -390,7 +430,7 @@ begin
   try
     Cmd := AddCommand(Spec, 'run');
     Param := TParameterSpec.Create;
-    Param.ShortFlag := '-v';
+    Param.ShortFlag := '-d';
     Param.LongFlag := '--verbose';
     Param.Description := 'Verbose output';
     Cmd.Parameters.Add(Param);
@@ -458,7 +498,7 @@ begin
   try
     Cmd := AddCommand(Spec, 'run');
     Param := TParameterSpec.Create;
-    Param.ShortFlag := '-v';
+    Param.ShortFlag := '-d';
     Param.LongFlag := '--verbose';
     Param.Description := 'Verbose output';
     Cmd.Parameters.Add(Param);

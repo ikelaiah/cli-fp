@@ -67,6 +67,11 @@ procedure ValidateParameterDefinition(const Parameter: ICommandParameter;
 begin
   if not Assigned(Parameter) then
     raise EArgumentNilException.CreateFmt('%s parameter cannot be nil', [Context]);
+  if SameText(Parameter.ShortFlag, '-v') or
+    SameText(Parameter.LongFlag, '--version') then
+    raise EArgumentException.CreateFmt(
+      '%s: -v and --version are reserved for application version requests; use -d/--verbose or long-only --verbose',
+      [Context]);
   if (Parameter.ShortFlag = '') and (Parameter.LongFlag = '') then
     raise EArgumentException.CreateFmt(
       '%s parameter must define a short or long flag', [Context]);

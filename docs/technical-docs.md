@@ -303,7 +303,10 @@ end;
 ```
 
 `ExecuteArguments` coordinates focused global-request, command-selection,
-command-help, and execution helpers. Output capture state and
+command-version, command-help, and execution helpers. Version detection uses
+the same `ReadOption` token boundaries as parsing, preserving equals-form
+values. Parsed occurrences are kept in order; shared lookup scans backwards
+across both aliases so validation and command retrieval agree. Output capture state and
 `TestExecuteAndCapture` exist only in builds compiled with
 `CLI_FP_TESTING`; normal runtime units contain neither symbol.
 
@@ -574,7 +577,7 @@ The framework implements parameter validation in `TCLIApplication.ValidateParame
 ### Basic Types
 - `ptString`: No validation
 - `ptInteger`: Uses `TryStrToInt`
-- `ptFloat`: Uses `TryStrToFloat`
+- `ptFloat`: Uses `TryStrToFloat` with the process locale's decimal separator
 - `ptBoolean`: Must be 'true' or 'false' (case-insensitive)
 
 ### Complex Types
@@ -620,6 +623,9 @@ Format('Error: Parameter "%s" must be a valid URL starting with http://, https:/
 
 ## Validation Flow
 
+Version requests are handled before this flow using parser-aware token
+boundaries. They return success without validating required command options.
+
 1. Command parameters are parsed from command line
 2. Each parameter is validated based on its type
 3. If any validation fails:
@@ -649,8 +655,8 @@ Accessible via the `--completion-file` global flag, this generator outputs a Bas
   application options: `--help`, `-h`, `--help-complete`, `--version`, `-v`,
   `--completion-file`, and `--completion-file-pwsh`.
 - At named command levels, an empty token offers subcommands, command
-  parameters, and help; `--version` and `-v` remain application-level requests
-  and are not command options.
+  parameters, help, and reserved `--version`/`-v` requests. Version requests
+  display the application version without executing the selected command.
 - The shell function calls the executable's hidden `__complete` entrypoint for
   live candidates. A static associative tree is still emitted for
   compatibility but is not read by the generated function.
@@ -799,8 +805,8 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 │  • Parse last line for directive (:number)                              │
 │  • Extract suggestions (all lines before directive)                     │
 │  • Apply directive:                                                     │
-│    - CD_NOFILE (4): Don't fallback to file completion                   │
-│    - CD_NOSPACE (2): Don't add space after completion                   │
+│    - Bash currently parses but does not apply directive bits          │
+│    - PowerShell uses bit 2 to choose the completion result type       │
 │  • Set shell completion candidates (COMPREPLY / results array)          │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
@@ -821,27 +827,27 @@ The completion system uses a **hidden `__complete` entrypoint** that shell scrip
 - **Directive System**: Return value includes completion directive flags (CD_NOFILE, CD_NOSPACE, etc.)
 - **Context-Aware**: Completion logic walks command tree to determine current context
 - **Type-Aware**: Boolean and Enum parameters automatically complete with their valid values
-- **No File Fallback**: By default, only valid command/flag completions are shown
+- **Candidates**: The engine supplies no filesystem candidates. Bash parses
+  directives but does not currently apply their bits; PowerShell uses bit 2
+  to choose `ParameterName` rather than `ParameterValue` result types.
 
 **Example Token Flow:**
 
 ```bash
 # User types: myapp repo clone --url [TAB]
-# Shell calls: myapp __complete repo clone --url
+# Shell calls: myapp __complete repo clone --url ""
 
-Tokens = ["repo", "clone", "--url"]
+Tokens = ["repo", "clone", "--url", ""]
   ↓
 CompleteCLI():
   1. Tokens[0] = "repo" → Find "repo" command
   2. Tokens[1] = "clone" → Find "clone" subcommand
-  3. Tokens[2] = "--url" → Last token is a flag
-     - Check if "--url" is complete flag
-     - Check parameter type
-     - If String: no suggestions
-     - If Boolean: return ["true", "false"]
-     - If Enum: return allowed values
+  3. Empty current token follows "--url" → Complete its value
+     - URL/string options: no value suggestions, directive 0
+     - Boolean options: ["true", "false"], directive 4
+     - Enum options: allowed values, directive 4
   ↓
-Return: suggestions + ":4" (CD_NOFILE)
+Return for --url: [":0"]
 ```
 
 ---

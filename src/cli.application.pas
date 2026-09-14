@@ -69,6 +69,8 @@ type
     { Parses command-line arguments into FParsedParams
       Handles both --param=value and -p value formats }
     function ParseCommandLine: Boolean;
+    procedure ReadOption(var Index: Integer; out Flag, Value: string);
+    function HandleCurrentCommandVersion: Boolean;
 
     { Loads the process command line into FArguments. }
     procedure LoadProcessArguments;
@@ -396,7 +398,7 @@ begin
   end;
 
   if (ArgumentCount >= 1) and
-    ((ArgumentAt(1) = '-v') or (ArgumentAt(1) = '--version')) then
+    (SameText(ArgumentAt(1), '-v') or SameText(ArgumentAt(1), '--version')) then
   begin
     ShowVersion;
     Exit;
@@ -549,6 +551,8 @@ begin
     Exit;
   if not SelectCurrentCommand then
     Exit(1);
+  if HandleCurrentCommandVersion then
+    Exit;
   if HandleCurrentCommandHelp then
     Exit;
   Result := ExecuteCurrentCommand;
@@ -579,7 +583,51 @@ begin
   end;
 end;
 
-{ ParseCommandLine: Processes command line arguments into parameter dictionary
+{ Read one option using the same token boundaries for version requests and
+  normal parsing. Equals syntax is supported only for long options. }
+procedure TCLIApplication.ReadOption(var Index: Integer; out Flag, Value: string);
+var
+  Separator: Integer;
+begin
+  Flag := ArgumentAt(Index);
+  Value := '';
+  Separator := Pos('=', Flag);
+  if StartsStr('--', Flag) and (Separator > 0) then
+  begin
+    Value := Copy(Flag, Separator + 1, Length(Flag));
+    Flag := Copy(Flag, 1, Separator - 1);
+  end
+  else if (Index < ArgumentCount) and
+    (not StartsStr('-', ArgumentAt(Index + 1)) or
+     IsNegativeNumericValue(Flag, ArgumentAt(Index + 1))) then
+  begin
+    Inc(Index);
+    Value := ArgumentAt(Index);
+  end;
+  Inc(Index);
+end;
+
+function TCLIApplication.HandleCurrentCommandVersion: Boolean;
+var
+  Index: Integer;
+  Flag, Value: string;
+begin
+  Result := False;
+  Index := FParamStartIndex;
+  while Index <= ArgumentCount do
+  begin
+    if not StartsStr('-', ArgumentAt(Index)) then
+      Exit;
+    ReadOption(Index, Flag, Value);
+    if SameText(Flag, '-v') or SameText(Flag, '--version') then
+    begin
+      ShowVersion;
+      Exit(True);
+    end;
+  end;
+end;
+
+{ ParseCommandLine: Processes command line arguments into an ordered value list
   Handles:
   - Long format (--param=value)
   - Long format with space (--param value)
@@ -611,48 +659,12 @@ begin
       Exit(False);
     end;
 
-    // Handle --param=value format
-    if StartsStr('--', Param) then
-    begin
-      Value := '';
-      if Pos('=', Param) > 0 then
-      begin
-        Value := Copy(Param, Pos('=', Param) + 1, Length(Param));
-        Param := Copy(Param, 1, Pos('=', Param) - 1);
-      end
-      else if (i < ArgumentCount) and
-        (not StartsStr('-', ArgumentAt(i + 1)) or
-         IsNegativeNumericValue(Param, ArgumentAt(i + 1))) then
-      begin
-        Value := ArgumentAt(i + 1);
-        Inc(i);
-      end;
-      // Store flag with empty string if no value is provided
-      FParsedParams.Values[Param] := Value;
-      if FDebugMode then
-        WriteOutput('  Added: ' + Param + ' = ' +
-          RedactParameterValue(FCurrentCommand, Param, Value), ccCyan);
-    end
-    // Handle -p value format
-    else if StartsStr('-', Param) then
-    begin
-      if (i < ArgumentCount) and
-        (not StartsStr('-', ArgumentAt(i + 1)) or
-         IsNegativeNumericValue(Param, ArgumentAt(i + 1))) then
-      begin
-        Value := ArgumentAt(i + 1);
-        Inc(i);
-      end
-      else
-        Value := '';
-      // Store flag with empty string if no value is provided
-      FParsedParams.Values[Param] := Value;
-      if FDebugMode then
-        WriteOutput('  Added: ' + Param + ' = ' +
-          RedactParameterValue(FCurrentCommand, Param, Value), ccCyan);
-    end;
-
-    Inc(i);
+    ReadOption(i, Param, Value);
+    // Keep every occurrence, including empty values, in command-line order.
+    FParsedParams.Add(Param + '=' + Value);
+    if FDebugMode then
+      WriteOutput('  Added: ' + Param + ' = ' +
+        RedactParameterValue(FCurrentCommand, Param, Value), ccCyan);
   end;
 
   if FDebugMode then
@@ -727,11 +739,8 @@ begin
   // Add global flags
   Result.Add('--help');
   Result.Add('-h');
-  if FCurrentCommand = FRootCommand then
-  begin
-    Result.Add('--version');
-    Result.Add('-v');
-  end;
+  Result.Add('--version');
+  Result.Add('-v');
 end;
 
 { ValidateCommand: Checks if all parameters are valid

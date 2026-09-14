@@ -73,6 +73,9 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ## Documentation
 
 * Update README.md if needed
+* Run `node tests/docs/verify-recipes.cjs` (Node.js 18+ and FPC on PATH).
+  It compiles Pascal directly from current Markdown and executes the documented
+  platform-specific build/run recipes in temporary repository copies.
 * Add inline documentation for new code
 * Update user manual for significant changes
 * Keep technical documentation current
