@@ -10,7 +10,8 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  CLI.Interfaces, CLI.Command, CLI.Internal.CompletionScripts;
+  CLI.Interfaces, CLI.Application, CLI.Command,
+  CLI.Internal.CompletionScripts;
 
 type
   TCompletionFixtureCommand = class(TBaseCommand)
@@ -23,6 +24,12 @@ type
     procedure AssertScriptEquals(const Name: string;
       const Expected: array of string; const Actual: TCompletionScript);
   published
+    procedure Test_RootParameterCompletion;
+    procedure Test_CandidateCompletionBehaviour;
+    procedure Test_DirectiveCompletionBehaviour;
+    procedure Test_ApplicationScriptOutputContract;
+    procedure Test_SingleFlagParameterCompletion;
+    procedure Test_EnumCompletionMatchesValidation;
     procedure Test_BashRenderingPreservesV154Contract;
     procedure Test_PowerShellRenderingPreservesV154Contract;
   end;
@@ -34,6 +41,16 @@ begin
   Result := 0;
 end;
 
+function MakeArgs(const Values: array of string): TStringArray;
+var
+  i: Integer;
+begin
+  Result := nil;
+  SetLength(Result, Length(Values));
+  for i := 0 to Length(Values) - 1 do
+    Result[i] := Values[i];
+end;
+
 procedure TCompletionScriptTests.AssertScriptEquals(const Name: string;
   const Expected: array of string; const Actual: TCompletionScript);
 var
@@ -43,6 +60,248 @@ begin
   for i := 0 to High(Expected) do
     AssertEquals(Format('%s line %d', [Name, i + 1]), Expected[i],
       Actual[i].Text);
+end;
+
+procedure TCompletionScriptTests.Test_RootParameterCompletion;
+var
+  Root: TCompletionFixtureCommand;
+  App: TCLIApplication;
+  Candidates: TStringList;
+begin
+  Root := TCompletionFixtureCommand.Create('', 'Default application action');
+  Root.AddStringParameter('-n', '--name', 'Name to greet');
+  Root.AddEnumParameter('-m', '--mode', 'Greeting mode',
+    'normal|friendly|formal');
+  App := TCLIApplication.Create('TestApp', '1.3.0', Root);
+  try
+    Candidates := App.TestComplete(MakeArgs(['--n']));
+    try
+      AssertTrue('Root parameter name should be completed',
+        Candidates.IndexOf('--name') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['--']));
+    try
+      AssertTrue('Root completion should retain all global options',
+        Candidates.IndexOf('--completion-file') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['--mode', '']));
+    try
+      AssertTrue('Root enum value should be completed',
+        Candidates.IndexOf('friendly') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCompletionScriptTests.Test_CandidateCompletionBehaviour;
+var
+  App: TCLIApplication;
+  Deploy, Target: TCompletionFixtureCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.3.3');
+  Deploy := TCompletionFixtureCommand.Create('deploy', 'Deploy an application');
+  Target := TCompletionFixtureCommand.Create('target', 'Manage deployment targets');
+  try
+    Deploy.AddFlag('-v', '--verbose', 'Verbose output');
+    Deploy.AddEnumParameter('-m', '--mode', 'Deployment mode',
+      'safe|fast');
+    Deploy.AddSubCommand(Target);
+    App.RegisterCommand(Deploy);
+
+    Candidates := App.TestComplete(MakeArgs([]));
+    try
+      AssertTrue('Empty completion should list top-level commands',
+        Candidates.IndexOf('deploy') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['de']));
+    try
+      AssertTrue('Command prefixes should be completed',
+        Candidates.IndexOf('deploy') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '--v']));
+    try
+      AssertTrue('Command flags should be completed',
+        Candidates.IndexOf('--verbose') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '--mode', '']));
+    try
+      AssertTrue('Enum values should be completed',
+        Candidates.IndexOf('safe') >= 0);
+      AssertTrue('Completion should include a directive',
+        Candidates.IndexOf(':' + IntToStr(CD_NOFILE)) >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['deploy', '']));
+    try
+      AssertTrue('Subcommands should be completed',
+        Candidates.IndexOf('target') >= 0);
+      AssertTrue('Available flags should accompany subcommands',
+        Candidates.IndexOf('--mode') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCompletionScriptTests.Test_DirectiveCompletionBehaviour;
+var
+  App: TCLIApplication;
+  Cmd: TCompletionFixtureCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.4.2');
+  Cmd := TCompletionFixtureCommand.Create('deploy', 'Deploy an application');
+  try
+    App.RegisterCommand(Cmd);
+
+    Candidates := App.TestComplete(MakeArgs([]));
+    try
+      AssertEquals('Empty completion should finish with a directive', ':0',
+        Candidates[Candidates.Count - 1]);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['de']));
+    try
+      AssertEquals('Command-prefix completion should finish with a directive',
+        ':0', Candidates[Candidates.Count - 1]);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCompletionScriptTests.Test_ApplicationScriptOutputContract;
+var
+  App: TCLIApplication;
+  Output: TStringList;
+  i, HeaderCount: Integer;
+begin
+  App := TCLIApplication.Create('my app$unsafe', '1.4.2');
+  Output := TStringList.Create;
+  try
+    AssertEquals('Bash script generation should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--completion-file']), Output));
+    AssertTrue('Bash function names should be safe shell identifiers',
+      Pos('_my_app_unsafe_completions()', Output.Text) > 0);
+    AssertTrue('Bash should invoke the executable through a quoted variable',
+      Pos('"$executable" __complete', Output.Text) > 0);
+
+    Output.Clear;
+    AssertEquals('PowerShell script generation should succeed', 0,
+      App.TestExecuteAndCapture(MakeArgs(['--completion-file-pwsh']), Output));
+    HeaderCount := 0;
+    for i := 0 to Output.Count - 1 do
+      if Pos('# Usage:', Output[i]) = 1 then
+        Inc(HeaderCount);
+    AssertEquals('PowerShell output should contain exactly one preamble', 1,
+      HeaderCount);
+    AssertTrue('PowerShell should invoke a quoted executable variable',
+      Pos('& $cliFpExecutable __complete @argsList', Output.Text) > 0);
+  finally
+    Output.Free;
+    App.Free;
+  end;
+end;
+
+procedure TCompletionScriptTests.Test_SingleFlagParameterCompletion;
+var
+  App: TCLIApplication;
+  Cmd: TCompletionFixtureCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.1');
+  Cmd := TCompletionFixtureCommand.Create('test', 'Test command');
+  try
+    Cmd.AddStringParameter('-n', '', 'Short-only parameter');
+    Cmd.AddStringParameter('', '--name', 'Long-only parameter');
+    Cmd.AddStringParameter('-b', '--both', 'Parameter with both flags');
+    App.RegisterCommand(Cmd);
+
+    Candidates := App.TestComplete(MakeArgs(['test', '']));
+    try
+      AssertEquals('Completion should not emit an empty flag candidate', -1,
+        Candidates.IndexOf(''));
+      AssertTrue('Short-only parameters should be completed',
+        Candidates.IndexOf('-n') >= 0);
+      AssertTrue('Long-only parameters should be completed',
+        Candidates.IndexOf('--name') >= 0);
+      AssertTrue('Both parameter flags should be completed',
+        Candidates.IndexOf('-b') >= 0);
+      AssertTrue('Both parameter long flags should be completed',
+        Candidates.IndexOf('--both') >= 0);
+    finally
+      Candidates.Free;
+    end;
+
+    Candidates := App.TestComplete(MakeArgs(['test', '--']));
+    try
+      AssertEquals('Flag-prefix completion should not emit an empty candidate',
+        -1, Candidates.IndexOf(''));
+      AssertTrue('Long-only parameters should complete after a long prefix',
+        Candidates.IndexOf('--name') >= 0);
+      AssertTrue('Both parameters should complete after a long prefix',
+        Candidates.IndexOf('--both') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
+end;
+
+procedure TCompletionScriptTests.Test_EnumCompletionMatchesValidation;
+var
+  App: TCLIApplication;
+  Cmd: TCompletionFixtureCommand;
+  Candidates: TStringList;
+begin
+  App := TCLIApplication.Create('TestApp', '1.5.3');
+  Cmd := TCompletionFixtureCommand.Create('test', 'Test command');
+  try
+    Cmd.AddEnumParameter('-m', '--mode', 'Mode', '"normal mode"|fast mode');
+    App.RegisterCommand(Cmd);
+    AssertEquals('Quoted enum values containing spaces should validate', 0,
+      App.TestExecute(MakeArgs(['test', '--mode', 'normal mode'])));
+
+    Candidates := App.TestComplete(MakeArgs(['test', '--mode', '']));
+    try
+      AssertTrue('Completion must offer the same quoted enum value as validation',
+        Candidates.IndexOf('normal mode') >= 0);
+      AssertTrue('Completion must retain unquoted values containing spaces',
+        Candidates.IndexOf('fast mode') >= 0);
+    finally
+      Candidates.Free;
+    end;
+  finally
+    App.Free;
+  end;
 end;
 
 procedure TCompletionScriptTests.Test_BashRenderingPreservesV154Contract;
