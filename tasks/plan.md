@@ -507,3 +507,10 @@ Normal Lazarus package build succeeds; its user-cache permission warning is
 external to compilation. Exact committed clean-clone builds and Linux/Windows
 PR plus merge qualification follow before tagging. Review covers parser token
 boundaries, alias/default semantics, redaction, generator parity, and docs.
+
+The committed clean clone also built the Lazarus package successfully, and the
+cleanup smoke compiled all eight examples and removed their binaries. Final
+render review moved the enum recipe out of a Markdown table because pinned
+DocKit splits literal and escaped pipes inside table code. The recipe runner
+still compiles the same enum registration with the combined option set. Browser
+checks verify consistent table column counts across all 14 current pages.

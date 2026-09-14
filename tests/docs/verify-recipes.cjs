@@ -127,10 +127,12 @@ try {
   const options = blocks('docs/options.md', 'pascal');
   const optionRows = [...read('docs/options.md').matchAll(/`(Cmd\.Add[^`]+)`/g)]
     .map(match => match[1].replace(/\\\|/g, '|') + ';');
+  optionRows.push(options.find(block => block.startsWith('Cmd.AddEnumParameter')));
   const optionSetup = `var App: ICLIApplication; Cmd: TOptionsCommand; begin
     Cmd := TOptionsCommand.Create('configure', 'Configure'); ${optionRows.join('\n')}
     App := CreateCLIApplication('options', '1.0.0'); App.RegisterCommand(Cmd); Halt(App.Execute); end.`;
-  const optionExe = compile(program(options[0].replace(/function TOptionsCommand\.Execute: Integer;[\s\S]*$/, options[2]), optionSetup));
+  const optionExe = compile(program(options[0].replace(/function TOptionsCommand\.Execute: Integer;[\s\S]*$/,
+    options.find(block => block.includes('RawCount: string;'))), optionSetup));
   expect(optionExe, ['configure', '--count', '2', '--path', '.', '--url', 'https://example.com', '--api-key', 'secret'], 'Count: 2');
   for (const file of ['docs/how-to.md', 'docs/terminal.md']) {
     for (const block of blocks(file, 'pascal')) {

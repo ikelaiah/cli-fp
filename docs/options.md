@@ -48,12 +48,19 @@ In the following table, `Cmd` means that exact `TOptionsCommand` instance.
 | Float | `Cmd.AddFloatParameter('-r', '--rate', 'Rate', False, '1')` |
 | Presence flag | `Cmd.AddFlag('-d', '--verbose', 'Verbose output')` |
 | Boolean with chosen default | `Cmd.AddBooleanParameter('-b', '--color', 'Use colour', False, 'true')` |
-| Choice | `Cmd.AddEnumParameter('-l', '--level', 'Level', 'debug\|info\|warn', False, 'info')` |
+| Choice | Use the enum registration below. |
 | Path | `Cmd.AddPathParameter('-p', '--path', 'Target path', True)` |
 | URL | `Cmd.AddUrlParameter('-u', '--url', 'Repository URL', True)` |
 | Password | `Cmd.AddPasswordParameter('-k', '--api-key', 'API key', True)` |
 | Date/time | `Cmd.AddDateTimeParameter('-t', '--time', 'Start time')` |
 | Comma-separated items | `Cmd.AddArrayParameter('-a', '--items', 'Items')` |
+
+The enum registration is also a setup fragment on the same `Cmd` instance;
+insert it with the table's registrations before `App.RegisterCommand(Cmd)`:
+
+```pascal
+Cmd.AddEnumParameter('-l', '--level', 'Level', 'debug|info|warn', False, 'info');
+```
 
 `True` in the required position makes an option required. An optional option
 with a default returns that default when it was omitted. Complete the program
