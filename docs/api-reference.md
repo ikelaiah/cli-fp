@@ -192,12 +192,13 @@ are `ssDots`, `ssLine`, `ssCircle`, `ssSquare`, `ssArrow`, `ssBounce`, and
 
 ## Errors and built-in requests
 
-`CLI.Errors` provides `ECLIException` and related types for applications that
-choose to use them. It is not the general runtime-error contract in current
-1.x: definition checks can raise standard `SysUtils` argument exceptions and
-command-line validation normally reports an error and returns a non-zero exit
-code. Catch the concrete exception types your own application introduces, or
-broader `Exception` only where useful recovery or context is possible.
+`CLI.Errors` provides public 1.x compatibility types (`ECLIException` and
+related classes) for applications that choose to use them. It is not the
+general runtime-error contract: definition checks can raise standard `SysUtils`
+argument exceptions and command-line validation normally reports an error and
+returns a non-zero exit code. Catch the concrete exception types your own
+application introduces, or broader `Exception` only where useful recovery or
+context is possible.
 
 Applications receive `-h`/`--help`, `--help-complete`, and `-v`/`--version`.
 When it is the first argument, `--completion-file` prints a Bash script and

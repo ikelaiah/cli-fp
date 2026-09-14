@@ -58,6 +58,10 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 * Run the framework test suite with `bash tests/run_tests.sh` on Linux/macOS
   or `powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1` on Windows
+* Run the required completion contracts with
+  `bash tests/completion-tests/run_ci_bash.sh` on Linux/macOS or
+  `powershell -ExecutionPolicy Bypass -File tests\completion-tests\run_ci_pwsh.ps1`
+  on Windows
 * Run the code-generator suite with `bash tests/codegen/run_unit_tests.sh`,
   `bash tests/codegen/run_golden_test.sh`, `bash tests/codegen/run_ops_test.sh`,
   and `bash tests/codegen/run_compile_smoke.sh` on Linux/macOS, or

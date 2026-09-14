@@ -18,8 +18,9 @@ For local repository work, the reader-facing source pages are:
 - [Runnable examples](examples.md), [generator guide](codegen.md), and
   [API reference](api-reference.md) — choose a runnable program, scaffold a
   project, or look up a contract.
-- [Technical design](technical-docs.md) and [contributing/support](project.md)
-  — maintainer-oriented material.
+- [Technical design](technical-docs.md),
+  [architecture decisions](decisions/README.md), and
+  [contributing/support](project.md) — maintainer-oriented material.
 
 Release snapshots, completion test reports and historical test output live in
 the [documentation archive](archive/README.md). They remain useful evidence

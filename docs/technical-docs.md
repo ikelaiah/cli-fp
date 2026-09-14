@@ -102,6 +102,12 @@ classDiagram
         +Complete(Tokens): TStringList
     }
 
+    class CLIInternalCompletionScripts {
+        <<internal unit>>
+        +RenderBashCompletionScript()
+        +RenderPowerShellCompletionScript()
+    }
+
     class CLIInternalParameterValues {
         <<internal unit>>
         +TryGetParameterValue()
@@ -173,6 +179,7 @@ classDiagram
     TCLIApplication --> ICommand
     TCLIApplication ..> TCLIHelpRenderer
     TCLIApplication ..> TCLICompletionEngine
+    TCLIApplication ..> CLIInternalCompletionScripts
     TCLIApplication ..> CLIInternalParameterValues
     TBaseCommand --> ICommandParameter
     TBaseCommand --> ICommand
@@ -248,15 +255,26 @@ end;
 The `TCLIApplication` class is the central component that:
 - Manages command registration
 - Holds an optional executable root command
-- Coordinates command-line parsing and execution through focused stages
+- Coordinates application setup, root/named-command selection, parsing, and
+  dispatch through focused stages
 - Delegates help formatting to `CLI.Internal.Help`
-- Delegates completion calculation to `CLI.Internal.Completion`
+- Orchestrates completion requests, delegating candidate calculation to
+  `CLI.Internal.Completion` and Bash/PowerShell script rendering to
+  `CLI.Internal.CompletionScripts`
 
 `CLI.Internal.ParameterValues` owns parameter lookup semantics shared by
 validation and command execution. These units are internal implementation
 boundaries; the public `TCLIApplication` facade and `ICLIApplication` contract
 are unchanged. Lazarus compiles the internal units as package members but does
 not add them to the generated package `uses` surface.
+
+The facade is intentionally retained: it is the one place that knows process
+arguments, registered commands, test-output capture, and the public execution
+entry point. `CLI.Internal.CompletionScripts` returns ordered rendered lines
+with the existing output-routing marker; the facade performs the final console
+write. This keeps generated Bash and PowerShell text independently testable
+without exposing a new public renderer API. The decision is recorded in
+[ADR-001](decisions/ADR-001-application-facade-and-completion-scripts.md).
 
 Key methods:
 ```pascal
@@ -437,12 +455,14 @@ type
   ECommandExecutionException = class(ECLIException);
 ```
 
-These exception types are available to application code, but the current
-`TCLIApplication` execution path does not raise them for parser or validation
-failures. It writes those errors and returns exit code `1`; command exceptions
-are caught as `Exception` and reported as execution errors. Definition errors,
-including duplicate command registration, use the standard `SysUtils`
-argument-exception types documented by `CLI.Validation`.
+These public types are retained as 1.x source-compatibility types for
+application code that chooses to raise or catch them. They are not the general
+runtime-error contract: the current `TCLIApplication` execution path does not
+raise them for parser or validation failures. It writes those errors and
+returns exit code `1`; command exceptions are caught as `Exception` and
+reported as execution errors. Definition errors, including duplicate command
+registration, use the standard `SysUtils` argument-exception types documented
+by `CLI.Validation`.
 
 2. **Parameter Validation**
 - Required parameter checks
@@ -612,7 +632,14 @@ Format('Error: Parameter "%s" must be a valid URL starting with http://, https:/
 
 ## Shell Completion Script Generators
 
-The CLI framework includes advanced completion script generators for both Bash and PowerShell, providing context-aware tab completion for your CLI.
+The CLI framework provides completion script generators for both Bash and
+PowerShell, with context-aware tab completion for your CLI.
+
+`CLI.Internal.CompletionScripts` owns deterministic Bash and PowerShell text
+rendering and shell quoting. `TCLIApplication` retains the public flags and
+the process/test-output boundary. FPCUnit compares full ordered renderings;
+required CI additionally generates a fixture script and checks Bash syntax on
+Linux and PowerShell parsing on Windows.
 
 ### Bash Completion Script Generator
 

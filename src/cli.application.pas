@@ -3,8 +3,9 @@ unit CLI.Application;
 {$mode objfpc}{$H+}{$J-}
 
 { This unit implements the core CLI application functionality.
-  It handles command registration, parameter parsing, help system,
-  and command execution flow. }
+  It owns application setup, command selection, parsing coordination,
+  dispatch, help orchestration, and completion orchestration. Shell-script
+  rendering is delegated to CLI.Internal.CompletionScripts. }
 
 interface
 
@@ -16,14 +17,14 @@ type
   { List type for storing registered commands }
   TCommandList = specialize TList<ICommand>;
 
-  { Completion types and helpers }
+  { Completion protocol and legacy callback types }
   TStringArray = array of string;
 
-  { Function types for completion callbacks (compatible with FPC without anonymous functions) }
+  { Legacy callback signatures retained for 1.x source compatibility. }
   TFlagValueCompletionFunc = function (Args: TStringArray; ToComplete: string): TStringArray;
   TPositionalCompletionFunc = function (Args: TStringArray; ToComplete: string): TStringArray;
 
-  { Simple storage record for completion callbacks - separate types to avoid nil pointer issues }
+  { Legacy callback records retained for 1.x source compatibility. }
   TFlagCompletionEntry = record
     Key: string;
     Callback: TFlagValueCompletionFunc;
@@ -41,8 +42,8 @@ type
     - Command registration and management
     - Command-line parsing
     - Parameter validation
-    - Help system
-    - Command execution }
+    - Help and completion orchestration
+    - Command dispatch }
   TCLIApplication = class(TInterfacedObject, ICLIApplication)
   private
     FName: string;              // Application name
@@ -1029,13 +1030,13 @@ begin
   Result := ValidateCommand;
 end;
 
-{ RegisterFlagValueCompletion: Register a callback for flag value completion }
+{ RegisterFlagValueCompletion: Retained no-op for 1.x source compatibility. }
 procedure TCLIApplication.RegisterFlagValueCompletion(const CommandPath, FlagName: string; Func: TFlagValueCompletionFunc);
 begin
   // Deprecated no-op retained for 1.x source compatibility.
 end;
 
-{ RegisterPositionalCompletion: Register a callback for positional argument completion }
+{ RegisterPositionalCompletion: Retained no-op for 1.x source compatibility. }
 procedure TCLIApplication.RegisterPositionalCompletion(const CommandPath: string; ArgIndex: Integer; Func: TPositionalCompletionFunc);
 begin
   // Deprecated no-op retained for 1.x source compatibility.
