@@ -15,6 +15,6 @@ terminal methods, and example/generator build instructions. Local relative
 links are checked. Historical documentation is not rewritten or executed.
 
 Shell completion syntax/parser contracts remain in `tests/completion-tests`;
-the framework suite covers parser/lookup behaviour directly. DocKit build and
+the framework suite covers parser/lookup behaviour directly. DocSprout build and
 rendered-site inspection are separate release checks, not implied by these
 recipe tests.

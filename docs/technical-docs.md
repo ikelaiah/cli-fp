@@ -274,7 +274,7 @@ entry point. `CLI.Internal.CompletionScripts` returns ordered rendered lines
 with the existing output-routing marker; the facade performs the final console
 write. This keeps generated Bash and PowerShell text independently testable
 without exposing a new public renderer API. The decision is recorded in
-[ADR-001](decisions/ADR-001-application-facade-and-completion-scripts.md).
+[ADR-001](https://github.com/ikelaiah/cli-fp/blob/main/docs/decisions/ADR-001-application-facade-and-completion-scripts.md).
 
 Key methods:
 ```pascal

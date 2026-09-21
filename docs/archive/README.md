@@ -7,7 +7,7 @@ match the supported release.
 
 Use the [current documentation index](../README.md),
 [user guide](../user-manual.md), and [API reference](../api-reference.md) for
-the supported library. The archive is intentionally excluded from DocKit's
+the supported library. The archive is intentionally excluded from DocSprout's
 reader-facing navigation.
 
 - `releases/` — release notes for immutable historical releases.

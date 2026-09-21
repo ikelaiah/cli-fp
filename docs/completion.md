@@ -48,4 +48,5 @@ scope. Reserved `-v`/`--version` requests display the application version at
 root, named and nested scopes, and are offered in command-option completions.
 Use `-d` or long-only `--verbose` for verbosity; `-V` is also a version request.
 Historical completion qualification material is retained in the
-[archive](archive/completion-testing/README.md), not in the user guide.
+[archive](https://github.com/ikelaiah/cli-fp/blob/main/docs/archive/completion-testing/README.md),
+not in the user guide.
