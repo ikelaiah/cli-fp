@@ -514,3 +514,23 @@ render review moved the enum recipe out of a Markdown table because pinned
 DocKit splits literal and escaped pipes inside table code. The recipe runner
 still compiles the same enum registration with the combined option set. Browser
 checks verify consistent table column counts across all 14 current pages.
+
+## v1.6.2: documentation publishing rebrand
+
+Baseline: fetched `main` at `1156d8f` after the v1.6.1 release.
+The user authorises implementation through publication and Pages verification.
+
+1. Rename the site configuration to `docs/docsprout.json` and move the
+   historical Pages caller to `.github/workflows/docsprout-pages.yml`, pinned
+   to the released DocSprout v1.1.1 reusable workflow.
+2. Repair published-page links that targeted intentionally unlisted archive and
+   ADR documents, then re-run `docsprout check` and `audit --strict`.
+3. Update v1.6.2 version metadata, changelog, roadmap, release notes and the
+   Lazarus package version without touching historical release sources.
+4. Qualify a local candidate tag with `check-release` and `build-all`, merge
+   the focused PR after Linux/Windows CI, annotate the exact merge commit, and
+   verify the DocSprout Pages deployment and live site.
+
+Acceptance: the historical documentation selector builds every manifest entry
+from its immutable tag under DocSprout v1.1.1, the strict audit is clean, and
+no runtime or public API behaviour changes.

@@ -230,11 +230,24 @@ documentation without any public API change.
 **Maintenance outcome:** completion scripts and behaviour can be changed and
 tested independently while the public application façade remains stable.
 
+## v1.6.2 — Documentation Publishing on DocSprout (completed 2026-09-21)
+
+- Move GitHub Pages publishing from DocKit-FP v1.0.0 to DocSprout v1.1.1,
+  the rebranded continuation of the same builder.
+- Rename the site configuration to `docs/docsprout.json` and the historical
+  release-tag workflow to `.github/workflows/docsprout-pages.yml`.
+- Repair published-page links to intentionally unlisted archive and ADR
+  material so the strict documentation audit is clean.
+
+**Maintenance outcome:** documentation keeps its versioned, immutable-release
+structure after the builder rebrand without any runtime or public API change.
+
 ## v2.0.0 — Make Execution State Explicit
 
 Before the v2 work, v1.6.1 (2026-09-15) corrects version-flag reservation and
 mixed-alias ordering, and qualifies current reader guides using executable
-Markdown recipes. See the changelog for the intentional registration change.
+Markdown recipes; v1.6.2 (2026-09-21) moves documentation publishing to
+DocSprout. See the changelog for the intentional registration change.
 
 - Evaluate actual positional-argument support and `--` terminator semantics
   together as one parser design.

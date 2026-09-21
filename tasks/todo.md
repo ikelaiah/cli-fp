@@ -60,3 +60,10 @@
 - [x] Audit current guides and execute corrected Markdown recipes
 - [ ] Qualify final revision and update release metadata
 - [ ] Review, PR, merge, exact-merge CI, tag, release, Pages and clean tree
+
+## cli-fp v1.6.2
+
+- [x] Migrate docs configuration and Pages workflow to DocSprout v1.1.1
+- [x] Repair unlisted-link audit findings and re-run check/audit
+- [x] Update 1.6.2 metadata and record release notes
+- [ ] Qualify local candidate tag, PR/CI, merge, tag, release, Pages

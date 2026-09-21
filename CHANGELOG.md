@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-09-21
+
+### Documentation / Maintenance
+
+- Switched documentation publishing from DocKit-FP v1.0.0 to DocSprout
+  v1.1.1, the rebranded continuation of the same builder. The site
+  configuration is now `docs/docsprout.json`, and the historical release-tag
+  Pages workflow is `.github/workflows/docsprout-pages.yml`.
+- Pointed published-page links to the intentionally unlisted completion
+  archive and ADR-001 at their GitHub sources, so `docsprout audit --strict`
+  reports no findings.
+
 ## [1.6.1] - 2026-09-15
 
 ### Fixed
@@ -638,7 +650,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with quick start guide
 - System requirements and compatibility information
 
-[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/ikelaiah/cli-fp/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/ikelaiah/cli-fp/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/ikelaiah/cli-fp/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/ikelaiah/cli-fp/compare/v1.5.4...v1.6.0
 [1.5.4]: https://github.com/ikelaiah/cli-fp/compare/v1.5.3...v1.5.4
