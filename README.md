@@ -15,6 +15,18 @@
 provides command trees, validated options, generated help and shell completion,
 colours, spinners, and progress bars—without third-party runtime dependencies.
 
+<p align="center">
+  <img src="docs/images/colordemo-greeting.png" alt="Rich terminal output: a framed banner, a spinner, coloured emphasis, and an info hint" width="820">
+</p>
+
+<p align="center"><em>Colours, framed panels, spinners, and status glyphs — all from the framework.</em></p>
+
+<p align="center">
+  <img src="docs/images/colordemo-help.png" alt="Generated help output: usage, commands, global options, and examples with coloured section headers" width="820">
+</p>
+
+<p align="center"><em>Help output is generated from your command tree, with grouped options and examples.</em></p>
+
 ## Prerequisites
 
 - Install [Free Pascal](https://www.freepascal.org/download.html); FPC 3.2.2 is
